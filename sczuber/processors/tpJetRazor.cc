@@ -101,7 +101,7 @@ void tpJetRazor::init() {
     //streamlog_out(DEBUG)  << "   init called  " << endl;
 
 
-    if(_jetDetectability==0){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._T.root","RECREATE");
+    if(_jetDetectability==0){_rootfile = new TFile("tpJetRazor_eW.pB.I39213._T.root","RECREATE");
         _R_T = new TH1F("R_T", "R=MTR/MR",1000,0,10);
         _MR_T = new TH1F("MR_T", "MR",500,0,100);
         _MRT_T = new TH1F("MRT_T", "MRT",250,0,50);
@@ -109,7 +109,7 @@ void tpJetRazor::init() {
         _MRR2_T = new TH2F("MRR2_T", "MRR2",500,0,100,1000,0,10 );
        // _beta_T = new TH1F("beta_T", "beta",250,0,50);
         
-        freopen("tpJetRazor_eW.pW.I39212._T.log", "w",stdout);    
+        freopen("tpJetRazor_eW.pB.I39213._T.log", "w",stdout);    
     }
     if(_jetDetectability==1){_rootfile = new TFile("tpJetRazor_.eW.pW.I39212._DAB.root","RECREATE");
         _R_DAB = new TH1F("R_DAB", "R=MTR/MR",1000,0,10);
@@ -331,7 +331,7 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
 
     vector<PseudoJet> jets = sorted_by_pt(cs.inclusive_jets());
     //print the number of jets in event:
-    cout << "NUMBER OF JETS: "<< jets.size()<< endl;
+    cerr << "NUMBER OF JETS: "<< jets.size()<< endl;
     //check if 0 jets:
     if(jets.size()==0){
         j0eventsCheck +=" ";
@@ -486,19 +486,22 @@ vector<vector<PseudoJet>> tpJetRazor::getMegajets(vector<PseudoJet> jets){
     // RAZOR MEGAJET ALGORITHM ------------------------------------------------
     vector<vector<PseudoJet>> megajet(2);
     int num_partitions = pow(2, jets.size());  
-    double m2_values[num_partitions] = {0}; 
+    double min_partition_m2 = numeric_limits<double>::max();
+    int min_index = 0;
 
-    for(int i = 0; i<num_partitions; i++){
+    for(int i = 0; i<num_partitions; ++i){
         vector<PseudoJet> partition[2]; 
-        for(int j = 0; j<jets.size(); j++){
-            int bit = pow(2,j);
-            if((i & bit) !=0){
-                partition[0].push_back(jets[j]);
-            }
-            else{
-                partition[1].push_back(jets[j]);
-            }
-        }
+        if((i & pow(2,0) != 0)){
+            for(int j = 0; j<jets.size(); ++j){
+                int bit = pow(2,j);
+                if((i & bit) !=0){
+                    partition[0].push_back(jets[j]);
+                }
+                else{
+                    partition[1].push_back(jets[j]);
+                }
+            } // jets 
+        } // if zero'th bit set  
         double subset_p[2][4] = {{0,0,0,0},{0,0,0,0}};
         // for both subsets add up 4 momenta of each jet in subset 
         for(int p = 0; p<2; p++){
@@ -513,41 +516,23 @@ vector<vector<PseudoJet>> tpJetRazor::getMegajets(vector<PseudoJet> jets){
         subset_m2[0]=pow(subset_p[0][0],2)-(pow(subset_p[0][1],2)+pow(subset_p[0][2],2)+pow(subset_p[0][3],2));
         subset_m2[1]=pow(subset_p[1][0],2)-(pow(subset_p[1][1],2)+pow(subset_p[1][2],2)+pow(subset_p[1][3],2));
         double partition_m2 = subset_m2[0]+subset_m2[1]; // sum of the two megajets 
-        // print the m2 value for this partition: 
-        m2_values[i]= partition_m2;
-        //cout <<"m2: "<< m2_values[i] << endl ;
+      
+        if(partition_m2<min_partition_m2 && i !=0 && i != (num_partitions-1) )  {
+            min_partition_m2 = partition_m2;
+            min_index = i;
+        } 
     } // num_partitions
-    // set the min m2 value to the last valid 
-    double min_value = m2_values[num_partitions-2]; // MIGHT BE PROBLEM IF *NO* JETS OR *ONE* JET!!
-    int min_index = num_partitions-2;
-    cout <<"initial min_value: "<< min_value<< endl;
-    for(int i=0; i<num_partitions; i++){
-        // if subset is not null set or set itself:
-        if(i!=0 && i!=(num_partitions-1) ){
-            if(m2_values[i]<min_value){
-                min_index = i;
-                min_value = m2_values[i];
-            }
-        }
-    }
-    cout <<"~~minimum index: "<< min_index<<" ~~minimum value: "<< min_value<< endl;
-    // re-create the partition corresponding to the min_index: 
-    for(unsigned int j=0; j<jets.size(); j++){
-        unsigned int bit = pow(2,j);
+
+    for(int j=0; j<jets.size(); ++j){
+        int bit = pow(2,j);
         if ((min_index & bit) != 0){
             megajet[0].push_back(jets[j]);
-        }
-    }
-    for(unsigned int j=0;j<jets.size(); j++){
-        if(std::find(megajet[0].begin(),megajet[0].end(), jets[j]) !=megajet[0].end()){
-            //subset contains jets[j]
         }
         else {
             //subset does not contain jets[j]
             megajet[1].push_back(jets[j]);
         }
     }
-    // megajet is now the correct megajet to use
     return megajet; 
 }
 vector<vector<double>> tpJetRazor::boostMegajets(vector<double> j1, vector<double> j2){

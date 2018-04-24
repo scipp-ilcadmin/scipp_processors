@@ -504,10 +504,10 @@ vector<vector<PseudoJet>> tpJetRazor::getMegajets(vector<PseudoJet> jets){
         // for both subsets add up 4 momenta of each jet in subset 
         for(int p = 0; p<2; ++p){
             for(int j = 0; j<partition[p].size(); ++j){
-                subset_p[p][0]=subset_p[p][0]+partition[p][j].e();
-                subset_p[p][1]=subset_p[p][1]+partition[p][j].px();
-                subset_p[p][2]=subset_p[p][2]+partition[p][j].py();
-                subset_p[p][3]=subset_p[p][3]+partition[p][j].pz();
+                subset_p[p][0]+=partition[p][j].e();
+                subset_p[p][1]+=partition[p][j].px();
+                subset_p[p][2]+=partition[p][j].py();
+                subset_p[p][3]+=partition[p][j].pz();
             }
         }
         double subset_m2[2]= {0,0};
@@ -516,9 +516,11 @@ vector<vector<PseudoJet>> tpJetRazor::getMegajets(vector<PseudoJet> jets){
         double partition_m2 = subset_m2[0]+subset_m2[1]; // sum of the two megajets 
 	if(partition_m2<min_partition_m2){
 	  min_partition_m2=partition_m2;
-	  min_index=0;
+	  min_index=i;
 	}
     } // num_partitions
+
+    //rebuilds matrix.
     for(int j = 0; j<jets.size(); ++j){
       int bit = pow(2,j);
       if((min_index & bit) !=0){
