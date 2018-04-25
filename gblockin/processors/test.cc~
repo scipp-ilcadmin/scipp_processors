@@ -81,8 +81,8 @@ void example::processEvent( LCEvent * evt ) {
       cout << pid << endl;
       double energy = particle->getEnergy();
       double mass = particle->getMass();
-      //      double charge = particle->getCharge();
-      double momentum = particle->getMomentum();
+      double charge = particle->getCharge();
+      //      double momentum = particle->getMomentum();
       cout << "energy: ";
       cout << energy << endl;
       cout << "mass: ";

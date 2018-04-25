@@ -94,7 +94,7 @@ TwoPhotonSVM::TwoPhotonSVM() : Processor("TwoPhotonSVM") {
 void TwoPhotonSVM::init() { 
     streamlog_out(DEBUG)  << "   init called  " << std::endl ;
     
-    _rootfile = new TFile("TwoPhotonSVM_eW.pW.root", "RECREATE");
+    _rootfile = new TFile("TwoPhotonSVM_eW.pW.I39212.root", "RECREATE");
 
     _S_TRU = new TH1F("S_TRU", "True Scalar",400,0,100);
     _S_DAB = new TH1F("S_DAB", "Detectable Scalar",400,0,100); 

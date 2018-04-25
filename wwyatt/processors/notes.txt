@@ -1,0 +1,3 @@
+move fourvec.h and TwoPhoton.h into the shared procesoors
+change getFourVector to getFourvec
+move getFourvec to fourvec.h

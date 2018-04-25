@@ -187,7 +187,7 @@ void tpJetRazor::processRunHeader( LCRunHeader* run) {
 
 void tpJetRazor::processEvent( LCEvent * evt ) { 
     
-    cout << "EVENT: "<< _nEvt<< endl;   
+    cerr << "EVENT: "<< _nEvt<< endl;   
 
     _inParVec = evt->getCollection( _colName) ;
     //cout << " get collection " << endl;
@@ -278,7 +278,7 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
     } // for particle 
 
 
-
+    cerr << "Included particles:" << endl; 
     for (int n=0;n<_inParVec->getNumberOfElements() ;n++){
         MCParticle* aPart = dynamic_cast<MCParticle*>( _inParVec->getElementAt(n) );
         try{
@@ -307,7 +307,7 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
 
                 if(_jetDetectability == 0){
                     if(!isDarkMatter){
-                        cout << "id: " << id << " "<< pname[id] << " "<< parp[0]<< " "<<parp[1]<< " "<< parp[2]<< endl;
+                        cerr << "id: " << id << " "<< pname[id] << " "<< parp[0]<< " "<<parp[1]<< " "<< parp[2]<< endl;
                     }
                 }
                 if(_jetDetectability == 1){

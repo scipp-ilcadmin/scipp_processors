@@ -25,7 +25,8 @@
 
 #include <TFile.h>
 #include <TH2D.h>
-
+#include "fourvec.h"
+#include "TwoPhoton.h"
 // ----- include for verbosity dependend logging ---------
 #include "marlin/VerbosityLevels.h"
 
@@ -75,14 +76,18 @@ void example::processRunHeader( LCRunHeader* run) {
 void example::processEvent( LCEvent * evt ) { 
     LCCollection* col = evt->getCollection( _colName );
     _nEvt++;
-    int end_particles=0;
-    cout << " +++ New Event +++" << endl;
+
+    fourvec total;
     for(int i=0; i < col->getNumberOfElements(); ++i){
       MCParticle* particle=dynamic_cast<MCParticle*>(col->getElementAt(i));
       int pid=particle->getPDG();
       int state=particle->getGeneratorStatus();
-      if(state==1) ++end_particles;
+      if(state==1){
+	fourvec final=TwoPhoton::getFourVector(particle);
+	total+=final;
+      }
     }
+    cout << "Transverse Momentum: " << TwoPhoton::getTMag(total) << endl;
 }
 
 

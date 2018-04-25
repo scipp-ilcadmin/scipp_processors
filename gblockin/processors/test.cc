@@ -15,7 +15,7 @@
  * April 5, 2016
  */
 
-#include "example.h"
+#include "test.h"
 #include "scipp_ilc_utilities.h"
 #include <iostream>
 
@@ -35,7 +35,7 @@ using namespace marlin;
 using namespace std;
 
 
-example example;
+test test;
 
 static TFile* _rootfile;
 static TH2F* _plot;
@@ -44,7 +44,7 @@ static TH1F* _histo;
 static int _nEvt=0;
 
 
-example::example() : Processor("example") {
+test::test() : Processor("test") {
     // modify processor description
     _description = "Protype Processor" ;
 
@@ -55,11 +55,11 @@ example::example() : Processor("example") {
 }
 
 
-void example::init() { 
+void test::init() { 
     streamlog_out(DEBUG) << "   init called  " << std::endl ;
     cout << "Initialized " << endl;
 
-    _rootfile = new TFile("example.root","RECREATE");
+    _rootfile = new TFile("test.root","RECREATE");
 
     _plot = new TH2F("hh", "Hit-Hit HeatMap", 300.0, -150.0, 150.0, 300.0, -150.0, 150.0);
     _histo = new TH1F("energy", "Energy Distribution", 300, 0, 550);
@@ -69,10 +69,10 @@ void example::init() {
 
 
 
-void example::processRunHeader( LCRunHeader* run) { 
+void test::processRunHeader( LCRunHeader* run) { 
 //    _nRun++ ;
 } 
-void example::processEvent( LCEvent * evt ) { 
+void test::processEvent( LCEvent * evt ) { 
     LCCollection* col = evt->getCollection( _colName );
     _nEvt++;
     for(int i=0; i < col->getNumberOfElements(); ++i){
@@ -97,13 +97,13 @@ void example::processEvent( LCEvent * evt ) {
 }
 
 
-void example::check( LCEvent * evt ) { 
+void test::check( LCEvent * evt ) { 
     // nothing to check here - could be used to fill checkplots in reconstruction processor
 }
 
 
 
-void example::end(){ 
+void test::end(){ 
   cout << "number of events: " << _nEvt << endl;
   
   _rootfile->Write();
