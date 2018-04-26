@@ -10,6 +10,7 @@
 #include <CLHEP/Vector/ThreeVector.h>
 #include <CLHEP/Random/RanluxEngine.h>
 #include <fastjet/ClusterSequence.hh>
+#include <fastjet/EECambridgePlugin.hh>
 
 namespace CLHEP{}    // declare namespace CLHEP for backward compatibility
 using namespace CLHEP ;
@@ -82,11 +83,11 @@ class tpJetRazor : public Processor {
         std::string Rcheck;   
 
         int _jetDetectability; 
-        double _JetRParameter = 0.9;
+        double _JetRParameter = 1.0;
      
         int _boost;  
        
-        int _cuts[3]; 
+        int _cuts[5]; 
         LCCollection* _inParVec;
         std::vector<PseudoJet> _parp;
         std::string filename;

@@ -79,6 +79,9 @@ static TH2F* _MRR2_T;
 static TH2F* _MRR2_DAB;
 static TH2F* _MRR2_DED;
 
+static TH1F* mult;
+static TH2F* multjets;
+
 tpJetRazor tpJetRazor;
 
 tpJetRazor::tpJetRazor() : Processor("tpJetRazor") {
@@ -91,27 +94,28 @@ tpJetRazor::tpJetRazor() : Processor("tpJetRazor") {
     registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") );
     registerProcessorParameter( "jetDetectability" ,
             "Detectability Level particles used in the Jet reconstruction:\n#\t0 : True\n#\t1 : Detectable\n#\t2 : Detected" ,
-            _jetDetectability, 0  );
+            _jetDetectability, 1  );
     registerProcessorParameter("boost", 
             "Which R-frame transformation to do: \n#t0 : None \n#t1 : Original (equalizes magnitude of 3-momenta) \n#t2 : Modified (equalizes the z-momenta)",
-            _boost, 0);
+            _boost, 1);
 }
 
 void tpJetRazor::init() { 
     //streamlog_out(DEBUG)  << "   init called  " << endl;
 
-
-    if(_jetDetectability==0){_rootfile = new TFile("tpJetRazor_eW.pB.I39213._T.root","RECREATE");
+    if(_jetDetectability==0){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._T.root","RECREATE");
         _R_T = new TH1F("R_T", "R=MTR/MR",1000,0,10);
         _MR_T = new TH1F("MR_T", "MR",500,0,100);
         _MRT_T = new TH1F("MRT_T", "MRT",250,0,50);
         _MRR_T = new TH2F("MRR_T", "MRR",500,0,100,1000,0,10 );
         _MRR2_T = new TH2F("MRR2_T", "MRR2",500,0,100,1000,0,10 );
+        mult = new TH1F("mult", "multiplicity", 500,0,500); 
+        multjets = new TH2F("multjets", "jets v multiplicity", 500,0,500, 500,0,500); 
        // _beta_T = new TH1F("beta_T", "beta",250,0,50);
         
-        freopen("tpJetRazor_eW.pB.I39213._T.log", "w",stdout);    
+        freopen("tpJetRazor_eW.pW.I39212._T.log", "w",stdout);    
     }
-    if(_jetDetectability==1){_rootfile = new TFile("tpJetRazor_.eW.pW.I39212._DAB.root","RECREATE");
+    if(_jetDetectability==1){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._DAB.root","RECREATE");
         _R_DAB = new TH1F("R_DAB", "R=MTR/MR",1000,0,10);
         _MR_DAB = new TH1F("MR_DAB", "MR",500,0,100);
         _MRT_DAB = new TH1F("MRT_DAB", "MRT",250,0,50);
@@ -119,7 +123,7 @@ void tpJetRazor::init() {
         _MRR2_DAB = new TH2F("MRR2_DAB", "MRR2",500,0,100, 1000,0,10);
       //  _beta_DAB = new TH1F("beta_DAB", "beta",130,-3,10);
         
-        freopen("tpJetRazor_.eW.pW.I39212._DAB.log", "w",stdout);   
+        freopen("tpJetRazor_eW.pW.I39212._DAB.log", "w",stdout);   
     }
     if(_jetDetectability==2){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._DED.root","RECREATE");
         _R_DED = new TH1F("R_DED", "R=MTR/MR",1000,0,10); 
@@ -167,13 +171,13 @@ void tpJetRazor::init() {
     pname[1000022]="               X10 |";
     pname[211 ]="                   pi+ |";
     pname[-211]="                  pi- |";
-    pname[321]="                   K+ |";
-    pname[-321]="                  K- |";
+    pname[321]="                    K+ |";
+    pname[-321]="                   K- |";
     pname[130]="                 K_L^0 |";
     pname[2112]="                    n |";
-    pname[-2112]="                   -n |";
-    pname[2212]="                   p |";
-    pname[-2212]="                 -p |";
+    pname[-2112]="                  -n |";
+    pname[2212]="                     p |";
+    pname[-2212]="                  -p |";
 }
 
 
@@ -312,7 +316,7 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
                 }
                 if(_jetDetectability == 1){
                     if(isDetectable){
-                        cout << "id: " << id << " "<< pname[id] << " "<< parp[0]<< " "<<parp[1]<< " "<< parp[2]<< endl;
+                        cerr << "id: " << id << " "<< pname[id] << " "<< parp[0]<< " "<<parp[1]<< " "<< parp[2]<< endl;
                     }
                 }
                 if(_jetDetectability == 2){
@@ -326,10 +330,16 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
 
     // identify the jets using the fastjet clustering algorithm:
     JetDefinition jet_def(antikt_algorithm, _JetRParameter );
-    // run the clustering, extract the jets
+    //JetDefinition jet_def(antikt_algorithm, _JetRParameter );
     ClusterSequence cs(_parp, jet_def);
+    // run the clustering, extract the jets
 
+    //JetDefinition::Plugin * plugin = new EECambridgePlugin(0.5);
+    //ClusterSequence cs(_parp, plugin);
     vector<PseudoJet> jets = sorted_by_pt(cs.inclusive_jets());
+    
+   
+   
     //print the number of jets in event:
     cerr << "NUMBER OF JETS: "<< jets.size()<< endl;
     //check if 0 jets:
@@ -345,11 +355,16 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
         j1eventsCheck +=std::to_string(_nEvt);
         j1eventsCheck +=" ";
     }
+    
+    //multjets->Fill(_parp.size(), jets.size());
+    //mult->Fill(_parp.size());
     vector<vector<PseudoJet>> megajet = getMegajets(jets); 
+    
+    
     // ----------------------------------------------------------------------------------------------
-    //
-    //     // CALCULATE THE MR, MRT, AND R VARIABLED:
-    //         // the 4-momenta of the two megajets: 
+    
+    // CALCULATE THE MR, MRT, AND R VARIABLED:
+    // the 4-momenta of the two megajets: 
     vector<double> j1(4);
     vector<double> j2(4);
     for(int i = 0; i<megajet[0].size(); i++){
@@ -397,8 +412,7 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
     cout << "MRT: "<< MRT<< endl; 
     
     double R;
-    
-    // WHAT AM I DOING HERE????????
+     
     try{ 
         if(MR == 0){
             cerr << "MR == 0" <<endl;
@@ -426,7 +440,7 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
         Rcheck += std::to_string(_nEvt);
         Rcheck += " ";
     }
-    //double R = MRT/MR;
+    
     cout << "R: "<< R<< endl; 
 
     // fill the razor variable plots: 
@@ -457,7 +471,7 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
         //_NJ_DED->Fill(jets.size());
      //   _beta_DED->Fill(beta);
     }
-    cout << "End EVENT "<< _nEvt<< endl;
+    cerr << "End EVENT "<< _nEvt<< endl;
 
 
     _nEvt ++ ; 

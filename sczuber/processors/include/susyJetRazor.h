@@ -92,7 +92,7 @@ class susyJetRazor : public Processor {
  
         int _jetDetectability; 
         // needed to put jet parameter at 1.5 because twoPhotonJetRazor was crashing 
-        double _JetRParameter=1.5; // don't edit // lol 
+        double _JetRParameter=1.0; // don't edit // lol 
         
         int _boost; // the type of R-frame transformation to do   
  

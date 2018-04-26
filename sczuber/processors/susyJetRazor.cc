@@ -95,7 +95,7 @@ void susyJetRazor::init() {
     streamlog_out(DEBUG)  << "   init called  " << std::endl ;
     
     
-    if(_jetDetectability==0){_rootfile = new TFile("susyJetRazor_.39133._T1.5.root","RECREATE");
+    if(_jetDetectability==0){_rootfile = new TFile("susyJetRazor_.39133._T1.0.root","RECREATE");
         _R_T = new TH1F("R_T", "R =MTR/MR",1000,0,10); // the razor variable 
         _MR_T = new TH1F("MR_T","MR", 500, 0.0 ,100); // the M_{R} variable = 2|pR|
         _MRT_T = new TH1F("MRT_T","MRT", 250, 0 ,50); // the M_{T}^{R} variable 
@@ -105,7 +105,7 @@ void susyJetRazor::init() {
        // _beta_T = new TH1F("beta_T","beta",80,-20,20);
        // _njbeta = new TH2F("njbeta","njbeta",40,-10,20,40,-20,20);
         
-        freopen( "susyJetRazor_.39133._T1.5.log", "w", stdout ); 
+        freopen( "susyJetRazor_.39133._T1.0.log", "w", stdout ); 
     }
     if(_jetDetectability==1){_rootfile = new TFile("susyJetRazor_.39113._DAB1.5.root","RECREATE");
         _R_DAB = new TH1F("R_DAB", "R =MTR/MR",1000,0,10);
@@ -119,7 +119,7 @@ void susyJetRazor::init() {
         
         freopen( "susyJetRazor_.39113._DAB1.5.log", "w", stdout ); 
     }
-    if(_jetDetectability==2){_rootfile = new TFile("susyJetRazor_.39133._DED1.5.root","RECREATE");
+    if(_jetDetectability==2){_rootfile = new TFile("susyJetRazor_.39113._DED1.5.root","RECREATE");
         _R_DED = new TH1F("R_DED", "R =MTR/MR",1000,0,10);
         _MR_DED = new TH1F("MR_DED","MR", 500, 0 ,100); 
         _MRT_DED = new TH1F("MRT_DED","MRT", 250, 0 ,50); 
@@ -127,7 +127,7 @@ void susyJetRazor::init() {
         _MRR2_DED = new TH2F("MRR2_DED","MRR2", 500, 0 ,100, 1000,0,10); 
        // _beta_DED = new TH1F("beta_DED","beta",40,-10,20);
         
-        freopen( "susyJetRazor_.39133._DED1.5.log", "w", stdout ); 
+        freopen( "susyJetRazor_.39113._DED1.5.log", "w", stdout ); 
     }
     // irameters() ;
 
