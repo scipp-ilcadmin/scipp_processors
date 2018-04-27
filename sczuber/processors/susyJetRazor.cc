@@ -84,7 +84,7 @@ susyJetRazor::susyJetRazor() : Processor("susyJetRazor") {
     registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") ); 
     registerProcessorParameter( "jetDetectability",
             "Detectability of the Thrust Axis/Value to be used:\n#\t0 : True \n#t1 : Detectable \n#t2 : Detected" ,
-            _jetDetectability, 0);
+            _jetDetectability, 2);
     registerProcessorParameter("boost", 
             "Which R-frame transformation to do:\n#t0 : None \n#t1 : Original (equalizes magnitude of 3-momenta) \n#t2 : Modified (equalizes the z-momenta) ",
              _boost, 1 ); 
@@ -95,7 +95,7 @@ void susyJetRazor::init() {
     streamlog_out(DEBUG)  << "   init called  " << std::endl ;
     
     
-    if(_jetDetectability==0){_rootfile = new TFile("susyJetRazor_.39133._T1.0.root","RECREATE");
+    if(_jetDetectability==0){_rootfile = new TFile("susyJetRazor_.39133._TRU1.0.root","RECREATE");
         _R_T = new TH1F("R_T", "R =MTR/MR",1000,0,10); // the razor variable 
         _MR_T = new TH1F("MR_T","MR", 500, 0.0 ,100); // the M_{R} variable = 2|pR|
         _MRT_T = new TH1F("MRT_T","MRT", 250, 0 ,50); // the M_{T}^{R} variable 
@@ -105,7 +105,7 @@ void susyJetRazor::init() {
        // _beta_T = new TH1F("beta_T","beta",80,-20,20);
        // _njbeta = new TH2F("njbeta","njbeta",40,-10,20,40,-20,20);
         
-        freopen( "susyJetRazor_.39133._T1.0.log", "w", stdout ); 
+        freopen( "susyJetRazor_.39133._TRU1.0.log", "w", stdout ); 
     }
     if(_jetDetectability==1){_rootfile = new TFile("susyJetRazor_.39113._DAB1.5.root","RECREATE");
         _R_DAB = new TH1F("R_DAB", "R =MTR/MR",1000,0,10);
@@ -119,7 +119,7 @@ void susyJetRazor::init() {
         
         freopen( "susyJetRazor_.39113._DAB1.5.log", "w", stdout ); 
     }
-    if(_jetDetectability==2){_rootfile = new TFile("susyJetRazor_.39113._DED1.5.root","RECREATE");
+    if(_jetDetectability==2){_rootfile = new TFile("susyJetRazor_.39133._DED1.0.root","RECREATE");
         _R_DED = new TH1F("R_DED", "R =MTR/MR",1000,0,10);
         _MR_DED = new TH1F("MR_DED","MR", 500, 0 ,100); 
         _MRT_DED = new TH1F("MRT_DED","MRT", 250, 0 ,50); 
@@ -127,7 +127,7 @@ void susyJetRazor::init() {
         _MRR2_DED = new TH2F("MRR2_DED","MRR2", 500, 0 ,100, 1000,0,10); 
        // _beta_DED = new TH1F("beta_DED","beta",40,-10,20);
         
-        freopen( "susyJetRazor_.39113._DED1.5.log", "w", stdout ); 
+        freopen( "susyJetRazor_.39133._DED1.0.log", "w", stdout ); 
     }
     // irameters() ;
 
@@ -282,14 +282,16 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
     } // end particle loop  
     
     // identify the jets using the fastjet cluserting algorithm:
-    JetDefinition jet_def(antikt_algorithm,   _JetRParameter   ); 
+    //JetDefinition jet_def(antikt_algorithm,   _JetRParameter   ); 
+    JetDefinition jet_def(ee_genkt_algorithm, _JetRParameter, 1 ); 
+    
     // run the clustering, extract the jets
     ClusterSequence cs(_parp, jet_def);
     vector<PseudoJet> jets = sorted_by_pt(cs.inclusive_jets()); 
-    cout << "NUMBER OF JETS: "<< jets.size() << endl;
+    cerr << "NUMBER OF JETS: "<< jets.size() << endl;
     //  check if 0 jets in event:
     if(jets.size()==0){
-        cerr << "Event with 0 jets"<< endl; 
+       // cerr << "Event with 0 jets"<< endl; 
         j0eventsCheck += " ";
         j0eventsCheck += std::to_string(_nEvt);
         j0eventsCheck += " "; 
@@ -297,7 +299,7 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
     }
     // check if 1 jet in event:
     if(jets.size()==1){
-        cerr << "Event with 1 jet" << endl; 
+       // cerr << "Event with 1 jet" << endl; 
         j1eventsCheck += " ";
         j1eventsCheck += std::to_string(_nEvt);
         j1eventsCheck += " ";  

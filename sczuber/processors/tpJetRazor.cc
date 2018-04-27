@@ -94,7 +94,7 @@ tpJetRazor::tpJetRazor() : Processor("tpJetRazor") {
     registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") );
     registerProcessorParameter( "jetDetectability" ,
             "Detectability Level particles used in the Jet reconstruction:\n#\t0 : True\n#\t1 : Detectable\n#\t2 : Detected" ,
-            _jetDetectability, 1  );
+            _jetDetectability, 2  );
     registerProcessorParameter("boost", 
             "Which R-frame transformation to do: \n#t0 : None \n#t1 : Original (equalizes magnitude of 3-momenta) \n#t2 : Modified (equalizes the z-momenta)",
             _boost, 1);
@@ -103,7 +103,7 @@ tpJetRazor::tpJetRazor() : Processor("tpJetRazor") {
 void tpJetRazor::init() { 
     //streamlog_out(DEBUG)  << "   init called  " << endl;
 
-    if(_jetDetectability==0){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._T.root","RECREATE");
+    if(_jetDetectability==0){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._TRU.root","RECREATE");
         _R_T = new TH1F("R_T", "R=MTR/MR",1000,0,10);
         _MR_T = new TH1F("MR_T", "MR",500,0,100);
         _MRT_T = new TH1F("MRT_T", "MRT",250,0,50);
@@ -113,7 +113,7 @@ void tpJetRazor::init() {
         multjets = new TH2F("multjets", "jets v multiplicity", 500,0,500, 500,0,500); 
        // _beta_T = new TH1F("beta_T", "beta",250,0,50);
         
-        freopen("tpJetRazor_eW.pW.I39212._T.log", "w",stdout);    
+        freopen("tpJetRazor_eW.pW.I39212._TRU.log", "w",stdout);    
     }
     if(_jetDetectability==1){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._DAB.root","RECREATE");
         _R_DAB = new TH1F("R_DAB", "R=MTR/MR",1000,0,10);
@@ -121,6 +121,8 @@ void tpJetRazor::init() {
         _MRT_DAB = new TH1F("MRT_DAB", "MRT",250,0,50);
         _MRR_DAB = new TH2F("MRR_DAB", "MRR",500,0,100, 1000,0,10);
         _MRR2_DAB = new TH2F("MRR2_DAB", "MRR2",500,0,100, 1000,0,10);
+        mult = new TH1F("mult", "multiplicity", 500,0,500); 
+        multjets = new TH2F("multjets", "jets v multiplicity", 500,0,500, 500,0,500); 
       //  _beta_DAB = new TH1F("beta_DAB", "beta",130,-3,10);
         
         freopen("tpJetRazor_eW.pW.I39212._DAB.log", "w",stdout);   
@@ -176,7 +178,7 @@ void tpJetRazor::init() {
     pname[130]="                 K_L^0 |";
     pname[2112]="                    n |";
     pname[-2112]="                  -n |";
-    pname[2212]="                     p |";
+    pname[2212]="                    p |";
     pname[-2212]="                  -p |";
 }
 
@@ -328,17 +330,38 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
         } //stat == 1 
     } // for particle
 
+    Strategy strategy = Best;
     // identify the jets using the fastjet clustering algorithm:
-    JetDefinition jet_def(antikt_algorithm, _JetRParameter );
+    JetDefinition jet_def(ee_genkt_algorithm, _JetRParameter, 1 );
     //JetDefinition jet_def(antikt_algorithm, _JetRParameter );
     ClusterSequence cs(_parp, jet_def);
     // run the clustering, extract the jets
 
     //JetDefinition::Plugin * plugin = new EECambridgePlugin(0.5);
     //ClusterSequence cs(_parp, plugin);
-    vector<PseudoJet> jets = sorted_by_pt(cs.inclusive_jets());
+    //vector<PseudoJet> jets = sorted_by_pt(cs.exclusive_jets(0.5)); doesn't include all particles
+    //vector<PseudoJet> jets = sorted_by_pt(cs.exclusive_jets()); doesn't include all particles 
+    vector<PseudoJet> jets = sorted_by_pt(cs.inclusive_jets()); //doesn't include all particles 
+    //vector<PseudoJet> jets = sorted_by_pt(cs.inclusive_jets());
+
+    vector<PseudoJet> unclustered = cs.unclustered_particles();
+    for (unsigned i = 0; i < unclustered.size(); i++) {
+        cerr << "jet " << i << ": "<< unclustered[i].pt() << " "<< unclustered[i].rap() << " " << unclustered[i].phi() << endl;
+        vector<PseudoJet> constituents = unclustered[i].constituents();
+        for (unsigned j = 0; j < unclustered.size(); j++) {
+            cerr << "constituent " << j << "’s pt: "<< constituents[j].pt() << endl;
+        }
+    }
+    vector<PseudoJet> childless = cs.childless_pseudojets(); 
     
    
+    for (unsigned i = 0; i < childless.size(); i++) {
+        cerr << "jet " << i << ": "<< childless[i].pt() << " "<< childless[i].rap() << " " << childless[i].phi() << endl;
+        vector<PseudoJet> constituents = childless[i].constituents();
+        for (unsigned j = 0; j < childless.size(); j++) {
+            cerr << "constituent " << j << "’s pt: "<< constituents[j].pt() << endl;
+        }
+    }
    
     //print the number of jets in event:
     cerr << "NUMBER OF JETS: "<< jets.size()<< endl;
@@ -490,10 +513,11 @@ void tpJetRazor::end(){
     cerr << "Events with R>1.2: " << Rcheck << endl;
     //cerr << "Beta > 1 :         "<< betaCheck<< endl;  
     cerr << "Events with MR==0: "<< MR0check << endl; 
-    cout << "CUTS: "<< endl; 
+    cerr << "CUTS: "<< endl; 
     for(int i = 0; i <3; i++){
         cout << _cuts[i] << endl; 
     }
+    cerr << "MR==0: "<< MR0check; 
 }
 
 vector<vector<PseudoJet>> tpJetRazor::getMegajets(vector<PseudoJet> jets){
