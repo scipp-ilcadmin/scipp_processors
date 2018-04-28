@@ -59,23 +59,23 @@ static TFile* _rootfile;
 //static TH1F* _beta_DAB;
 //static TH1F* _beta_DED;
 
-static TH1F* _MR_T;
+static TH1F* _MR_TRU;
 static TH1F* _MR_DAB;
 static TH1F* _MR_DED;
 
-static TH1F* _MRT_T;
+static TH1F* _MRT_TRU;
 static TH1F* _MRT_DAB;
 static TH1F* _MRT_DED;
 
-static TH1F* _R_T;
+static TH1F* _R_TRU;
 static TH1F* _R_DAB;
 static TH1F* _R_DED;
 
-static TH2F* _MRR_T;
+static TH2F* _MRR_TRU;
 static TH2F* _MRR_DAB;
 static TH2F* _MRR_DED;
 
-static TH2F* _MRR2_T;
+static TH2F* _MRR2_TRU;
 static TH2F* _MRR2_DAB;
 static TH2F* _MRR2_DED;
 
@@ -104,11 +104,11 @@ void tpJetRazor::init() {
     //streamlog_out(DEBUG)  << "   init called  " << endl;
 
     if(_jetDetectability==0){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._TRU.root","RECREATE");
-        _R_T = new TH1F("R_T", "R=MTR/MR",1000,0,10);
-        _MR_T = new TH1F("MR_T", "MR",500,0,100);
-        _MRT_T = new TH1F("MRT_T", "MRT",250,0,50);
-        _MRR_T = new TH2F("MRR_T", "MRR",500,0,100,1000,0,10 );
-        _MRR2_T = new TH2F("MRR2_T", "MRR2",500,0,100,1000,0,10 );
+        _R_TRU = new TH1F("R_TRU", "R=MTR/MR",1000,0,10);
+        _MR_TRU = new TH1F("MR_TRU", "MR",500,0,100);
+        _MRT_TRU = new TH1F("MRT_TRU", "MRT",250,0,50);
+        _MRR_TRU = new TH2F("MRR_TRU", "MRR",500,0,100,1000,0,10 );
+        _MRR2_TRU = new TH2F("MRR2_TRU", "MRR2",500,0,100,1000,0,10 );
         mult = new TH1F("mult", "multiplicity", 500,0,500); 
         multjets = new TH2F("multjets", "jets v multiplicity", 500,0,500, 500,0,500); 
        // _beta_T = new TH1F("beta_T", "beta",250,0,50);
@@ -440,7 +440,7 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
         if(MR == 0){
             cerr << "MR == 0" <<endl;
             MR0check++; 
-            R = 1; 
+            R = 0; 
         } 
         else{ 
             R=MRT/MR;
@@ -468,11 +468,11 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
 
     // fill the razor variable plots: 
     if(_jetDetectability == 0){
-        _MR_T->Fill(MR);
-        _MRT_T->Fill(MRT);
-        _R_T->Fill(R);
-        _MRR_T->Fill(MR,R);
-        _MRR2_T->Fill(MR,R*R);
+        _MR_TRU->Fill(MR);
+        _MRT_TRU->Fill(MRT);
+        _R_TRU->Fill(R);
+        _MRR_TRU->Fill(MR,R);
+        _MRR2_TRU->Fill(MR,R*R);
         //_NJ_T->Fill(jets.size());
      //   _beta_T->Fill(beta);
     }
@@ -511,9 +511,13 @@ void tpJetRazor::check( LCEvent * evt ) {
 void tpJetRazor::end(){ 
     _rootfile->Write();
     cerr << "Events with R>1.2: " << Rcheck << endl;
-    //cerr << "Beta > 1 :         "<< betaCheck<< endl;  
+    cerr << "Beta > 1 :         "<< betaCheck<< endl;  
     cerr << "Events with MR==0: "<< MR0check << endl; 
     cerr << "CUTS: "<< endl; 
+    cout << "CUTS: "<< endl; 
+    for(int i = 0; i <3; i++){
+        cerr << _cuts[i] << endl; 
+    }
     for(int i = 0; i <3; i++){
         cout << _cuts[i] << endl; 
     }

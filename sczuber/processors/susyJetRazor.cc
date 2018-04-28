@@ -49,27 +49,27 @@ static TFile* _rootfile;
 //static TH1F* _beta_DAB;
 //static TH1F* _beta_DED;
 
-static TH1F* _R_T;
+static TH1F* _R_TRU;
 static TH1F* _R_DAB;
 static TH1F* _R_DED;
 
-static TH1F* _MR_T;
+static TH1F* _MR_TRU;
 static TH1F* _MR_DAB;
 static TH1F* _MR_DED; 
 
-static TH1F* _MRT_T;
+static TH1F* _MRT_TRU;
 static TH1F* _MRT_DAB;
 static TH1F* _MRT_DED; 
 
-static TH2F* _MRR_T;
+static TH2F* _MRR_TRU;
 static TH2F* _MRR_DAB;
 static TH2F* _MRR_DED; 
 
-static TH2F* _MRR2_T;
+static TH2F* _MRR2_TRU;
 static TH2F* _MRR2_DAB;
 static TH2F* _MRR2_DED; 
 
-static TH1F* _NJ_T;   // histogram of the number of jets using TRUE jets
+static TH1F* _NJ_TRU;   // histogram of the number of jets using TRUE jets
 static TH1F* _NJ_DAB; // histogram of the number of jets using DAB jets
 static TH1F* _NJ_DED; // histogram of the number of jets using DED jets
 
@@ -95,17 +95,17 @@ void susyJetRazor::init() {
     streamlog_out(DEBUG)  << "   init called  " << std::endl ;
     
     
-    if(_jetDetectability==0){_rootfile = new TFile("susyJetRazor_.39133._TRU1.0.root","RECREATE");
-        _R_T = new TH1F("R_T", "R =MTR/MR",1000,0,10); // the razor variable 
-        _MR_T = new TH1F("MR_T","MR", 500, 0.0 ,100); // the M_{R} variable = 2|pR|
-        _MRT_T = new TH1F("MRT_T","MRT", 250, 0 ,50); // the M_{T}^{R} variable 
-        _MRR_T = new TH2F("MRR_T","MRR", 500, 0 ,100, 1000, 0,10); // the M_{T}^{R} variable 
-        _MRR2_T = new TH2F("MRR2_T","MRR2", 500, 0 ,100, 1000, 0,10); // the M_{T}^{R} variable 
-        _NJ_T = new TH1F("NJ_T","NJ",20, 0, 20); 
+    if(_jetDetectability==0){_rootfile = new TFile("susyJetRazor_.39113._TRU0.5.root","RECREATE");
+        _R_TRU = new TH1F("R_TRU", "R =MTR/MR",1000,0,10); // the razor variable 
+        _MR_TRU = new TH1F("MR_TRU","MR", 500, 0.0 ,100); // the M_{R} variable = 2|pR|
+        _MRT_TRU = new TH1F("MRT_TRU","MRT", 250, 0 ,50); // the M_{T}^{R} variable 
+        _MRR_TRU = new TH2F("MRR_TRU","MRR", 500, 0 ,100, 1000, 0,10); // the M_{T}^{R} variable 
+        _MRR2_TRU = new TH2F("MRR2_TRU","MRR2", 500, 0 ,100, 1000, 0,10); // the M_{T}^{R} variable 
+        _NJ_TRU = new TH1F("NJ_TRU","NJ",20, 0, 20); 
        // _beta_T = new TH1F("beta_T","beta",80,-20,20);
        // _njbeta = new TH2F("njbeta","njbeta",40,-10,20,40,-20,20);
         
-        freopen( "susyJetRazor_.39133._TRU1.0.log", "w", stdout ); 
+        freopen( "susyJetRazor_.39113._TRU0.5.log", "w", stdout ); 
     }
     if(_jetDetectability==1){_rootfile = new TFile("susyJetRazor_.39113._DAB1.5.root","RECREATE");
         _R_DAB = new TH1F("R_DAB", "R =MTR/MR",1000,0,10);
@@ -119,7 +119,7 @@ void susyJetRazor::init() {
         
         freopen( "susyJetRazor_.39113._DAB1.5.log", "w", stdout ); 
     }
-    if(_jetDetectability==2){_rootfile = new TFile("susyJetRazor_.39133._DED1.0.root","RECREATE");
+    if(_jetDetectability==2){_rootfile = new TFile("susyJetRazor_.39133._DED0.5.root","RECREATE");
         _R_DED = new TH1F("R_DED", "R =MTR/MR",1000,0,10);
         _MR_DED = new TH1F("MR_DED","MR", 500, 0 ,100); 
         _MRT_DED = new TH1F("MRT_DED","MRT", 250, 0 ,50); 
@@ -127,7 +127,7 @@ void susyJetRazor::init() {
         _MRR2_DED = new TH2F("MRR2_DED","MRR2", 500, 0 ,100, 1000,0,10); 
        // _beta_DED = new TH1F("beta_DED","beta",40,-10,20);
         
-        freopen( "susyJetRazor_.39133._DED1.0.log", "w", stdout ); 
+        freopen( "susyJetRazor_.39133._DED0.5.log", "w", stdout ); 
     }
     // irameters() ;
 
@@ -150,7 +150,7 @@ void susyJetRazor::init() {
     //printParameters() ;
     _nEvt = 0 ; 
 
-    pname[11  ]="              electron |";
+    pname[11  ]="               electron |";
     pname[-11  ]="              positron |";
     pname[12  ]="      electron neutrino |";
     pname[-12 ]="anti electron neutrino |";
@@ -265,7 +265,7 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
            
             if(_jetDetectability == 0){
                 if(!isDarkMatter){  
-                    cout << "id: " << id << " " << pname[id] <<" " << parp[0]<<" "<< parp[1]<<" "<< parp[2] <<endl;   
+                    cerr << "id: " << id << " " << pname[id] <<" " << parp[0]<<" "<< parp[1]<<" "<< parp[2] <<endl;   
                 }
             }
             if(_jetDetectability == 1){
@@ -367,7 +367,7 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
     try{
         if (MR == 0){
             cerr << "found event with MR == 0. Setting R = 1. " << endl; 
-            R = 1;
+            R = 0;
         }
         else{
             R = MRT/MR;
@@ -384,6 +384,17 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
             _cuts[1]+=1;
         }
     }
+    if(R2>0.1 && MR>3){
+        _cuts[2]+=1;
+    }
+    if(R2<0.9 && MR>1){
+        _cuts[3]+=1;
+    }
+    if(R2 > 0.05 && MR > 2){
+        _cuts[4]+=1;
+    }
+
+
 
     if (R>1.2){
         cerr << "FOUND EVENT WITH R>1.2!!!"<< endl; 
@@ -394,11 +405,11 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
     
     // fill the razor variable plots: 
     if(_jetDetectability == 0){ 
-        _MR_T->Fill(MR);
-        _MRT_T->Fill(MRT);
-        _R_T->Fill(R);
-        _MRR_T->Fill(MR,R);
-        _MRR2_T->Fill(MR,R*R);
+        _MR_TRU->Fill(MR);
+        _MRT_TRU->Fill(MRT);
+        _R_TRU->Fill(R);
+        _MRR_TRU->Fill(MR,R);
+        _MRR2_TRU->Fill(MR,R*R);
         //_NJ_T->Fill(jets.size());
         //_beta_T->Fill(beta);
      }
@@ -434,13 +445,20 @@ void susyJetRazor::end(){
     //cerr << "Events with 1 jets: "<< j1eventsCheck << endl;
     cerr << "Total # events with 0 jet: "<< numj0eventsCheck << endl; 
     cerr << "Total # events with 1 jet: "<< numj1eventsCheck << endl; 
+    cout << "Total # events with 0 jet: "<< numj0eventsCheck << endl; 
+    cout << "Total # events with 1 jet: "<< numj1eventsCheck << endl; 
     //cout << parpCheck << endl;
     cerr << "Events with beta > 1: "<< betaCheck << endl;
     cerr << "Events with R>1.2: " << Rcheck << endl ; //use cerr to pring in terminal rather than in log file   
+    cout << "Events with R>1.2: " << Rcheck << endl ; //use cerr to pring in terminal rather than in log file   
     streamlog_out(DEBUG)  << "   Events with R > 1.20:  " <<Rcheck<< std::endl ;
     cout << "CUTS: "<< endl; 
-    for(int i = 0; i< 3; i++){
+    for(int i = 0; i< 5; i++){
         cout << _cuts[i] << endl; 
+    }
+    cerr << "CUTS: "<< endl; 
+    for(int i = 0; i< 5; i++){
+        cerr << _cuts[i] << endl; 
     }
 }
 
