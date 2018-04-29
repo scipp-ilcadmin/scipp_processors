@@ -83,7 +83,7 @@ class tpJetRazor : public Processor {
         std::string Rcheck;   
 
         int _jetDetectability; 
-        double _JetRParameter = 1.0;
+        double _JetRParameter = 0.5;
      
         int _boost;  
        

@@ -332,7 +332,7 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
 
     Strategy strategy = Best;
     // identify the jets using the fastjet clustering algorithm:
-    JetDefinition jet_def(ee_genkt_algorithm, _JetRParameter, 1 );
+    JetDefinition jet_def(ee_genkt_algorithm, _JetRParameter, -1 );
     //JetDefinition jet_def(antikt_algorithm, _JetRParameter );
     ClusterSequence cs(_parp, jet_def);
     // run the clustering, extract the jets
@@ -597,6 +597,15 @@ vector<vector<double>> tpJetRazor::boostMegajets(vector<double> j1, vector<doubl
         betaCheck += " ";
         
         beta = .999;
+        gamma = pow((1-pow(beta,2)), -0.5);
+    }
+    if(beta<-1){
+        cerr << "Event with beta > 1 !!!" << endl; 
+        betaCheck += " ";
+        betaCheck += std::to_string(_nEvt);
+        betaCheck += " ";
+        
+        beta = -0.999;
         gamma = pow((1-pow(beta,2)), -0.5);
     }
     vector<vector<double>> jR  = 
