@@ -303,6 +303,7 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
     ClusterSequence cs(_parp, jet_def);
     vector<PseudoJet> jets = sorted_by_pt(cs.inclusive_jets()); 
     cerr << "NUMBER OF JETS: "<< jets.size() << endl;
+    cout << "NUMBER OF JETS: "<< jets.size() << endl;
     int NJ = jets.size(); 
     //  check if 0 jets in event:
     if(jets.size()==0){
@@ -357,20 +358,27 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
 
     // The Razor Variables using whatever R-frame is selcted: -------------------------------------------- 
     cerr << "4-momenta jet 1 : "<< jR[0][0] <<' '<<jR[0][1]<< ' '<<jR[0][2]<< ' '<<jR[0][3]<< endl;  
+    cerr << "4-momenta jet 2 : "<< jR[1][0] <<' '<<jR[1][1]<< ' '<<jR[1][2]<< ' '<<jR[1][3]<< endl;  
     
     double vpj1[3] = {jR[0][1],jR[0][2],jR[0][3]};  // 3-momentum jet 1
     double vpj2[3] = {jR[1][1],jR[1][2],jR[1][3]};  // 3-momentum jet 2
 
     double pj1 = pow(pow(jR[0][1],2)+pow(jR[0][2],2)+pow(jR[0][3],2) , 0.5   );      // momentum jet 1
     cerr << "momentum jet 1 = "<< pj1 << endl; 
+    cout << "momentum jet 1 = "<< pj1 << endl; 
     double pj2 = pow(pow(jR[1][1],2)+pow(jR[1][2],2)+pow(jR[1][3],2) , 0.5   );      // momentum jet 2
     cerr << "momentum jet 2 = "<< pj2 << endl; 
-   
+    cout << "momentum jet 2 = "<< pj2 << endl; 
+  
+    cerr << "pzj1: "<< jR[0][3] << " pzj2: "<< jR[1][3] << endl;  
+    cout << "pzj1: "<< jR[0][3] << " pzj2: "<< jR[1][3] << endl;  
     
     double ptj1 = pow(pow(jR[0][1],2)+pow(jR[0][2],2) , 0.5   );      // transverse momentum jet 1
     double ptj2 = pow(pow(jR[1][1],2)+pow(jR[1][2],2) , 0.5   );      // transverse momentum jet 2
-    
-    double MR2 = pow(pj1+pj2,2)-pow(jR[0][3]+jR[1][3],2); 
+   
+    cout << "ptj1: "<< ptj1<< " ptj2: "<< ptj2 << endl;  
+    cerr << "ptj1: "<< ptj1<< " ptj2: "<< ptj2 << endl;  
+    double MR2 = pow(pj1+pj2 ,2)-pow(jR[0][3]+jR[1][3], 2); 
     double MR = pow(MR2, 0.5);
     
     // vector missing transverse energy  
@@ -378,8 +386,9 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
     double ptm = pow(pow(vptm[0],2)+pow(vptm[1],2) ,0.5); 
     
     double MRT2 = (ptm*(ptj1+ptj2)-(vptm[0]*(jR[0][1]+jR[1][1])+vptm[1]*(jR[0][2]+jR[1][2])))/2 ;
-    double MRT = pow(MRT2,0.5); 
-   
+    double MRT = pow(MRT2, 0.5); 
+  
+    cerr << "MR = sqrt( (pj1+pj2)**2 - (pzj1+pzj2)**2 ) = "<< MR<< endl;  
    
     cout << "MR="<< MR<< endl;  
     cout << "MRT="<< MRT<< endl;  
@@ -527,8 +536,8 @@ vector<vector<PseudoJet>> susyJetRazor::getMegajets(vector<PseudoJet> jets){
     }
     // calculate the m2 values for each i 
     for(unsigned int i = 0; i<num_partitions; i++){
-        cout << "*********************************************" << endl;
-        cout << "partition: " << i << endl; 
+        //cout << "*********************************************" << endl;
+        //cout << "partition: " << i << endl; 
         vector<PseudoJet> partition[2]; 
         // create partition i (one subset)
         for(unsigned int j=0; j<jets.size(); j++){
@@ -548,7 +557,7 @@ vector<vector<PseudoJet>> susyJetRazor::getMegajets(vector<PseudoJet> jets){
                 partition[1].push_back(jets[j]);
             }
         } 
-        cout << "size: "<<partition[1].size() << "   " << partition[0].size() << endl;
+        ////cout << "size: "<<partition[1].size() << "   " << partition[0].size() << endl;
         double subset_p[2][4]= {{0,0,0,0},{0,0,0,0}}; // subset 1 and 2: e, px, py, pz  
         // add the four momenta of jets in partition vectorally 
         for(int j=0; j<partition[0].size(); j++){
@@ -570,14 +579,14 @@ vector<vector<PseudoJet>> susyJetRazor::getMegajets(vector<PseudoJet> jets){
         double partition_m2 = subset_m2[0]+subset_m2[1]; // sum of the two megajets 
         // print the m2 value for this partition: 
         m2_values[i]= partition_m2;
-        cout <<"m2: "<< m2_values[i] << endl ;
+        //cout <<"m2: "<< m2_values[i] << endl ;
 
    
     }
     // set the min m2 value to the last valid 
     double min_value = m2_values[num_partitions-2]; // MIGHT BE PROBLEM IF *NO* JETS OR *ONE* JET!!
     int min_index = num_partitions-2; 
-    cout <<"initial min_value: "<< min_value<< endl; 
+    //cout <<"initial min_value: "<< min_value<< endl; 
     for(int i=0; i<num_partitions; i++){
         // if subset is not null set or set itself:
         if(i!=0 && i!=(num_partitions-1) ){
@@ -587,7 +596,7 @@ vector<vector<PseudoJet>> susyJetRazor::getMegajets(vector<PseudoJet> jets){
             }
         }
     }
-    cout <<"~~minimum index: "<< min_index<<" ~~minimum value: "<< min_value<< endl;
+    //cout <<"~~minimum index: "<< min_index<<" ~~minimum value: "<< min_value<< endl;
     // re-create the partition corresponding to the min_index: 
     //vector<PseudoJet> megajet[2]; 
     for(unsigned int j=0; j<jets.size(); j++){

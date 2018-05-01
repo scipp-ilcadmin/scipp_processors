@@ -94,7 +94,7 @@ tpJetRazor::tpJetRazor() : Processor("tpJetRazor") {
     registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") );
     registerProcessorParameter( "jetDetectability" ,
             "Detectability Level particles used in the Jet reconstruction:\n#\t0 : True\n#\t1 : Detectable\n#\t2 : Detected" ,
-            _jetDetectability, 2  );
+            _jetDetectability, 0  );
     registerProcessorParameter("boost", 
             "Which R-frame transformation to do: \n#t0 : None \n#t1 : Original (equalizes magnitude of 3-momenta) \n#t2 : Modified (equalizes the z-momenta)",
             _boost, 1);
@@ -103,36 +103,36 @@ tpJetRazor::tpJetRazor() : Processor("tpJetRazor") {
 void tpJetRazor::init() { 
     //streamlog_out(DEBUG)  << "   init called  " << endl;
 
-    if(_jetDetectability==0){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._TRU.root","RECREATE");
+    if(_jetDetectability==0){_rootfile = new TFile("tpJetRazor_eB.pW.I39214._TRU.root","RECREATE");
         _R_TRU = new TH1F("R_TRU", "R=MTR/MR",1000,0,10);
         _MR_TRU = new TH1F("MR_TRU", "MR",500,0,100);
         _MRT_TRU = new TH1F("MRT_TRU", "MRT",250,0,50);
         _MRR_TRU = new TH2F("MRR_TRU", "MRR",500,0,100,1000,0,10 );
-        _MRR2_TRU = new TH2F("MRR2_TRU", "MRR2",500,0,100,1000,0,10 );
+        _MRR2_TRU = new TH2F("MRR2_TRU", "MRR2",1000,0,100,2000,0,2 );
         mult = new TH1F("mult", "multiplicity", 500,0,500); 
         multjets = new TH2F("multjets", "jets v multiplicity", 500,0,500, 500,0,500); 
        // _beta_T = new TH1F("beta_T", "beta",250,0,50);
         
-        freopen("tpJetRazor_eW.pW.I39212._TRU.log", "w",stdout);    
+        freopen("tpJetRazor_eB.pW.I39214._TRU.log", "w",stdout);    
     }
-    if(_jetDetectability==1){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._DAB.root","RECREATE");
+    if(_jetDetectability==1){_rootfile = new TFile("tpJetRazor_eW.pB.I39213._DAB.root","RECREATE");
         _R_DAB = new TH1F("R_DAB", "R=MTR/MR",1000,0,10);
         _MR_DAB = new TH1F("MR_DAB", "MR",500,0,100);
         _MRT_DAB = new TH1F("MRT_DAB", "MRT",250,0,50);
         _MRR_DAB = new TH2F("MRR_DAB", "MRR",500,0,100, 1000,0,10);
-        _MRR2_DAB = new TH2F("MRR2_DAB", "MRR2",500,0,100, 1000,0,10);
+        _MRR2_DAB = new TH2F("MRR2_DAB", "MRR2",1000,0,100, 2000,0,2);
         mult = new TH1F("mult", "multiplicity", 500,0,500); 
         multjets = new TH2F("multjets", "jets v multiplicity", 500,0,500, 500,0,500); 
       //  _beta_DAB = new TH1F("beta_DAB", "beta",130,-3,10);
         
-        freopen("tpJetRazor_eW.pW.I39212._DAB.log", "w",stdout);   
+        freopen("tpJetRazor_eW.pB.I39213._DAB.log", "w",stdout);   
     }
     if(_jetDetectability==2){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._DED.root","RECREATE");
         _R_DED = new TH1F("R_DED", "R=MTR/MR",1000,0,10); 
         _MR_DED = new TH1F("MR_DED", "MR",500,0,100); 
         _MRT_DED = new TH1F("MRT_DED", "MRT",250,0,50); 
         _MRR_DED = new TH2F("MRR_DED", "MRR",500,0,100, 1000, 0, 10); 
-        _MRR2_DED = new TH2F("MRR2_DED", "MRR2",500,0,100, 1000, 0, 10); 
+        _MRR2_DED = new TH2F("MRR2_DED", "MRR2",1000,0,100, 2000, 0, 2); 
      //   _beta_DED = new TH1F("beta_DED", "beta",130,-3,10); 
         
         freopen("tpJetRazor_eW.pW.I39212._DED.log", "w",stdout);    
@@ -426,13 +426,15 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
     double MR2 = pow(pj1+pj2,2)-pow(jR[0][3]+jR[1][3],2);
     double MR = pow(MR2, 0.5);
     cout << "MR: "<< MR<< endl; 
+    cerr << "MR: "<< MR<< endl; 
 
     double vptm[2] = {-jR[0][1]-jR[1][1],-jR[0][2]-jR[1][2]};
     double ptm = pow(pow(vptm[0],2)+pow(vptm[1],2) ,0.5);
 
-    double MRT2 = (ptm*(ptj1+ptj2)-(vptm[0]*(jR[0][1]+jR[1][1])+vptm[1]*(jR[0][2]+jR[1][2])))/2 ;
+    double MRT2 = (ptm*(ptj1+ptj2)-(vptm[0]*(jR[0][1]+jR[1][1])+vptm[1]*(jR[0][2]+jR[1][2])))/2.0 ;
     double MRT = pow(MRT2,0.5);
     cout << "MRT: "<< MRT<< endl; 
+    cerr << "MRT: "<< MRT<< endl; 
     
     double R;
      
@@ -450,21 +452,32 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
     {
         cerr << "ERROR: " << error << " ";
     }
+    cerr << "R = "<< R<< endl;  
+    cout << "R = "<< R<< endl;  
+    
     double R2 = R*R;
+    
     if(MR > 2){
         _cuts[0]+=1;
         if(R2 > 0.05){
             _cuts[1]+=1;
         }
     }
+    if(R2>0.1 && MR>3){
+        _cuts[2]+=1;
+    }
+    if(R2<0.9 && MR>1){
+        _cuts[3]+=1;
+    }
+    if(R2 > 0.05 && MR>2){
+        _cuts[4]+=1;
+    }
     if(R>1.1){
         cerr << "FOUND EVENT WITH R>1.1!!"<< endl; 
         Rcheck += " ";
         Rcheck += std::to_string(_nEvt);
         Rcheck += " ";
-    }
-    
-    cout << "R: "<< R<< endl; 
+    } 
 
     // fill the razor variable plots: 
     if(_jetDetectability == 0){
@@ -511,7 +524,7 @@ void tpJetRazor::check( LCEvent * evt ) {
 void tpJetRazor::end(){ 
     _rootfile->Write();
     cerr << "Events with R>1.2: " << Rcheck << endl;
-    cerr << "Beta > 1 :         "<< betaCheck<< endl;  
+    //cerr << "Beta > 1 :         "<< betaCheck<< endl;  
     cerr << "Events with MR==0: "<< MR0check << endl; 
     cerr << "CUTS: "<< endl; 
     cout << "CUTS: "<< endl; 

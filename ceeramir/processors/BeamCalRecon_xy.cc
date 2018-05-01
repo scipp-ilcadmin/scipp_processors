@@ -123,7 +123,7 @@ int _RadTheta_wBgd[1][13]={0};
 // y = 6.25x^(1.22135493) + 20
 double rad_array [13]={20.0,26.25,34.57,43.91,53.98,64.62,75.75,87.30,99.23,111.48,124.05,136.89,150.0};
 //double phi_array  [8]={45.0,90.0,135.0,180.0,225.0,270.0,315.0,360.0};
-double phi_array  [1]={360.0};
+double phi_array [1]={360.0};
 double _min_radius = 100.0;
 
 //auto _t1 = Clock::now();
@@ -237,7 +237,7 @@ void BeamCalRecon_xy::PrintRadiusThetaTable(string key){
     int cx;
 
     ofstream fout;
-    fout.open("output.txt");
+    fout.open("april_30_output.txt");
     if (fout.fail()){
       cout << "Output file failed to open.\n";
       exit(-1);
@@ -339,7 +339,8 @@ void BeamCalRecon_xy::init() {
     _h2->GetYaxis()->SetTitle("dN/d#sigma");
     */
 
-    _LEGObins = 60;
+    //    _LEGObins = 60;
+    _LEGObins = 30;
     _POLARbins = 40;
 
     const Int_t NBINS = 68;
