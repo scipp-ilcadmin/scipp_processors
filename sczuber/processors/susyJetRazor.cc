@@ -544,19 +544,12 @@ vector<vector<PseudoJet>> susyJetRazor::getMegajets(vector<PseudoJet> jets){
             unsigned int bit = pow(2,j);
             if ((i & bit) != 0){ 
                 partition[0].push_back(jets[j]);
-            } 
-        }
-        // add remaining jets to other subset:
-       
-        for(unsigned int j=0;j<jets.size(); j++){ 
-            if(std::find(partition[0].begin(),partition[0].end(), jets[j]) !=partition[0].end()){
-                 //subset contains jets[j]
             }
-            else {
-                //subset does not contain jets[j]
+            else{
                 partition[1].push_back(jets[j]);
             }
-        } 
+        }
+
         ////cout << "size: "<<partition[1].size() << "   " << partition[0].size() << endl;
         double subset_p[2][4]= {{0,0,0,0},{0,0,0,0}}; // subset 1 and 2: e, px, py, pz  
         // add the four momenta of jets in partition vectorally 
@@ -604,16 +597,11 @@ vector<vector<PseudoJet>> susyJetRazor::getMegajets(vector<PseudoJet> jets){
         if ((min_index & bit) != 0){ 
             megajet[0].push_back(jets[j]);
         } 
-    }
-    for(unsigned int j=0;j<jets.size(); j++){ 
-        if(std::find(megajet[0].begin(),megajet[0].end(), jets[j]) !=megajet[0].end()){
-            //subset contains jets[j]
-        }
         else {
             //subset does not contain jets[j]
             megajet[1].push_back(jets[j]);
         }
-    }
+    } 
     
     // megajet is now the correct megajet to use
     return megajet;
@@ -624,8 +612,10 @@ vector<vector<double>> susyJetRazor::boostMegajets(vector<double> j1, vector<dou
     vector<vector<double>> jR; 
 
     if(_boost == 0){
+            // this is the no boost case
            jR = {j1,j2}; 
     }
+    
     if(_boost == 1){    
         // this is the boost to the original R-frame with beta = (e1-e2)/(pz1-pz2)   
         double beta = (j1[0]-j2[0])/(j1[3]-j2[3]); 
@@ -666,6 +656,7 @@ vector<vector<double>> susyJetRazor::boostMegajets(vector<double> j1, vector<dou
  
     //_njbeta->Fill(jets.size(),beta);
     if(_boost == 2){
+        // this is the new one that is supposed to equalize the z-momenta of the two jets 
         double beta = (-j1[3]+j2[3])/(-j1[0]+j2[0]);  
         
         if(beta>1){
@@ -679,16 +670,10 @@ vector<vector<double>> susyJetRazor::boostMegajets(vector<double> j1, vector<dou
               {gamma*j1[0]-gamma*beta*j1[3], j1[1],j1[2],-gamma*beta*j1[0]+gamma*j1[3] },
               {gamma*j2[0]-gamma*beta*j2[3], j2[1],j2[2],-gamma*beta*j2[0]+gamma*j2[3] }} ; 
     }
+    if(_boost == 3){
+        // the one that is supposed to be always physical 
+    }
     return jR;
     
 }
 
-/*vector<int> susyJetRazor::doCuts(double MR, double R2){
-    if(MR > 2){
-        _cuts[0]++;
-        if(R2 > 0.05){
-            _cuts[1]++;
-        }
-    }
-    return _cuts; 
-}*/
