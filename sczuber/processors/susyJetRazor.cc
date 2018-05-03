@@ -93,7 +93,7 @@ susyJetRazor::susyJetRazor() : Processor("susyJetRazor") {
             "Detectability of the Thrust Axis/Value to be used:\n#\t0 : True \n#t1 : Detectable \n#t2 : Detected" ,
             _jetDetectability, 2);
     registerProcessorParameter("boost", 
-            "Which R-frame transformation to do:\n#t0 : None \n#t1 : Original (equalizes magnitude of 3-momenta) \n#t2 : Modified (equalizes the z-momenta) ",
+            "Which R-frame transformation to do:\n#\t0 : None \n#t1 : Original (equalizes magnitude of 3-momenta) \n#t2 : Modified (equalizes the z-momenta) \n#t3 : New (using beta_{L}^{R}*, should always be physical) ",
              _boost, 1 ); 
 }
 
@@ -672,6 +672,18 @@ vector<vector<double>> susyJetRazor::boostMegajets(vector<double> j1, vector<dou
     }
     if(_boost == 3){
         // the one that is supposed to be always physical 
+        double beta = (j1[3]+j2[3])/(j1[0]+j2[0]);
+        double gamma = pow(1-pow(beta,2) , -0.5);
+        cerr << "beta="<<beta<< endl; 
+        if(beta>1){
+            cerr << "Event with beta>1 !!!"<<beta<< endl;  
+            betaCheck += " ";
+            betaCheck += std::to_string(_nEvt);
+            betaCheck += " ";  
+        }
+        jR = { 
+              {gamma*j1[0]-gamma*beta*j1[3], j1[1],j1[2],-gamma*beta*j1[0]+gamma*j1[3] },
+              {gamma*j2[0]-gamma*beta*j2[3], j2[1],j2[2],-gamma*beta*j2[0]+gamma*j2[3] }} ; 
     }
     return jR;
     

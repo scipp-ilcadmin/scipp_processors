@@ -96,7 +96,7 @@ tpJetRazor::tpJetRazor() : Processor("tpJetRazor") {
             "Detectability Level particles used in the Jet reconstruction:\n#\t0 : True\n#\t1 : Detectable\n#\t2 : Detected" ,
             _jetDetectability, 0  );
     registerProcessorParameter("boost", 
-            "Which R-frame transformation to do: \n#t0 : None \n#t1 : Original (equalizes magnitude of 3-momenta) \n#t2 : Modified (equalizes the z-momenta)",
+            "Which R-frame transformation to do:  \n#\t0 : None \n#\t1 : Original (equalizes magnitude of 3-momenta) \n#\t2 : Modified (equalizes the z-momenta) \n#t3 : New (Using beta_{L}^{R}*, should always be physical)",
             _boost, 1);
 }
 
@@ -323,7 +323,7 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
                 }
                 if(_jetDetectability == 2){
                     if(isDetected){
-                        cout << "id: " << id << " "<< pname[id] << " "<< parp[0]<< " "<<parp[1]<< " "<< parp[2]<< endl;
+                        cerr << "id: " << id << " "<< pname[id] << " "<< parp[0]<< " "<<parp[1]<< " "<< parp[2]<< endl;
                     }
                 }
             }// end particle not original 
@@ -478,6 +478,12 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
         Rcheck += std::to_string(_nEvt);
         Rcheck += " ";
     } 
+    if(R>1.0){
+        Rvals += " ";
+        Rvals += std::to_string(R);
+        Rvals += " ";
+        totalRcheck++;
+    } 
 
     // fill the razor variable plots: 
     if(_jetDetectability == 0){
@@ -534,7 +540,10 @@ void tpJetRazor::end(){
     for(int i = 0; i <3; i++){
         cout << _cuts[i] << endl; 
     }
-    cerr << "MR==0: "<< MR0check; 
+    cerr << "MR==0: "<< MR0check;
+    cerr << "R values: "<< Rvals<< endl;
+    cout << "R values: "<< Rvals<< endl;
+    cout << "Total # of Events with R>1: "<< totalRcheck<< endl; 
 }
 
 vector<vector<PseudoJet>> tpJetRazor::getMegajets(vector<PseudoJet> jets){

@@ -98,9 +98,6 @@ static TH2F* _hcol1f;
 
 static TCanvas* _c1;
 
-static unordered_map<pair<float,float>,double>* _all_map;
-static unordered_map<pair<float,float>,double>* _zeros_map;
-//vector<pair<float,float>> bgd_plot_xy;
 
 //std::vector<pair<float,float>>* _radius_theta_wCut;
 //std::vector<pair<float,float>>* _radius_theta_wBgd;
@@ -237,7 +234,7 @@ void BeamCalRecon_xy::PrintRadiusThetaTable(string key){
     int cx;
 
     ofstream fout;
-    fout.open("april_30_output.txt");
+    fout.open("theta_v_radius_table_may02.txt");
     if (fout.fail()){
       cout << "Output file failed to open.\n";
       exit(-1);
@@ -333,14 +330,8 @@ void BeamCalRecon_xy::init() {
     Double_t e_theta[8];
     Double_t e_radius[8];
 
-    /*
-    _h2 = new TH1I("h2","Gaus",100,-5,5);
-    _h2->GetXaxis()->SetTitle("Standard deviation #sigma");
-    _h2->GetYaxis()->SetTitle("dN/d#sigma");
-    */
-
-    //    _LEGObins = 60;
-    _LEGObins = 30;
+    //    _LEGObins = 30;
+    _LEGObins = 60;
     _POLARbins = 40;
 
     const Int_t NBINS = 68;
@@ -368,8 +359,12 @@ void BeamCalRecon_xy::init() {
     _hlego_inefficiency = new TH2F("hlego_inefficiency", "", _LEGObins,-150,150,_LEGObins,-150,150);
     _hlego_test = new TH2F("hlego_test", "",_LEGObins,-150,150,_LEGObins,-150,150);
     _hlego_pol1 = new TH2F("hlego_pol1", "" ,_POLARbins ,-150,150,_POLARbins,-150,150);
-    // _hlego_var & _hlego_zeros are an x-y grid whose bins increase with x or y values
-    // the problem is that at low-x high-y I get rectanglular not square bins, also at low-y high-x
+
+    /* _hlego_var & _hlego_zeros are an x-y grid whose bins increase with x or y values
+     * the problem is that at low-x high-y I get rectanglular, not square bins,
+     * this also happens at low-y high-x
+     */
+
     //    _hlego_var = new TH2F("hlego_var", "", 67, _var_edges, 67, _var_edges);
     //    _hlego_zeros_var = new TH2F("hlego_0s_var", LEGOtitlezVar, 67, _var_edges, 67, _var_edges);
 
@@ -396,10 +391,6 @@ void BeamCalRecon_xy::init() {
     //will not work    _hcol1f = new TH2F("hcol1f","Option COLor combined with POL",40,0.0,2.0*M_PI,40,0.0,150);
 
     Float_t px, py;
-    //    for (Int_t i = 0; i < 25000; i++) {
-    //      gRandom->Rannor(px,py);
-    //    }
-    //    gStyle->SetPalette(kBird);
     //*********************************************************************************
     //   _ hcol1->Fill(px,py);
     //   _ hcol1->Draw("COLZPOL");
@@ -515,9 +506,10 @@ void BeamCalRecon_xy::processEvent( LCEvent* signal_event ) {
         _test_num += detected;
 	_test_slice->Fill(endx,endy,detected);
     }
+    _hlego->Fill(endx,endy,detected);
     if(detected){                               //Graph of detected
         _hitmap_bgd->Fill(endx,endy,detected);    //      _hitmap_bgd->Fill(endx,endy);
-	_hlego->Fill(endx,endy,detected);
+
 	_hlego_pol1->Fill(px,py);
 	//      _hcol1->Fill((float_t(px)),(float_t(py)));
 	_hcol1->Fill((float_t(py_radius)),(float_t(px_phi)));
@@ -534,17 +526,10 @@ void BeamCalRecon_xy::processEvent( LCEvent* signal_event ) {
     }else{                                      //Graph of not detected
         _hitmap_zeros->Fill(endx,endy,true);
 	_hlego_zeros->Fill(endx,endy,true);
-	//      _hlego_zeros_var->Fill(endx,endy,true);
-      
-	//      if((_zeros_map)[pos]>=1.0){
-	//	(_zeros_map)[pos]+= 1.0;
-	//      }else{
-	//	(_zeros_map)[pos] = 1.0;
-	//      }
+	//      _hlego_zeros_var->Fill(endx,endy,true);      
     }
-    //    (*_all_map)[ID]+= (detected || !detected);
 
-    _hlego->SetFillColor(kYellow);
+
     _nEvt++;
     if(_nEvt%1000==0){
         cout << _nEvt << endl;
@@ -558,14 +543,6 @@ void BeamCalRecon_xy::check( LCEvent * evt ){
 
 
 void BeamCalRecon_xy::end(){
-    // ------ ------
-    //  for(auto bit:*_zeros_map){
-    //    pair<float,float> ID = bit.first;
-    //    double bit_hit = bit.second;
-    //    double all_hit = *_all_map[ID];
-    //  _hlego_inefficiency->Fill(ID.first,ID.second,bit_hit/all_hit)
-    //  }
-
     _hlego_inefficiency->Add(_hlego_zeros);
     /*  _hlego_test->Add(_hlego_zeros);
 	_hlego_test->Add(_hlego);
@@ -576,21 +553,7 @@ void BeamCalRecon_xy::end(){
     cout << "\n in \'slice\' of beamcal: " << _test_num << endl;
     cout << "max radius: " << _max_radius << endl;
     cout << "min radius: " << _min_radius << endl;
-    //    cout << "All map " << _all_map << endl;
-    //    cout << "zeros map " << _zeros_map << endl;
 
-    //    PrintRadiusThetaTable_two(_RadTheta_wCut);
-    //    PrintRadiusThetaTable_two(_RadTheta_wBgd);
-
-    //    stringstream& stream
-    //    std::ofstream fout;
-    /*    ofstream fout;
-        fout.open("output.txt");
-    if (fout.fail()){
-      cout << "Output file failed to open.\n";
-      exit(-1);
-    }
-    */
 
     //    PrintRadiusThetaTable("wCut", fout);
     PrintRadiusThetaTable("wCut");
@@ -613,6 +576,7 @@ void BeamCalRecon_xy::end(){
     //    cout << "*******************this is the end***********************" << endl;
     //    cout << "******************* time elapsed: " << (_end - _begin) << " ***********************" << endl;
     //    cout << "******************* time elapsed: " << std::chrono::duration_cast<std::chrono::nanoseconds>(_t2 - _t1).count() << " ***********************" << endl;
-    _hcol1->Draw("COLZPOL");   
+
+    //    _hcol1->Draw("COLZPOL");   
     _rootfile->Write();
 }

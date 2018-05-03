@@ -76,11 +76,13 @@ class tpJetRazor : public Processor {
         std::string _root_file_name;
         std::string j0eventsCheck;
         std::string j1eventsCheck; 
+        std::string Rvals; 
 
         int MR0check; 
-        
+        int totalRcheck; 
         std::string betaCheck;
         std::string Rcheck;   
+        
 
         int _jetDetectability; 
         double _JetRParameter = 0.5;
