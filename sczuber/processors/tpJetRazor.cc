@@ -97,7 +97,7 @@ tpJetRazor::tpJetRazor() : Processor("tpJetRazor") {
             _jetDetectability, 0  );
     registerProcessorParameter("boost", 
             "Which R-frame transformation to do:  \n#\t0 : None \n#\t1 : Original (equalizes magnitude of 3-momenta) \n#\t2 : Modified (equalizes the z-momenta) \n#t3 : New (Using beta_{L}^{R}*, should always be physical)",
-            _boost, 1);
+            _boost, 3);
 }
 
 void tpJetRazor::init() { 
@@ -601,37 +601,56 @@ vector<vector<PseudoJet>> tpJetRazor::getMegajets(vector<PseudoJet> jets){
 }
 vector<vector<double>> tpJetRazor::boostMegajets(vector<double> j1, vector<double> j2){
 
-    //----------------------------------------------------------------------------------------------
-    double beta = (j1[0]-j2[0])/(j1[3]-j2[3]);
-    cout << "beta: "<< beta<< endl;
-    double gamma = pow((1-pow(beta,2)), -0.5);
-    cout << "gamma: "<< gamma<< endl;
+    vector<vector<double>> jR; 
 
-    //double MRj1 = 2*((pow(j1R[1],2), pow(j1R[2],2), pow(j1R[3],2)));
-    //double MRj2 = 2*((pow(j2R[1],2), pow(j2R[2],2), pow(j2R[3],2)));
-    //cout << "MRj1: "<< MRj1 << endl;
-    //cout << "MRj2: "<< MRj2 << endl;
+    if(_boost == 1){
+        double beta = (j1[0]-j2[0])/(j1[3]-j2[3]);
+        cout << "beta: "<< beta<< endl;
+        double gamma = pow((1-pow(beta,2)), -0.5);
+        cout << "gamma: "<< gamma<< endl;
 
-    if(beta>1){
-        cerr << "Event with beta > 1 !!!" << endl; 
-        betaCheck += " ";
-        betaCheck += std::to_string(_nEvt);
-        betaCheck += " ";
-        
-        beta = .999;
-        gamma = pow((1-pow(beta,2)), -0.5);
+        //double MRj1 = 2*((pow(j1R[1],2), pow(j1R[2],2), pow(j1R[3],2)));
+        //double MRj2 = 2*((pow(j2R[1],2), pow(j2R[2],2), pow(j2R[3],2)));
+        //cout << "MRj1: "<< MRj1 << endl;
+        //cout << "MRj2: "<< MRj2 << endl;
+
+        if(beta>1){
+            cerr << "Event with beta > 1 !!!" << endl; 
+            betaCheck += " ";
+            betaCheck += std::to_string(_nEvt);
+            betaCheck += " ";
+            
+            beta = .999;
+            gamma = pow((1-pow(beta,2)), -0.5);
+        }
+        if(beta<-1){
+            cerr << "Event with beta > 1 !!!" << endl; 
+            betaCheck += " ";
+            betaCheck += std::to_string(_nEvt);
+            betaCheck += " ";
+            
+            beta = -0.999;
+            gamma = pow((1-pow(beta,2)), -0.5);
+        }
+        jR  = 
+        {{gamma*j1[0]-gamma*beta*j1[3], j1[1],j1[2],-gamma*beta*j1[0]+gamma*j1[3] }, 
+        {gamma*j2[0]-gamma*beta*j2[3], j2[1],j2[2],-gamma*beta*j2[0]+gamma*j2[3] } } ;
     }
-    if(beta<-1){
-        cerr << "Event with beta > 1 !!!" << endl; 
-        betaCheck += " ";
-        betaCheck += std::to_string(_nEvt);
-        betaCheck += " ";
+    if(_boost == 3){
+        double beta = (j1[3]+j2[3])/(j1[0]+j2[0]);  
+         
+        if(beta>1){
+            cerr << "Event with beta > 1 !!!" << endl; 
+            betaCheck += " ";
+            betaCheck += std::to_string(_nEvt);
+            betaCheck += " "; 
+        }
+        double gamma = pow(1-pow(beta,2), -0.5);
+        jR  = 
+        {{gamma*j1[0]-gamma*beta*j1[3], j1[1],j1[2],-gamma*beta*j1[0]+gamma*j1[3] }, 
+        {gamma*j2[0]-gamma*beta*j2[3], j2[1],j2[2],-gamma*beta*j2[0]+gamma*j2[3] } } ;
         
-        beta = -0.999;
-        gamma = pow((1-pow(beta,2)), -0.5);
     }
-    vector<vector<double>> jR  = 
-    {{gamma*j1[0]-gamma*beta*j1[3], j1[1],j1[2],-gamma*beta*j1[0]+gamma*j1[3] }, 
-    {gamma*j2[0]-gamma*beta*j2[3], j2[1],j2[2],-gamma*beta*j2[0]+gamma*j2[3] } } ;
-    return jR;
+        
+        return jR;
 }
