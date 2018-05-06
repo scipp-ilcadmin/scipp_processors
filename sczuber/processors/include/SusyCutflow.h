@@ -64,12 +64,12 @@ class SusyCutflow : public Processor {
    */
   std::string _colName ;
 
-  int _nRun ;
-  int _nEvt ;
+    int _nRun ;
+    int _nEvt ;
 
 
-
-  double cuts[3][5];
+    double _cuts_sep[3][3][11];
+    double cuts[3][5];
 } ;
 
 #endif

@@ -94,7 +94,7 @@ tpJetRazor::tpJetRazor() : Processor("tpJetRazor") {
     registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") );
     registerProcessorParameter( "jetDetectability" ,
             "Detectability Level particles used in the Jet reconstruction:\n#\t0 : True\n#\t1 : Detectable\n#\t2 : Detected" ,
-            _jetDetectability, 0  );
+            _jetDetectability, 2  );
     registerProcessorParameter("boost", 
             "Which R-frame transformation to do:  \n#\t0 : None \n#\t1 : Original (equalizes magnitude of 3-momenta) \n#\t2 : Modified (equalizes the z-momenta) \n#t3 : New (Using beta_{L}^{R}*, should always be physical)",
             _boost, 3);
@@ -103,39 +103,39 @@ tpJetRazor::tpJetRazor() : Processor("tpJetRazor") {
 void tpJetRazor::init() { 
     //streamlog_out(DEBUG)  << "   init called  " << endl;
 
-    if(_jetDetectability==0){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._TRU.root","RECREATE");
+    if(_jetDetectability==0){_rootfile = new TFile("tpJetRazor_eW.pB.I39213._TRU.root","RECREATE");
         _R_TRU = new TH1F("R_TRU", "R=MTR/MR",1000,0,10);
         _MR_TRU = new TH1F("MR_TRU", "MR",500,0,100);
         _MRT_TRU = new TH1F("MRT_TRU", "MRT",250,0,50);
         _MRR_TRU = new TH2F("MRR_TRU", "MRR",500,0,100,1000,0,10 );
-        _MRR2_TRU = new TH2F("MRR2_TRU", "MRR2",1000,0,100,2000,0,2 );
+        _MRR2_TRU = new TH2F("MRR2_TRU", "MRR2",500,0.001,100,1000,0.001,1.4 );
         mult = new TH1F("mult", "multiplicity", 500,0,500); 
         multjets = new TH2F("multjets", "jets v multiplicity", 500,0,500, 500,0,500); 
        // _beta_T = new TH1F("beta_T", "beta",250,0,50);
         
-        freopen("tpJetRazor_eW.pW.I39212._TRU.log", "w",stdout);    
+        freopen("tpJetRazor_eW.pB.I39213._TRU.log", "w",stdout);    
     }
-    if(_jetDetectability==1){_rootfile = new TFile("tpJetRazor_eW.pB.I39213._DAB.root","RECREATE");
+    if(_jetDetectability==1){_rootfile = new TFile("tpJetRazor_eB.pB.I39215._DAB.root","RECREATE");
         _R_DAB = new TH1F("R_DAB", "R=MTR/MR",1000,0,10);
         _MR_DAB = new TH1F("MR_DAB", "MR",500,0,100);
         _MRT_DAB = new TH1F("MRT_DAB", "MRT",250,0,50);
         _MRR_DAB = new TH2F("MRR_DAB", "MRR",500,0,100, 1000,0,10);
-        _MRR2_DAB = new TH2F("MRR2_DAB", "MRR2",1000,0,100, 2000,0,2);
+        _MRR2_DAB = new TH2F("MRR2_DAB", "MRR2",500,0.001,100, 1000,0.001,1.4);
         mult = new TH1F("mult", "multiplicity", 500,0,500); 
         multjets = new TH2F("multjets", "jets v multiplicity", 500,0,500, 500,0,500); 
       //  _beta_DAB = new TH1F("beta_DAB", "beta",130,-3,10);
         
-        freopen("tpJetRazor_eW.pB.I39213._DAB.log", "w",stdout);   
+        freopen("tpJetRazor_eB.pB.I39215._DAB.log", "w",stdout);   
     }
-    if(_jetDetectability==2){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._DED.root","RECREATE");
+    if(_jetDetectability==2){_rootfile = new TFile("tpJetRazor_eB.pW.I39214._DED.root","RECREATE");
         _R_DED = new TH1F("R_DED", "R=MTR/MR",1000,0,10); 
         _MR_DED = new TH1F("MR_DED", "MR",500,0,100); 
         _MRT_DED = new TH1F("MRT_DED", "MRT",250,0,50); 
         _MRR_DED = new TH2F("MRR_DED", "MRR",500,0,100, 1000, 0, 10); 
-        _MRR2_DED = new TH2F("MRR2_DED", "MRR2",1000,0,100, 2000, 0, 2); 
+        _MRR2_DED = new TH2F("MRR2_DED", "MRR2",500,0.001,100, 1000, 0.001, 1.4); 
      //   _beta_DED = new TH1F("beta_DED", "beta",130,-3,10); 
         
-        freopen("tpJetRazor_eW.pW.I39212._DED.log", "w",stdout);    
+        freopen("tpJetRazor_eB.pW.I39214._DED.log", "w",stdout);    
     }
 
     //irameters() ;
@@ -193,7 +193,7 @@ void tpJetRazor::processRunHeader( LCRunHeader* run) {
 
 void tpJetRazor::processEvent( LCEvent * evt ) { 
     
-    cerr << "EVENT: "<< _nEvt<< endl;   
+    //cerr << "EVENT: "<< _nEvt<< endl;   
 
     _inParVec = evt->getCollection( _colName) ;
     //cout << " get collection " << endl;
@@ -284,7 +284,7 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
     } // for particle 
 
 
-    cerr << "Included particles:" << endl; 
+    //cerr << "Included particles:" << endl; 
     for (int n=0;n<_inParVec->getNumberOfElements() ;n++){
         MCParticle* aPart = dynamic_cast<MCParticle*>( _inParVec->getElementAt(n) );
         try{
@@ -313,17 +313,17 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
 
                 if(_jetDetectability == 0){
                     if(!isDarkMatter){
-                        cerr << "id: " << id << " "<< pname[id] << " "<< parp[0]<< " "<<parp[1]<< " "<< parp[2]<< endl;
+                        //cerr << "id: " << id << " "<< pname[id] << " "<< parp[0]<< " "<<parp[1]<< " "<< parp[2]<< endl;
                     }
                 }
                 if(_jetDetectability == 1){
                     if(isDetectable){
-                        cerr << "id: " << id << " "<< pname[id] << " "<< parp[0]<< " "<<parp[1]<< " "<< parp[2]<< endl;
+                        //cerr << "id: " << id << " "<< pname[id] << " "<< parp[0]<< " "<<parp[1]<< " "<< parp[2]<< endl;
                     }
                 }
                 if(_jetDetectability == 2){
                     if(isDetected){
-                        cerr << "id: " << id << " "<< pname[id] << " "<< parp[0]<< " "<<parp[1]<< " "<< parp[2]<< endl;
+                        //cerr << "id: " << id << " "<< pname[id] << " "<< parp[0]<< " "<<parp[1]<< " "<< parp[2]<< endl;
                     }
                 }
             }// end particle not original 
@@ -346,17 +346,17 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
 
     vector<PseudoJet> unclustered = cs.unclustered_particles();
     for (unsigned i = 0; i < unclustered.size(); i++) {
-        cerr << "jet " << i << ": "<< unclustered[i].pt() << " "<< unclustered[i].rap() << " " << unclustered[i].phi() << endl;
+        //cerr << "jet " << i << ": "<< unclustered[i].pt() << " "<< unclustered[i].rap() << " " << unclustered[i].phi() << endl;
         vector<PseudoJet> constituents = unclustered[i].constituents();
         for (unsigned j = 0; j < unclustered.size(); j++) {
-            cerr << "constituent " << j << "’s pt: "<< constituents[j].pt() << endl;
+            //cerr << "constituent " << j << "’s pt: "<< constituents[j].pt() << endl;
         }
     }
     vector<PseudoJet> childless = cs.childless_pseudojets(); 
     
    
     for (unsigned i = 0; i < childless.size(); i++) {
-        cerr << "jet " << i << ": "<< childless[i].pt() << " "<< childless[i].rap() << " " << childless[i].phi() << endl;
+        //cerr << "jet " << i << ": "<< childless[i].pt() << " "<< childless[i].rap() << " " << childless[i].phi() << endl;
         vector<PseudoJet> constituents = childless[i].constituents();
         for (unsigned j = 0; j < childless.size(); j++) {
             cerr << "constituent " << j << "’s pt: "<< constituents[j].pt() << endl;
@@ -364,7 +364,7 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
     }
    
     //print the number of jets in event:
-    cerr << "NUMBER OF JETS: "<< jets.size()<< endl;
+    //cerr << "NUMBER OF JETS: "<< jets.size()<< endl;
     //check if 0 jets:
     if(jets.size()==0){
         j0eventsCheck +=" ";
@@ -426,7 +426,7 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
     double MR2 = pow(pj1+pj2,2)-pow(jR[0][3]+jR[1][3],2);
     double MR = pow(MR2, 0.5);
     cout << "MR: "<< MR<< endl; 
-    cerr << "MR: "<< MR<< endl; 
+    //cerr << "MR: "<< MR<< endl; 
 
     double vptm[2] = {-jR[0][1]-jR[1][1],-jR[0][2]-jR[1][2]};
     double ptm = pow(pow(vptm[0],2)+pow(vptm[1],2) ,0.5);
@@ -434,7 +434,7 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
     double MRT2 = (ptm*(ptj1+ptj2)-(vptm[0]*(jR[0][1]+jR[1][1])+vptm[1]*(jR[0][2]+jR[1][2])))/2.0 ;
     double MRT = pow(MRT2,0.5);
     cout << "MRT: "<< MRT<< endl; 
-    cerr << "MRT: "<< MRT<< endl; 
+    //cerr << "MRT: "<< MRT<< endl; 
     
     double R;
      
@@ -452,11 +452,21 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
     {
         cerr << "ERROR: " << error << " ";
     }
-    cerr << "R = "<< R<< endl;  
+    //cerr << "R = "<< R<< endl;  
     cout << "R = "<< R<< endl;  
-    
+   
+     
     double R2 = R*R;
     
+
+    //FOR THE SAKE OF LOG PLOT HISTOGRAM MRR2:
+    if (R2 < 0.001){
+        R2 = 0.001;
+    }
+    if(MR < 0.001){
+        MR = 0.001;
+    }
+    //----------------------------------------
     if(MR > 2){
         _cuts[0]+=1;
         if(R2 > 0.05){
@@ -491,7 +501,7 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
         _MRT_TRU->Fill(MRT);
         _R_TRU->Fill(R);
         _MRR_TRU->Fill(MR,R);
-        _MRR2_TRU->Fill(MR,R*R);
+        _MRR2_TRU->Fill(MR,R2);
         //_NJ_T->Fill(jets.size());
      //   _beta_T->Fill(beta);
     }
@@ -500,7 +510,7 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
         _MRT_DAB->Fill(MRT);
         _R_DAB->Fill(R);
         _MRR_DAB->Fill(MR,R);
-        _MRR2_DAB->Fill(MR,R*R);
+        _MRR2_DAB->Fill(MR,R2);
         //_NJ_DAB->Fill(jets.size());
      //   _beta_DAB->Fill(beta);
     }
@@ -509,7 +519,7 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
         _MRT_DED->Fill(MRT);
         _R_DED->Fill(R);
         _MRR_DED->Fill(MR,R);
-        _MRR2_DED->Fill(MR,R*R);
+        _MRR2_DED->Fill(MR,R2);
         //_NJ_DED->Fill(jets.size());
      //   _beta_DED->Fill(beta);
     }
@@ -554,10 +564,12 @@ vector<vector<PseudoJet>> tpJetRazor::getMegajets(vector<PseudoJet> jets){
     int min_index = 0;
 
     for(int i = 0; i<num_partitions; ++i){
-        vector<PseudoJet> partition[2]; 
+        vector<PseudoJet> partition[2];
+        // the two partitions are symmetric under swapping so only make 1/2 of possible partions: 
         if((i & pow(2,0) != 0)){
             for(int j = 0; j<jets.size(); ++j){
                 int bit = pow(2,j);
+
                 if((i & bit) !=0){
                     partition[0].push_back(jets[j]);
                 }

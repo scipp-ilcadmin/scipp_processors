@@ -56,7 +56,7 @@ SusyCutflow::SusyCutflow() : Processor("SusyCutflow") {
 
 
 void SusyCutflow::init() { 
-    streamlog_out(DEBUG) << "   init called  " << std::endl ;
+    //streamlog_out(DEBUG) << "   init called  " << std::endl ;
 
     _rootfile = new TFile("SusyCutflow.root","RECREATE");
   
@@ -81,12 +81,7 @@ void SusyCutflow::processEvent( LCEvent * evt ) {
 
     LCCollection* col = evt->getCollection( _colName ) ;
     cout << _colName << endl;
-    cout << endl;
-    cout << endl;
-    cout << endl;
     cout << "event = " << _nEvt << endl;
-    
-
 
     if( col != NULL ){
         double vec[4][3];
@@ -94,24 +89,22 @@ void SusyCutflow::processEvent( LCEvent * evt ) {
         double energy[4];
         
         int id, stat; 
-        cout << "inside col" << endl;
+     
         int nElements = col->getNumberOfElements()  ;
-        cout << col->getNumberOfElements() << endl;
+        //cout << col->getNumberOfElements() << endl;
         
         // For each particle in Event ...
         for(int particleIndex = 0; particleIndex < nElements ; particleIndex++){
            MCParticle* particle = dynamic_cast<MCParticle*>( col->getElementAt(particleIndex) );
           
            try{ id = particle->getPDG(); 
-                cout << id << endl; 
+                //cout << id << endl; 
            }
            catch(...){cout << "could not get particle id" << endl;}
 
-            stat = particle->getGeneratorStatus();
-            cout << "stat" << endl;
-            cout << stat << endl;
+            stat = particle->getGeneratorStatus(); 
            // If Particle is FINAL-STATE 
-           //if(stat==1){
+           if(stat==1){
                 bool isDarkMatter = (id == 1000022);
                 if(isDarkMatter) continue ;
                 double E = particle->getEnergy();
@@ -147,7 +140,7 @@ void SusyCutflow::processEvent( LCEvent * evt ) {
                     }
                 }
                  
-          // }//end final state
+           }//end final state
         }//end for
 
         //all
@@ -155,6 +148,10 @@ void SusyCutflow::processEvent( LCEvent * evt ) {
         double total_detected_scalar = scalars[1];
         double total_detectable_scalar = scalars[2];
 
+        double total_true_vector = sqrt(vec[0][0]*vec[0][0]+vec[0][1]*vec[0][1]);
+        double total_detected_vector = sqrt(vec[1][0]*vec[1][0]+vec[1][1]*vec[1][1]);
+        double total_detectable_vector = sqrt(vec[2][0]*vec[2][0]+vec[2][1]*vec[2][1]);
+        
         double total_true_mass_squared = energy[0]*energy[0]-
             (vec[0][0]*vec[0][0]+vec[0][1]*vec[0][1]+
             vec[0][2]*vec[0][2]);
@@ -210,7 +207,7 @@ void SusyCutflow::processEvent( LCEvent * evt ) {
         }
         
 
-        cout << "TRUE" << endl;
+        /*cout << "TRUE" << endl;
         cout<< "cut_0 " << cuts[0][0] << endl;
         cout<< "cut_1 " << cuts[0][1] << endl;
         cout<< "cut_2 " << cuts[0][2] << endl;
@@ -227,8 +224,44 @@ void SusyCutflow::processEvent( LCEvent * evt ) {
         cout<< "cut_1 " << cuts[1][1] << endl;
         cout<< "cut_2 " << cuts[1][2] << endl;
         cout<< "cut_3 " << cuts[1][3] << endl;
-        cout<< "cut_4 " << cuts[1][4] << endl;
+        cout<< "cut_4 " << cuts[1][4] << endl;*/
+       double cut = 0;
+       int i = 0;
+       while(cut < 2.1){
+           cout << cut << endl; 
+            if(total_true_scalar>cut){
+                _cuts_sep[0][0][i]++;
+            }
+            if(total_true_vector>cut){
+                _cuts_sep[0][1][i]++;
+            }
+            if(total_true_mass>cut){
+                _cuts_sep[0][2][i]++;
+            }
+            if(total_detectable_scalar>cut){
+                _cuts_sep[1][0][i]++;
+            }
+            if(total_detectable_vector>cut){
+                _cuts_sep[1][1][i]++;
+            }
+            if(total_detectable_mass>cut){
+                _cuts_sep[1][2][i]++;
+            }
+            if(total_detected_scalar>cut){
+                _cuts_sep[2][0][i]++;
+            }
+            if(total_detected_vector>cut){
+                _cuts_sep[2][1][i]++;
+            }
+            if(total_detected_mass>cut){
+                _cuts_sep[2][2][i]++;
+            }
+            cut += 0.2;
+            i +=1;
+       
+       }
     }
+   
     _nEvt ++ ;
 }
 
@@ -241,6 +274,16 @@ void SusyCutflow::check( LCEvent * evt ) {
 
 
 void SusyCutflow::end(){ 
+    for (int i = 0; i<3; i++){
+        cout << "i = "<< i <<"TRUE/DAB/DED"<< endl; 
+        for(int j = 0; j < 3; j++){
+           cout <<" j = " << j << " S/V/M"<< endl; 
+           for (int c = 0; c <11; c++){
+                //cout << "c = " << c<<" cut "<< endl; 
+                cout << _cuts_sep[i][j][c] << endl; 
+           }
+        }
+    }
 
     _rootfile->Write();
 }
