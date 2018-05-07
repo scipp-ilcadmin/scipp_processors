@@ -91,7 +91,7 @@ susyJetRazor::susyJetRazor() : Processor("susyJetRazor") {
     registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") ); 
     registerProcessorParameter( "jetDetectability",
             "Detectability of the Thrust Axis/Value to be used:\n#\t0 : True \n#t1 : Detectable \n#t2 : Detected" ,
-            _jetDetectability, 2);
+            _jetDetectability, 0);
     registerProcessorParameter("boost", 
             "Which R-frame transformation to do:\n#\t0 : None \n#t1 : Original (equalizes magnitude of 3-momenta) \n#t2 : Modified (equalizes the z-momenta) \n#t3 : New (using beta_{L}^{R}*, should always be physical) ",
              _boost, 3 ); 
@@ -418,7 +418,15 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
   
     cout << "R="<<R<< endl; 
     cerr << "R="<<R<< endl; 
-    
+  
+   // reset the underflow bin for log plots:
+    if(R2 < 0.001){
+        R2 = 0.001;
+    }
+    if(MR < 0.001){
+        MR = 0.001;
+    }
+    // ------------------------------------------------
     if(MR > 2){
         _cuts[0]+=1;
         if(R2 > 0.05){
@@ -455,7 +463,7 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
         _MRT_TRU->Fill(MRT);
         _R_TRU->Fill(R);
         _MRR_TRU->Fill(MR,R);
-        _MRR2_TRU->Fill(MR,R*R);
+        _MRR2_TRU->Fill(MR,R2);
         _MRTMR_TRU->Fill(MRT,MR);
         _NJR_TRU->Fill(NJ,R);
         //_NJ_T->Fill(jets.size());
@@ -466,7 +474,7 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
         _MRT_DAB->Fill(MRT);
         _R_DAB->Fill(R);
         _MRR_DAB->Fill(MR,R);
-        _MRR2_DAB->Fill(MR,R*R);
+        _MRR2_DAB->Fill(MR,R2);
         _MRTMR_DAB->Fill(MRT,MR);
         _NJR_DAB->Fill(NJ,R);
         //_NJ_DAB->Fill(jets.size());
@@ -477,7 +485,7 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
         _MRT_DED->Fill(MRT);
         _R_DED->Fill(R);
         _MRR_DED->Fill(MR,R);
-        _MRR2_DED->Fill(MR,R*R);
+        _MRR2_DED->Fill(MR,R2);
         _MRTMR_DED->Fill(MRT,MR);
         _NJR_DED->Fill(NJ,R);
         //_NJ_DED->Fill(jets.size());
