@@ -94,7 +94,7 @@ tpJetRazor::tpJetRazor() : Processor("tpJetRazor") {
     registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") );
     registerProcessorParameter( "jetDetectability" ,
             "Detectability Level particles used in the Jet reconstruction:\n#\t0 : True\n#\t1 : Detectable\n#\t2 : Detected" ,
-            _jetDetectability, 2  );
+            _jetDetectability, 1  );
     registerProcessorParameter("boost", 
             "Which R-frame transformation to do:  \n#\t0 : None \n#\t1 : Original (equalizes magnitude of 3-momenta) \n#\t2 : Modified (equalizes the z-momenta) \n#t3 : New (Using beta_{L}^{R}*, should always be physical)",
             _boost, 3);
@@ -108,31 +108,31 @@ void tpJetRazor::init() {
         _MR_TRU = new TH1F("MR_TRU", "MR",500,0,100);
         _MRT_TRU = new TH1F("MRT_TRU", "MRT",250,0,50);
         _MRR_TRU = new TH2F("MRR_TRU", "MRR",500,0,100,1000,0,10 );
-        _MRR2_TRU = new TH2F("MRR2_TRU", "MRR2",500,0.01,100,1000,0.001,1.4 );
+        _MRR2_TRU = new TH2F("MRR2_TRU", "MRR2",500,0.1,100,1000,0.001,1.4 );
         mult = new TH1F("mult", "multiplicity", 500,0,500); 
         multjets = new TH2F("multjets", "jets v multiplicity", 500,0,500, 500,0,500); 
        // _beta_T = new TH1F("beta_T", "beta",250,0,50);
         
         freopen("tpJetRazor_eW.pW.I39212._TRU.log", "w",stdout);    
     }
-    if(_jetDetectability==1){_rootfile = new TFile("tpJetRazor_eB.pB.I39215._DAB.root","RECREATE");
+    if(_jetDetectability==1){_rootfile = new TFile("tpJetRazor_eB.pW.I39214._DAB.root","RECREATE");
         _R_DAB = new TH1F("R_DAB", "R=MTR/MR",1000,0,10);
         _MR_DAB = new TH1F("MR_DAB", "MR",500,0,100);
         _MRT_DAB = new TH1F("MRT_DAB", "MRT",250,0,50);
         _MRR_DAB = new TH2F("MRR_DAB", "MRR",500,0,100, 1000,0,10);
-        _MRR2_DAB = new TH2F("MRR2_DAB", "MRR2",500,0.01,100, 1000,0.001,1.4);
+        _MRR2_DAB = new TH2F("MRR2_DAB", "MRR2",500,0.1,100, 1000,0.001,1.4);
         mult = new TH1F("mult", "multiplicity", 500,0,500); 
         multjets = new TH2F("multjets", "jets v multiplicity", 500,0,500, 500,0,500); 
       //  _beta_DAB = new TH1F("beta_DAB", "beta",130,-3,10);
         
-        freopen("tpJetRazor_eB.pB.I39215._DAB.log", "w",stdout);   
+        freopen("tpJetRazor_eB.pW.I39214._DAB.log", "w",stdout);   
     }
     if(_jetDetectability==2){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._DED.root","RECREATE");
         _R_DED = new TH1F("R_DED", "R=MTR/MR",1000,0,10); 
         _MR_DED = new TH1F("MR_DED", "MR",500,0,100); 
         _MRT_DED = new TH1F("MRT_DED", "MRT",250,0,50); 
         _MRR_DED = new TH2F("MRR_DED", "MRR",500,0,100, 1000, 0, 10); 
-        _MRR2_DED = new TH2F("MRR2_DED", "MRR2",500,0.01,100, 1000, 0.001, 1.4); 
+        _MRR2_DED = new TH2F("MRR2_DED", "MRR2",500,0.1,100, 1000, 0.001, 1.4); 
      //   _beta_DED = new TH1F("beta_DED", "beta",130,-3,10); 
         
         freopen("tpJetRazor_eW.pW.I39212._DED.log", "w",stdout);    
