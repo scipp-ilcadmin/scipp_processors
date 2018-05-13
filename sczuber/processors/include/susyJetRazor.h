@@ -8,6 +8,8 @@
 #include <IMPL/ReconstructedParticleImpl.h>
 #include "fastjet/ClusterSequence.hh"
 #include <map>
+#include <TH2D.h>
+
 
 #include <CLHEP/Vector/ThreeVector.h>
 #include <CLHEP/Random/RanluxEngine.h>
@@ -70,7 +72,8 @@ class susyJetRazor : public Processor {
         vector<vector<PseudoJet>> getMegajets(vector<PseudoJet> jets);
         vector<vector<double>> boostMegajets(vector<double> j1, vector<double> j2); 
         //vector<int> doCuts(double MR, double R2); 
-        
+        virtual void BinLogX(TH2 * h);     
+        //virtual void BinLogY(TH2 * h);     
         std::map<int,std::string> pname;
 
     protected:

@@ -94,7 +94,7 @@ tpJetRazor::tpJetRazor() : Processor("tpJetRazor") {
     registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") );
     registerProcessorParameter( "jetDetectability" ,
             "Detectability Level particles used in the Jet reconstruction:\n#\t0 : True\n#\t1 : Detectable\n#\t2 : Detected" ,
-            _jetDetectability, 2);
+            _jetDetectability, 0);
     registerProcessorParameter("boost", 
             "Which R-frame transformation to do:  \n#\t0 : None \n#\t1 : Original (equalizes magnitude of 3-momenta) \n#\t2 : Modified (equalizes the z-momenta) \n#t3 : New (Using beta_{L}^{R}*, should always be physical)",
             _boost, 1);
@@ -463,8 +463,8 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
     if (R2 < 0.001){
         R2 = 0.001;
     }
-    if(MR < 0.001){
-        MR = 0.001;
+    if(MR < 0.1){
+        MR = 0.1;
     }
     //----------------------------------------
     if(MR > 2){
@@ -494,7 +494,12 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
         Rvals += " ";
         totalRcheck++;
     } 
-
+    if(R2 > 1.4){
+        R2 = 1.4;
+    }
+    if(MR > 100){
+        MR = 100; 
+    }
     // fill the razor variable plots: 
     if(_jetDetectability == 0){
         _MR_TRU->Fill(MR);
