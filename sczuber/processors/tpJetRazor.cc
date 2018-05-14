@@ -94,7 +94,7 @@ tpJetRazor::tpJetRazor() : Processor("tpJetRazor") {
     registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") );
     registerProcessorParameter( "jetDetectability" ,
             "Detectability Level particles used in the Jet reconstruction:\n#\t0 : True\n#\t1 : Detectable\n#\t2 : Detected" ,
-            _jetDetectability, 0);
+            _jetDetectability, 1);
     registerProcessorParameter("boost", 
             "Which R-frame transformation to do:  \n#\t0 : None \n#\t1 : Original (equalizes magnitude of 3-momenta) \n#\t2 : Modified (equalizes the z-momenta) \n#t3 : New (Using beta_{L}^{R}*, should always be physical)",
             _boost, 1);
@@ -102,37 +102,55 @@ tpJetRazor::tpJetRazor() : Processor("tpJetRazor") {
 
 void tpJetRazor::init() { 
     //streamlog_out(DEBUG)  << "   init called  " << endl;
+    int nxbins = 400; 
+    int nybins = 400; 
+    Double_t xEdges[nxbins +1];
+    Double_t yEdges[nybins +1];
+    double p = -2;
+    size_t size = 0;
+    while(size < nxbins+1){
+        xEdges[size++] = pow(10,p);
+        p += 0.01;
+    }
+    size = 0; 
+    p = -2; 
+    while(size<nybins+1){
+        yEdges[size++] = pow(10,p);
+        p +=0.006;
+    }
+
+
 
     if(_jetDetectability==0){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._TRU.root","RECREATE");
         _R_TRU = new TH1F("R_TRU", "R=MTR/MR",1000,0,10);
         _MR_TRU = new TH1F("MR_TRU", "MR",500,0,100);
         _MRT_TRU = new TH1F("MRT_TRU", "MRT",250,0,50);
         _MRR_TRU = new TH2F("MRR_TRU", "MRR",500,0,100,1000,0,10 );
-        _MRR2_TRU = new TH2F("MRR2_TRU", "MRR2",500,0.1,100,1000,0.001,1.4 );
+        _MRR2_TRU = new TH2F("MRR2_TRU", "MRR2",nxbins, xEdges,nybins, yEdges );
         mult = new TH1F("mult", "multiplicity", 500,0,500); 
         multjets = new TH2F("multjets", "jets v multiplicity", 500,0,500, 500,0,500); 
        // _beta_T = new TH1F("beta_T", "beta",250,0,50);
         
         freopen("tpJetRazor_eW.pW.I39212._TRU.log", "w",stdout);    
     }
-    if(_jetDetectability==1){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._DAB.root","RECREATE");
+    if(_jetDetectability==1){_rootfile = new TFile("tpJetRazor_eB.pB.I39215._DAB.root","RECREATE");
         _R_DAB = new TH1F("R_DAB", "R=MTR/MR",1000,0,10);
         _MR_DAB = new TH1F("MR_DAB", "MR",500,0,100);
         _MRT_DAB = new TH1F("MRT_DAB", "MRT",250,0,50);
         _MRR_DAB = new TH2F("MRR_DAB", "MRR",500,0,100, 1000,0,10);
-        _MRR2_DAB = new TH2F("MRR2_DAB", "MRR2",500,0.1,100, 1000,0.001,1.4);
+        _MRR2_DAB = new TH2F("MRR2_DAB", "MRR2", nxbins, xEdges, nybins, yEdges);
         mult = new TH1F("mult", "multiplicity", 500,0,500); 
         multjets = new TH2F("multjets", "jets v multiplicity", 500,0,500, 500,0,500); 
       //  _beta_DAB = new TH1F("beta_DAB", "beta",130,-3,10);
         
-        freopen("tpJetRazor_eW.pW.I39212._DAB.log", "w",stdout);   
+        freopen("tpJetRazor_eB.pB.I39215._DAB.log", "w",stdout);   
     }
     if(_jetDetectability==2){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._DED.root","RECREATE");
         _R_DED = new TH1F("R_DED", "R=MTR/MR",1000,0,10); 
         _MR_DED = new TH1F("MR_DED", "MR",500,0,100); 
         _MRT_DED = new TH1F("MRT_DED", "MRT",250,0,50); 
         _MRR_DED = new TH2F("MRR_DED", "MRR",500,0,100, 1000, 0, 10); 
-        _MRR2_DED = new TH2F("MRR2_DED", "MRR2",500,0.1,100, 1000, 0.001, 1.4); 
+        _MRR2_DED = new TH2F("MRR2_DED", "MRR2", nxbins, xEdges, nybins, yEdges); 
      //   _beta_DED = new TH1F("beta_DED", "beta",130,-3,10); 
         
         freopen("tpJetRazor_eW.pW.I39212._DED.log", "w",stdout);    
@@ -460,11 +478,11 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
     
 
     //FOR THE SAKE OF LOG PLOT HISTOGRAM MRR2:
-    if (R2 < 0.001){
-        R2 = 0.001;
+    if (R2 < 0.01){
+        R2 = 0.01;
     }
-    if(MR < 0.1){
-        MR = 0.1;
+    if(MR < 0.01){
+        MR = 0.01;
     }
     //----------------------------------------
     if(MR > 2){
@@ -493,7 +511,8 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
         Rvals += std::to_string(R);
         Rvals += " ";
         totalRcheck++;
-    } 
+    }
+    // reset overflow bins for log plots:  
     if(R2 > 1.4){
         R2 = 1.4;
     }
