@@ -446,6 +446,9 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
     if(MR < 0.01){
         MR = 0.01;
     }
+    if (MR < 0.0001){
+        R = 0; 
+    }
     // ------------------------------------------------
     if(MR > 2){
         _cuts[0]+=1;
