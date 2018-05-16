@@ -66,7 +66,6 @@ BeamCalRecon_xy BeamCalRecon_xy;
 static TFile* _rootfile;
 static TProfile* _radeff;
 static int _detected_num = 0;
-static int _test_num = 0;
 static int _LEGObins;
 static int _POLARbins;
 static int _1DRadBin;
@@ -74,7 +73,6 @@ static int _1DRadBin;
 //static TH2F* _hitmap_bgd; //static TH2D* _hitmap_bgd;
 static TProfile2D* _hitmap_bgd;
 static TProfile2D* _hitmap_zeros;
-static TProfile2D* _test_slice;
 static TProfile2D* _hitmap_signal_electrons;
 
 static TH1F* _1DRadHitsSigE_wCut;
@@ -308,7 +306,6 @@ void BeamCalRecon_xy::init() {
     _radeff = new TProfile("radeff","Radial Efficiency",14*2,0.0,140.0,0.0,1.0);
     _hitmap_bgd = new TProfile2D("hitmap_bgd","Hit Distribution",300.0,-150.0,150.0,300.0,-150.0,150.0);
     _hitmap_zeros = new TProfile2D("hitmap_zeros","Hit Distribution",300.0,-150.0,150.0,300.0,-150.0,150.0);
-    _test_slice = new TProfile2D("hitmap_slice","Hit Distribution",300.0,-150.0,150.0,300.0,-150.0,150.0);
     _hitmap_signal_electrons = new TProfile2D("hitmap_es","Hit Distribution",300.0,-150.0,150.0,300.0,-150.0,150.0);
 
     _c1 = new TCanvas("c1","c1",600,400);
@@ -502,10 +499,7 @@ void BeamCalRecon_xy::processEvent( LCEvent* signal_event ) {
     _radeff->Fill(radius,detected);             //bools and ints are basically interchangeable...
     _detected_num += detected;
 
-    if(detected && endx > 0 && endy < 0){       //Graph of slice of beamcal
-        _test_num += detected;
-	_test_slice->Fill(endx,endy,detected);
-    }
+
     _hlego->Fill(endx,endy,detected);
     if(detected){                               //Graph of detected
         _hitmap_bgd->Fill(endx,endy,detected);    //      _hitmap_bgd->Fill(endx,endy);
@@ -550,7 +544,6 @@ void BeamCalRecon_xy::end(){
     */
 
     cout << "\ndetected: " << _detected_num << endl;
-    cout << "\n in \'slice\' of beamcal: " << _test_num << endl;
     cout << "max radius: " << _max_radius << endl;
     cout << "min radius: " << _min_radius << endl;
 

@@ -92,7 +92,7 @@ susyJetRazor::susyJetRazor() : Processor("susyJetRazor") {
     registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") ); 
     registerProcessorParameter( "jetDetectability",
             "Detectability of the Thrust Axis/Value to be used:\n#\t0 : True \n#t1 : Detectable \n#t2 : Detected" ,
-            _jetDetectability, 1);
+            _jetDetectability, 2);
     registerProcessorParameter("boost", 
             "Which R-frame transformation to do:\n#\t0 : None \n#t1 : Original (equalizes magnitude of 3-momenta) \n#t2 : Modified (equalizes the z-momenta) \n#t3 : New (using beta_{L}^{R}*, should always be physical) ",
              _boost, 1 ); 
@@ -438,6 +438,9 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
   
     cout << "R="<<R<< endl; 
     cerr << "R="<<R<< endl; 
+    if (MR < 0.0001){
+        R = 0; 
+    }
   
    // reset the underflow bin for log plots:
     if(R2 < 0.01){ // they both start at 10^-2
@@ -445,9 +448,6 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
     }
     if(MR < 0.01){
         MR = 0.01;
-    }
-    if (MR < 0.0001){
-        R = 0; 
     }
     // ------------------------------------------------
     if(MR > 2){

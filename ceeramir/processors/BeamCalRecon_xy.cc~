@@ -506,9 +506,10 @@ void BeamCalRecon_xy::processEvent( LCEvent* signal_event ) {
         _test_num += detected;
 	_test_slice->Fill(endx,endy,detected);
     }
+    _hlego->Fill(endx,endy,detected);
     if(detected){                               //Graph of detected
         _hitmap_bgd->Fill(endx,endy,detected);    //      _hitmap_bgd->Fill(endx,endy);
-	_hlego->Fill(endx,endy,detected);
+
 	_hlego_pol1->Fill(px,py);
 	//      _hcol1->Fill((float_t(px)),(float_t(py)));
 	_hcol1->Fill((float_t(py_radius)),(float_t(px_phi)));
