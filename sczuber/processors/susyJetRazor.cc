@@ -438,7 +438,7 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
   
     cout << "R="<<R<< endl; 
     cerr << "R="<<R<< endl; 
-    if (MR < 0.0001){
+    if (MR < 0.001){
         R = 0; 
     }
   
