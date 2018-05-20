@@ -121,7 +121,7 @@ void tpJetRazor::init() {
 
 
 
-    if(_jetDetectability==0){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._TRU.root","RECREATE");
+    if(_jetDetectability==0){_rootfile = new TFile("tpJetRazor_eW.pB.I39213._TRU.root","RECREATE");
         _R_TRU = new TH1F("R_TRU", "R=MTR/MR",1000,0,10);
         _MR_TRU = new TH1F("MR_TRU", "MR",500,0,100);
         _MRT_TRU = new TH1F("MRT_TRU", "MRT",250,0,50);
@@ -131,7 +131,7 @@ void tpJetRazor::init() {
         multjets = new TH2F("multjets", "jets v multiplicity", 500,0,500, 500,0,500); 
        // _beta_T = new TH1F("beta_T", "beta",250,0,50);
         
-        freopen("tpJetRazor_eW.pW.I39212._TRU.log", "w",stdout);    
+        freopen("tpJetRazor_eW.pB.I39213._TRU.log", "w",stdout);    
     }
     if(_jetDetectability==1){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._DAB.root","RECREATE");
         _R_DAB = new TH1F("R_DAB", "R=MTR/MR",1000,0,10);
@@ -581,7 +581,8 @@ void tpJetRazor::end(){
     cerr << "MR==0: "<< MR0check;
     cerr << "R values: "<< Rvals<< endl;
     cout << "R values: "<< Rvals<< endl;
-    cout << "Total # of Events with R>1: "<< totalRcheck<< endl; 
+    cout << "Total # of Events with R>1: "<< totalRcheck<< endl;
+    cerr << "Total # of Events with Unphysical R-frame: "<< totalUnph << endl;  
 }
 
 vector<vector<PseudoJet>> tpJetRazor::getMegajets(vector<PseudoJet> jets){
@@ -659,7 +660,7 @@ vector<vector<double>> tpJetRazor::boostMegajets(vector<double> j1, vector<doubl
             betaCheck += " ";
             betaCheck += std::to_string(_nEvt);
             betaCheck += " ";
-            
+            totalUnph +=1;  
             beta = .999;
             gamma = pow((1-pow(beta,2)), -0.5);
         }
@@ -668,7 +669,7 @@ vector<vector<double>> tpJetRazor::boostMegajets(vector<double> j1, vector<doubl
             betaCheck += " ";
             betaCheck += std::to_string(_nEvt);
             betaCheck += " ";
-            
+            totalUnph +=1;            
             beta = -0.999;
             gamma = pow((1-pow(beta,2)), -0.5);
         }

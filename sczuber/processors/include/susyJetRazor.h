@@ -92,6 +92,7 @@ class susyJetRazor : public Processor {
         int mr0check; 
         std::string parpCheck;
         std::string betaCheck;
+        int totalUnph; 
         std::string Rcheck; 
         std::string Rvals; 
  

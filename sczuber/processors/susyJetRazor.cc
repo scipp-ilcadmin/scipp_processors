@@ -550,7 +550,9 @@ void susyJetRazor::end(){
         cerr << _cuts[i] << endl; 
     }
     cerr << "# of events with MR == 0 : "<< mr0check<< endl;
-    cerr << "R VALUES OVER 1 : "<< Rvals<< endl;  
+    cerr << "R VALUES OVER 1 : "<< Rvals<< endl; 
+    cerr << "total # Unphysical R-frame: "<< totalUnph;
+    cerr <<" "<<  endl;  
 }
 
 //vector<PseudoJet> susyJetRazor::getMegajets(vector<PseudoJet> jets){
@@ -665,6 +667,7 @@ vector<vector<double>> susyJetRazor::boostMegajets(vector<double> j1, vector<dou
             betaCheck += " ";
             betaCheck += std::to_string(_nEvt);
             betaCheck += " ";  
+            totalUnph +=1; 
             beta = 0.999;
             cerr << "new beta: "<< beta<< endl; 
             gamma = pow((1-pow(beta,2)), -0.5);
