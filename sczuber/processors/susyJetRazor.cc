@@ -92,7 +92,7 @@ susyJetRazor::susyJetRazor() : Processor("susyJetRazor") {
     registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") ); 
     registerProcessorParameter( "jetDetectability",
             "Detectability of the Thrust Axis/Value to be used:\n#\t0 : True \n#t1 : Detectable \n#t2 : Detected" ,
-            _jetDetectability, 2);
+            _jetDetectability, 0);
     registerProcessorParameter("boost", 
             "Which R-frame transformation to do:\n#\t0 : None \n#t1 : Original (equalizes magnitude of 3-momenta) \n#t2 : Modified (equalizes the z-momenta) \n#t3 : New (using beta_{L}^{R}*, should always be physical) ",
              _boost, 1 ); 
@@ -121,7 +121,7 @@ void susyJetRazor::init() {
     for(int i = 0 ; i<nxbins+1; i++){
         cout << xEdges[i] << endl; 
     }
-    if(_jetDetectability==0){_rootfile = new TFile("susyJetRazor_.39133._TRU0.5.root","RECREATE");
+    if(_jetDetectability==0){_rootfile = new TFile("susyJetRazor_.39117._TRU0.5.root","RECREATE");
         _R_TRU = new TH1F("R_TRU", "R =MTR/MR",1000,0,10); // the razor variable 
         _MR_TRU = new TH1F("MR_TRU","MR", 500, 0.0 ,100); // the M_{R} variable = 2|pR|
         _MRT_TRU = new TH1F("MRT_TRU","MRT", 500, 0 ,100); // the M_{T}^{R} variable 
@@ -269,7 +269,7 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
     // print the included particles:
     cout <<"----------------------------------------------"<< endl;  
     cout<< "Included Particles: "<< endl; 
-    cerr<< "Included Particles: "<< endl; 
+    //cerr<< "Included Particles: "<< endl; 
     for (int n=0;n<_inParVec->getNumberOfElements() ;n++){
         MCParticle* aPart = dynamic_cast<MCParticle*>( _inParVec->getElementAt(n) );
         try{
@@ -299,7 +299,7 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
            
             if(_jetDetectability == 0){
                 if(!isDarkMatter){  
-                    cerr << "id: " << id << " " << pname[id] <<" " << parp[0]<<" "<< parp[1]<<" "<< parp[2] <<endl;   
+                    //cerr << "id: " << id << " " << pname[id] <<" " << parp[0]<<" "<< parp[1]<<" "<< parp[2] <<endl;   
                 }
             }
             if(_jetDetectability == 1){
@@ -309,7 +309,7 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
             }
             if(_jetDetectability == 2){ 
                 if(isDetected){    
-                    cerr << "id: " << id << " " << pname[id] <<" " << parp[0]<<" "<< parp[1]<<" "<< parp[2] <<endl; 
+                    //cerr << "id: " << id << " " << pname[id] <<" " << parp[0]<<" "<< parp[1]<<" "<< parp[2] <<endl; 
                 }
             }
         } // stat = 1
@@ -322,12 +322,12 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
     // run the clustering, extract the jets
     ClusterSequence cs(_parp, jet_def);
     vector<PseudoJet> jets = sorted_by_pt(cs.inclusive_jets()); 
-    cerr << "NUMBER OF JETS: "<< jets.size() << endl;
+    //cerr << "NUMBER OF JETS: "<< jets.size() << endl;
     cout << "NUMBER OF JETS: "<< jets.size() << endl;
     int NJ = jets.size(); 
     //  check if 0 jets in event:
     if(jets.size()==0){
-        cerr << "Event with 0 jets"<< endl; 
+        //cerr << "Event with 0 jets"<< endl; 
         j0eventsCheck += " ";
         j0eventsCheck += std::to_string(_nEvt);
         j0eventsCheck += " "; 
@@ -335,7 +335,7 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
     }
     // check if 1 jet in event:
     if(jets.size()==1){
-        cerr << "Event with 1 jet" << endl; 
+        //cerr << "Event with 1 jet" << endl; 
         j1eventsCheck += " ";
         j1eventsCheck += std::to_string(_nEvt);
         j1eventsCheck += " ";  
@@ -377,27 +377,27 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
     vector<vector<double>> jR = boostMegajets(j1, j2);  
 
     // The Razor Variables using whatever R-frame is selcted: -------------------------------------------- 
-    cerr << "4-momenta jet 1 : "<< jR[0][0] <<' '<<jR[0][1]<< ' '<<jR[0][2]<< ' '<<jR[0][3]<< endl;  
-    cerr << "4-momenta jet 2 : "<< jR[1][0] <<' '<<jR[1][1]<< ' '<<jR[1][2]<< ' '<<jR[1][3]<< endl;  
+    //cerr << "4-momenta jet 1 : "<< jR[0][0] <<' '<<jR[0][1]<< ' '<<jR[0][2]<< ' '<<jR[0][3]<< endl;  
+    //cerr << "4-momenta jet 2 : "<< jR[1][0] <<' '<<jR[1][1]<< ' '<<jR[1][2]<< ' '<<jR[1][3]<< endl;  
     
     double vpj1[3] = {jR[0][1],jR[0][2],jR[0][3]};  // 3-momentum jet 1
     double vpj2[3] = {jR[1][1],jR[1][2],jR[1][3]};  // 3-momentum jet 2
 
     double pj1 = pow(pow(jR[0][1],2)+pow(jR[0][2],2)+pow(jR[0][3],2) , 0.5   );      // momentum jet 1
-    cerr << "momentum jet 1 = "<< pj1 << endl; 
-    cout << "momentum jet 1 = "<< pj1 << endl; 
+    //cerr << "momentum jet 1 = "<< pj1 << endl; 
+    //cout << "momentum jet 1 = "<< pj1 << endl; 
     double pj2 = pow(pow(jR[1][1],2)+pow(jR[1][2],2)+pow(jR[1][3],2) , 0.5   );      // momentum jet 2
-    cerr << "momentum jet 2 = "<< pj2 << endl; 
+    //cerr << "momentum jet 2 = "<< pj2 << endl; 
     cout << "momentum jet 2 = "<< pj2 << endl; 
   
-    cerr << "pzj1: "<< jR[0][3] << " pzj2: "<< jR[1][3] << endl;  
+    //cerr << "pzj1: "<< jR[0][3] << " pzj2: "<< jR[1][3] << endl;  
     cout << "pzj1: "<< jR[0][3] << " pzj2: "<< jR[1][3] << endl;  
     
     double ptj1 = pow(pow(jR[0][1],2)+pow(jR[0][2],2) , 0.5   );      // transverse momentum jet 1
     double ptj2 = pow(pow(jR[1][1],2)+pow(jR[1][2],2) , 0.5   );      // transverse momentum jet 2
    
     cout << "ptj1: "<< ptj1<< " ptj2: "<< ptj2 << endl;  
-    cerr << "ptj1: "<< ptj1<< " ptj2: "<< ptj2 << endl;  
+    //cerr << "ptj1: "<< ptj1<< " ptj2: "<< ptj2 << endl;  
     double MR2 = pow(pj1+pj2 ,2)-pow(jR[0][3]+jR[1][3], 2); 
     double MR = pow(MR2, 0.5);
     
@@ -408,12 +408,12 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
     double MRT2 = (ptm*(ptj1+ptj2)-(vptm[0]*(jR[0][1]+jR[1][1])+vptm[1]*(jR[0][2]+jR[1][2])))/2 ;
     double MRT = pow(MRT2, 0.5); 
   
-    cerr << "MR = sqrt( (pj1+pj2)**2 - (pzj1+pzj2)**2 ) = "<< MR<< endl;  
+    //cerr << "MR = sqrt( (pj1+pj2)**2 - (pzj1+pzj2)**2 ) = "<< MR<< endl;  
    
     cout << "MR="<< MR<< endl;  
     cout << "MRT="<< MRT<< endl;  
-    cerr << "MR="<< MR<< endl;  
-    cerr << "MRT="<< MRT<< endl;  
+    //cerr << "MR="<< MR<< endl;  
+    //cerr << "MRT="<< MRT<< endl;  
     
     
     double R;
@@ -437,7 +437,7 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
     double R2 = R*R;
   
     cout << "R="<<R<< endl; 
-    cerr << "R="<<R<< endl; 
+    //cerr << "R="<<R<< endl; 
     if (MR < 0.001){
         R = 0; 
     }
@@ -659,29 +659,30 @@ vector<vector<double>> susyJetRazor::boostMegajets(vector<double> j1, vector<dou
         // this is the boost to the original R-frame with beta = (e1-e2)/(pz1-pz2)   
         double beta = (j1[0]-j2[0])/(j1[3]-j2[3]); 
         cout << "beta: "<< beta<< endl; 
-        cerr << "beta: "<< beta<< endl; 
+        //cerr << "beta: "<< beta<< endl; 
         double gamma = pow((1-pow(beta,2)), -0.5);
         cout << "gamma: "<< gamma<< endl;
         if(beta>1){
-            cerr << "Event with beta > 1 !!!" << endl;     
+            //cerr << "Event with beta > 1 !!!" << endl;     
             betaCheck += " ";
             betaCheck += std::to_string(_nEvt);
             betaCheck += " ";  
             totalUnph +=1; 
             beta = 0.999;
-            cerr << "new beta: "<< beta<< endl; 
+            //cerr << "new beta: "<< beta<< endl; 
             gamma = pow((1-pow(beta,2)), -0.5);
-            cerr << "new gamma: "<< gamma<< endl; 
+            //cerr << "new gamma: "<< gamma<< endl; 
         }
         if(beta< -1){
-            cerr << "Event with beta > 1 !!!" << endl;     
+            //cerr << "Event with beta > 1 !!!" << endl;     
             betaCheck += " ";
             betaCheck += std::to_string(_nEvt);
             betaCheck += " ";  
+            totalUnph +=1;
             beta = -0.999;
-            cerr << "new beta: "<< beta<< endl; 
+            //cerr << "new beta: "<< beta<< endl; 
             gamma = pow((1-pow(beta,2)), -0.5);
-            cerr << "new gamma: "<< gamma<< endl; 
+            //cerr << "new gamma: "<< gamma<< endl; 
         }
         jR = { 
              {gamma*j1[0]-gamma*beta*j1[3], j1[1],j1[2],-gamma*beta*j1[0]+gamma*j1[3] },
