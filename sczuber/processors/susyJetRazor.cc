@@ -92,7 +92,7 @@ susyJetRazor::susyJetRazor() : Processor("susyJetRazor") {
     registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") ); 
     registerProcessorParameter( "jetDetectability",
             "Detectability of the Thrust Axis/Value to be used:\n#\t0 : True \n#t1 : Detectable \n#t2 : Detected" ,
-            _jetDetectability, 0);
+            _jetDetectability, 2);
     registerProcessorParameter("boost", 
             "Which R-frame transformation to do:\n#\t0 : None \n#t1 : Original (equalizes magnitude of 3-momenta) \n#t2 : Modified (equalizes the z-momenta) \n#t3 : New (using beta_{L}^{R}*, should always be physical) ",
              _boost, 1 ); 
@@ -322,8 +322,8 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
     // run the clustering, extract the jets
     ClusterSequence cs(_parp, jet_def);
     vector<PseudoJet> jets = sorted_by_pt(cs.inclusive_jets()); 
-    //cerr << "NUMBER OF JETS: "<< jets.size() << endl;
-    cout << "NUMBER OF JETS: "<< jets.size() << endl;
+    cerr << "NUMBER OF JETS: "<< jets.size() << endl;
+    
     int NJ = jets.size(); 
     //  check if 0 jets in event:
     if(jets.size()==0){
@@ -377,20 +377,20 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
     vector<vector<double>> jR = boostMegajets(j1, j2);  
 
     // The Razor Variables using whatever R-frame is selcted: -------------------------------------------- 
-    //cerr << "4-momenta jet 1 : "<< jR[0][0] <<' '<<jR[0][1]<< ' '<<jR[0][2]<< ' '<<jR[0][3]<< endl;  
-    //cerr << "4-momenta jet 2 : "<< jR[1][0] <<' '<<jR[1][1]<< ' '<<jR[1][2]<< ' '<<jR[1][3]<< endl;  
+    cerr << "4-momenta jet 1 : "<< jR[0][0] <<' '<<jR[0][1]<< ' '<<jR[0][2]<< ' '<<jR[0][3]<< endl;  
+    cerr << "4-momenta jet 2 : "<< jR[1][0] <<' '<<jR[1][1]<< ' '<<jR[1][2]<< ' '<<jR[1][3]<< endl;  
     
     double vpj1[3] = {jR[0][1],jR[0][2],jR[0][3]};  // 3-momentum jet 1
     double vpj2[3] = {jR[1][1],jR[1][2],jR[1][3]};  // 3-momentum jet 2
 
     double pj1 = pow(pow(jR[0][1],2)+pow(jR[0][2],2)+pow(jR[0][3],2) , 0.5   );      // momentum jet 1
-    //cerr << "momentum jet 1 = "<< pj1 << endl; 
-    //cout << "momentum jet 1 = "<< pj1 << endl; 
+    cerr << "momentum jet 1 = "<< pj1 << endl; 
+    cout << "momentum jet 1 = "<< pj1 << endl; 
     double pj2 = pow(pow(jR[1][1],2)+pow(jR[1][2],2)+pow(jR[1][3],2) , 0.5   );      // momentum jet 2
-    //cerr << "momentum jet 2 = "<< pj2 << endl; 
+    cerr << "momentum jet 2 = "<< pj2 << endl; 
     cout << "momentum jet 2 = "<< pj2 << endl; 
   
-    //cerr << "pzj1: "<< jR[0][3] << " pzj2: "<< jR[1][3] << endl;  
+    cerr << "pzj1: "<< jR[0][3] << " pzj2: "<< jR[1][3] << endl;  
     cout << "pzj1: "<< jR[0][3] << " pzj2: "<< jR[1][3] << endl;  
     
     double ptj1 = pow(pow(jR[0][1],2)+pow(jR[0][2],2) , 0.5   );      // transverse momentum jet 1
@@ -408,12 +408,12 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
     double MRT2 = (ptm*(ptj1+ptj2)-(vptm[0]*(jR[0][1]+jR[1][1])+vptm[1]*(jR[0][2]+jR[1][2])))/2 ;
     double MRT = pow(MRT2, 0.5); 
   
-    //cerr << "MR = sqrt( (pj1+pj2)**2 - (pzj1+pzj2)**2 ) = "<< MR<< endl;  
+    cerr << "MR = sqrt( (pj1+pj2)**2 - (pzj1+pzj2)**2 ) = "<< MR<< endl;  
    
     cout << "MR="<< MR<< endl;  
     cout << "MRT="<< MRT<< endl;  
-    //cerr << "MR="<< MR<< endl;  
-    //cerr << "MRT="<< MRT<< endl;  
+    cerr << "MR="<< MR<< endl;  
+    cerr << "MRT="<< MRT<< endl;  
     
     
     double R;
@@ -437,7 +437,7 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
     double R2 = R*R;
   
     cout << "R="<<R<< endl; 
-    //cerr << "R="<<R<< endl; 
+    cerr << "R="<<R<< endl; 
     if (MR < 0.001){
         R = 0; 
     }
