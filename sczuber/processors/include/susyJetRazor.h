@@ -95,6 +95,7 @@ class susyJetRazor : public Processor {
         int totalUnph; 
         std::string Rcheck; 
         std::string Rvals; 
+        int totalJets; 
  
         int _jetDetectability; 
         // needed to put jet parameter at 1.5 because twoPhotonJetRazor was crashing 

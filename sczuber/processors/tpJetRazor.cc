@@ -94,7 +94,7 @@ tpJetRazor::tpJetRazor() : Processor("tpJetRazor") {
     registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") );
     registerProcessorParameter( "jetDetectability" ,
             "Detectability Level particles used in the Jet reconstruction:\n#\t0 : True\n#\t1 : Detectable\n#\t2 : Detected" ,
-            _jetDetectability, 2);
+            _jetDetectability, 1);
     registerProcessorParameter("boost", 
             "Which R-frame transformation to do:  \n#\t0 : None \n#\t1 : Original (equalizes magnitude of 3-momenta) \n#\t2 : Modified (equalizes the z-momenta) \n#t3 : New (Using beta_{L}^{R}*, should always be physical)",
             _boost, 1);
@@ -133,7 +133,7 @@ void tpJetRazor::init() {
         
         freopen("tpJetRazor_eW.pW.I39212._TRU.log", "w",stdout);    
     }
-    if(_jetDetectability==1){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._DAB.root","RECREATE");
+    if(_jetDetectability==1){_rootfile = new TFile("tpJetRazor_eW.pB.I39213._DAB.root","RECREATE");
         _R_DAB = new TH1F("R_DAB", "R=MTR/MR",1000,0,10);
         _MR_DAB = new TH1F("MR_DAB", "MR",500,0,100);
         _MRT_DAB = new TH1F("MRT_DAB", "MRT",250,0,50);
@@ -143,7 +143,7 @@ void tpJetRazor::init() {
         multjets = new TH2F("multjets", "jets v multiplicity", 500,0,500, 500,0,500); 
       //  _beta_DAB = new TH1F("beta_DAB", "beta",130,-3,10);
         
-        freopen("tpJetRazor_eW.pW.I39212._DAB.log", "w",stdout);   
+        freopen("tpJetRazor_eW.pB.I39213._DAB.log", "w",stdout);   
     }
     if(_jetDetectability==2){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._DED.root","RECREATE");
         _R_DED = new TH1F("R_DED", "R=MTR/MR",1000,0,10); 
@@ -377,17 +377,19 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
         //cerr << "jet " << i << ": "<< childless[i].pt() << " "<< childless[i].rap() << " " << childless[i].phi() << endl;
         vector<PseudoJet> constituents = childless[i].constituents();
         for (unsigned j = 0; j < childless.size(); j++) {
-            cerr << "constituent " << j << "’s pt: "<< constituents[j].pt() << endl;
+            //cerr << "constituent " << j << "’s pt: "<< constituents[j].pt() << endl;
         }
     }
    
     //print the number of jets in event:
     //cerr << "NUMBER OF JETS: "<< jets.size()<< endl;
+    totalJets += jets.size(); 
     //check if 0 jets:
     if(jets.size()==0){
         j0eventsCheck +=" ";
         j0eventsCheck +=std::to_string(_nEvt);
         j0eventsCheck +=" ";
+        totalj0Events+=1; 
 
     }
     //check if 1 jet: 
@@ -395,6 +397,7 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
         j1eventsCheck +=" ";
         j1eventsCheck +=std::to_string(_nEvt);
         j1eventsCheck +=" ";
+        totalj1Events+=1; 
     }
     
     //multjets->Fill(_parp.size(), jets.size());
@@ -458,7 +461,7 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
      
     try{ 
         if(MR == 0){
-            cerr << "MR == 0" <<endl;
+            //cerr << "MR == 0" <<endl;
             MR0check++; 
             R = 0; 
         } 
@@ -468,7 +471,7 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
     }
     catch(const char* error)
     {
-        cerr << "ERROR: " << error << " ";
+        //cerr << "ERROR: " << error << " ";
     }
     //cerr << "R = "<< R<< endl;  
     cout << "R = "<< R<< endl;  
@@ -505,7 +508,7 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
         _cuts[4]+=1;
     }
     if(R>1.1){
-        cerr << "FOUND EVENT WITH R>1.1!!"<< endl; 
+        //cerr << "FOUND EVENT WITH R>1.1!!"<< endl; 
         Rcheck += " ";
         Rcheck += std::to_string(_nEvt);
         Rcheck += " ";
@@ -551,7 +554,7 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
         //_NJ_DED->Fill(jets.size());
      //   _beta_DED->Fill(beta);
     }
-    cerr << "End EVENT "<< _nEvt<< endl;
+    //cerr << "End EVENT "<< _nEvt<< endl;
 
 
     _nEvt ++ ; 
@@ -567,22 +570,26 @@ void tpJetRazor::check( LCEvent * evt ) {
 
 void tpJetRazor::end(){ 
     _rootfile->Write();
-    cerr << "Events with R>1.2: " << Rcheck << endl;
+    //cerr << "Events with R>1.2: " << Rcheck << endl;
     //cerr << "Beta > 1 :         "<< betaCheck<< endl;  
-    cerr << "Events with MR==0: "<< MR0check << endl; 
-    cerr << "CUTS: "<< endl; 
-    cout << "CUTS: "<< endl; 
-    for(int i = 0; i <3; i++){
-        cerr << _cuts[i] << endl; 
-    }
-    for(int i = 0; i <3; i++){
-        cout << _cuts[i] << endl; 
-    }
-    cerr << "MR==0: "<< MR0check;
-    cerr << "R values: "<< Rvals<< endl;
-    cout << "R values: "<< Rvals<< endl;
-    cout << "Total # of Events with R>1: "<< totalRcheck<< endl;
-    cerr << "Total # of Events with Unphysical R-frame: "<< totalUnph << endl;  
+    //cerr << "Events with MR==0: "<< MR0check << endl; 
+    //cerr << "CUTS: "<< endl; 
+    //cout << "CUTS: "<< endl; 
+    //for(int i = 0; i <3; i++){
+    //    cerr << _cuts[i] << endl; 
+    //}
+    //for(int i = 0; i <3; i++){
+    //    cout << _cuts[i] << endl; 
+    //}
+    //cerr << "MR==0: "<< MR0check;
+    //cerr << "R values: "<< Rvals<< endl;
+    //cout << "R values: "<< Rvals<< endl;
+    //cout << "Total # of Events with R>1: "<< totalRcheck<< endl;
+    //cerr << "Total # of Events with Unphysical R-frame: "<< totalUnph << endl;  
+    cerr << "Events with 0 jets: " << totalj0Events<< endl;  
+    cerr << "Events with 1 jets: " << totalj1Events<< endl;  
+    double aveJets = totalJets/1600000; 
+    cerr << "Average # of Jets: "<< aveJets << endl ; 
 }
 
 vector<vector<PseudoJet>> tpJetRazor::getMegajets(vector<PseudoJet> jets){
@@ -656,7 +663,7 @@ vector<vector<double>> tpJetRazor::boostMegajets(vector<double> j1, vector<doubl
         //cout << "MRj2: "<< MRj2 << endl;
 
         if(beta>1){
-            cerr << "Event with beta > 1 !!!" << endl; 
+            //cerr << "Event with beta > 1 !!!" << endl; 
             betaCheck += " ";
             betaCheck += std::to_string(_nEvt);
             betaCheck += " ";
@@ -665,7 +672,7 @@ vector<vector<double>> tpJetRazor::boostMegajets(vector<double> j1, vector<doubl
             gamma = pow((1-pow(beta,2)), -0.5);
         }
         if(beta<-1){
-            cerr << "Event with beta > 1 !!!" << endl; 
+            //cerr << "Event with beta > 1 !!!" << endl; 
             betaCheck += " ";
             betaCheck += std::to_string(_nEvt);
             betaCheck += " ";
@@ -681,7 +688,7 @@ vector<vector<double>> tpJetRazor::boostMegajets(vector<double> j1, vector<doubl
         double beta = (j1[3]+j2[3])/(j1[0]+j2[0]);  
          
         if(beta>1){
-            cerr << "Event with beta > 1 !!!" << endl; 
+            //cerr << "Event with beta > 1 !!!" << endl; 
             betaCheck += " ";
             betaCheck += std::to_string(_nEvt);
             betaCheck += " "; 
