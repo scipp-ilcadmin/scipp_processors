@@ -94,7 +94,7 @@ tpJetRazor::tpJetRazor() : Processor("tpJetRazor") {
     registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") );
     registerProcessorParameter( "jetDetectability" ,
             "Detectability Level particles used in the Jet reconstruction:\n#\t0 : True\n#\t1 : Detectable\n#\t2 : Detected" ,
-            _jetDetectability, 0);
+            _jetDetectability, 2);
     registerProcessorParameter("boost", 
             "Which R-frame transformation to do:  \n#\t0 : None \n#\t1 : Original (equalizes magnitude of 3-momenta) \n#\t2 : Modified (equalizes the z-momenta) \n#t3 : New (Using beta_{L}^{R}*, should always be physical)",
             _boost, 1);
@@ -133,7 +133,7 @@ void tpJetRazor::init() {
         
         freopen("tpJetRazor_eW.pW.I39212._TRU.log", "w",stdout);    
     }
-    if(_jetDetectability==1){_rootfile = new TFile("tpJetRazor_eW.pB.I39213._DAB.root","RECREATE");
+    if(_jetDetectability==1){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._DAB.root","RECREATE");
         _R_DAB = new TH1F("R_DAB", "R=MTR/MR",1000,0,10);
         _MR_DAB = new TH1F("MR_DAB", "MR",500,0,100);
         _MRT_DAB = new TH1F("MRT_DAB", "MRT",250,0,50);
@@ -143,7 +143,7 @@ void tpJetRazor::init() {
         multjets = new TH2F("multjets", "jets v multiplicity", 500,0,500, 500,0,500); 
       //  _beta_DAB = new TH1F("beta_DAB", "beta",130,-3,10);
         
-        freopen("tpJetRazor_eW.pB.I39213._DAB.log", "w",stdout);   
+        freopen("tpJetRazor_eW.pW.I39212._DAB.log", "w",stdout);   
     }
     if(_jetDetectability==2){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._DED.root","RECREATE");
         _R_DED = new TH1F("R_DED", "R=MTR/MR",1000,0,10); 
@@ -478,18 +478,19 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
    
      
     double R2 = R*R;
-    
-    // put events along MR = 0 line into R=0 corner  
-    if (MR < 0.001){
-        R = 0; 
-    }
-
     //underflow bins FOR THE SAKE OF LOG PLOT HISTOGRAM MRR2 :
     if (R2 < 0.01){
         R2 = 0.01;
     }
     if(MR < 0.01){
         MR = 0.01;
+    }
+    // reset overflow bins for log plots:  
+    if(R2 > 1.4){
+        R2 = 1.4;
+    }
+    if(MR > 100){
+        MR = 100; 
     }
     //----------------------------------------
     if(MR > 2){
@@ -507,24 +508,11 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
     if(R2 > 0.05 && MR>2){
         _cuts[4]+=1;
     }
-    if(R>1.1){
-        //cerr << "FOUND EVENT WITH R>1.1!!"<< endl; 
-        Rcheck += " ";
-        Rcheck += std::to_string(_nEvt);
-        Rcheck += " ";
-    } 
     if(R>1.0){
         Rvals += " ";
         Rvals += std::to_string(R);
         Rvals += " ";
         totalRcheck++;
-    }
-    // reset overflow bins for log plots:  
-    if(R2 > 1.4){
-        R2 = 1.4;
-    }
-    if(MR > 100){
-        MR = 100; 
     }
     // fill the razor variable plots: 
     if(_jetDetectability == 0){
@@ -569,25 +557,12 @@ void tpJetRazor::check( LCEvent * evt ) {
 
 
 void tpJetRazor::end(){ 
-    _rootfile->Write();
-    //cerr << "Events with R>1.2: " << Rcheck << endl;
-    //cerr << "Beta > 1 :         "<< betaCheck<< endl;  
-    //cerr << "Events with MR==0: "<< MR0check << endl; 
-    //cerr << "CUTS: "<< endl; 
+    _rootfile->Write(); 
+    cerr << "CUTS: "<< endl; 
     //cout << "CUTS: "<< endl; 
-    //for(int i = 0; i <3; i++){
-    //    cerr << _cuts[i] << endl; 
-    //}
-    //for(int i = 0; i <3; i++){
-    //    cout << _cuts[i] << endl; 
-    //}
-    //cerr << "MR==0: "<< MR0check;
-    //cerr << "R values: "<< Rvals<< endl;
-    //cout << "R values: "<< Rvals<< endl;
-    //cout << "Total # of Events with R>1: "<< totalRcheck<< endl;
-    //cerr << "Total # of Events with Unphysical R-frame: "<< totalUnph << endl;  
-    cerr << "Events with 0 jets: " << totalj0Events<< endl;  
-    cerr << "Events with 1 jets: " << totalj1Events<< endl;  
+    for(int i = 0; i <5; i++){
+        cerr << _cuts[i] << endl; 
+    }
     double aveJets = totalJets/1600000; 
     cerr << "Average # of Jets: "<< aveJets << endl ; 
 }
