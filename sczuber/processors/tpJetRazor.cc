@@ -94,7 +94,7 @@ tpJetRazor::tpJetRazor() : Processor("tpJetRazor") {
     registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") );
     registerProcessorParameter( "jetDetectability" ,
             "Detectability Level particles used in the Jet reconstruction:\n#\t0 : True\n#\t1 : Detectable\n#\t2 : Detected" ,
-            _jetDetectability, 2);
+            _jetDetectability, 1);
     registerProcessorParameter("boost", 
             "Which R-frame transformation to do:  \n#\t0 : None \n#\t1 : Original (equalizes magnitude of 3-momenta) \n#\t2 : Modified (equalizes the z-momenta) \n#t3 : New (Using beta_{L}^{R}*, should always be physical)",
             _boost, 1);
@@ -505,8 +505,11 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
     if(R2<0.9 && MR>1){
         _cuts[3]+=1;
     }
-    if(R2 > 0.05 && MR>2){
+    if(R2<0.9 && MR>2){
         _cuts[4]+=1;
+    }
+    if(R2 > 0.015 && MR>1.5){
+        _cuts[5]+=1;
     }
     if(R>1.0){
         Rvals += " ";
@@ -560,7 +563,7 @@ void tpJetRazor::end(){
     _rootfile->Write(); 
     cerr << "CUTS: "<< endl; 
     //cout << "CUTS: "<< endl; 
-    for(int i = 0; i <5; i++){
+    for(int i = 0; i <6; i++){
         cerr << _cuts[i] << endl; 
     }
     double aveJets = totalJets/1600000; 

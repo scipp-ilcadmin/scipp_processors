@@ -92,7 +92,7 @@ susyJetRazor::susyJetRazor() : Processor("susyJetRazor") {
     registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") ); 
     registerProcessorParameter( "jetDetectability",
             "Detectability of the Thrust Axis/Value to be used:\n#\t0 : True \n#t1 : Detectable \n#t2 : Detected" ,
-            _jetDetectability, 0);
+            _jetDetectability, 1);
     registerProcessorParameter("boost", 
             "Which R-frame transformation to do:\n#\t0 : None \n#t1 : Original (equalizes magnitude of 3-momenta) \n#t2 : Modified (equalizes the z-momenta) \n#t3 : New (using beta_{L}^{R}*, should always be physical) ",
              _boost, 1 ); 
@@ -121,7 +121,7 @@ void susyJetRazor::init() {
     for(int i = 0 ; i<nxbins+1; i++){
         //cout << xEdges[i] << endl; 
     }
-    if(_jetDetectability==0){_rootfile = new TFile("susyJetRazor_.39121._TRU0.5.root","RECREATE");
+    if(_jetDetectability==0){_rootfile = new TFile("susyJetRazor_.39133._TRU0.5.root","RECREATE");
         _R_TRU = new TH1F("R_TRU", "R =MTR/MR",1000,0,10); // the razor variable 
         _MR_TRU = new TH1F("MR_TRU","MR", 500, 0.0 ,100); // the M_{R} variable = 2|pR|
         _MRT_TRU = new TH1F("MRT_TRU","MRT", 500, 0 ,100); // the M_{T}^{R} variable 
@@ -134,9 +134,9 @@ void susyJetRazor::init() {
        // _beta_T = new TH1F("beta_T","beta",80,-20,20);
        // _njbeta = new TH2F("njbeta","njbeta",40,-10,20,40,-20,20);
         
-        freopen( "susyJetRazor_.39121._DED0.5.log", "w", stdout ); 
+        freopen( "susyJetRazor_.39133._DED0.5.log", "w", stdout ); 
     }
-    if(_jetDetectability==1){_rootfile = new TFile("susyJetRazor_.39121._DAB0.5.root","RECREATE");
+    if(_jetDetectability==1){_rootfile = new TFile("susyJetRazor_.39133._DAB0.5.root","RECREATE");
         _R_DAB = new TH1F("R_DAB", "R =MTR/MR",1000,0,10);
         _MR_DAB = new TH1F("MR_DAB","MR", 500, 0 ,100); 
         _MRT_DAB = new TH1F("MRT_DAB","MRT", 250, 0 ,50); 
@@ -148,9 +148,9 @@ void susyJetRazor::init() {
        // _beta_DAB = new TH1F("beta_DAB","beta",80,-20,20);
         //_njbeta = new TH2F("njbeta","njbeta",20,0,20,200,-20,20);
         
-        freopen( "susyJetRazor_.39121._DAB0.5.log", "w", stdout ); 
+        freopen( "susyJetRazor_.39133._DAB0.5.log", "w", stdout ); 
     }
-    if(_jetDetectability==2){_rootfile = new TFile("susyJetRazor_.39121._DED0.5.root","RECREATE");
+    if(_jetDetectability==2){_rootfile = new TFile("susyJetRazor_.39133._DED0.5.root","RECREATE");
         _R_DED = new TH1F("R_DED", "R =MTR/MR",1000,0,10);
         _MR_DED = new TH1F("MR_DED","MR", 500, 0 ,100); 
         _MRT_DED = new TH1F("MRT_DED","MRT", 500, 0 ,100); 
@@ -160,7 +160,7 @@ void susyJetRazor::init() {
         _NJR_DED = new TH2F("NJR_DED","NJR",20, 0, 20, 1000,0,2); 
        // _beta_DED = new TH1F("beta_DED","beta",40,-10,20);
         
-        freopen( "susyJetRazor_.39121._DED0.5.log", "w", stdout ); 
+        freopen( "susyJetRazor_.39133._DED0.5.log", "w", stdout ); 
     }
     // irameters() ;
 
@@ -441,13 +441,11 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
     if(R2<0.9 && MR>1){
         _cuts[3]+=1;
     }
-    if(R2 > 0.05 && MR > 2){
+    if(R2<0.9 && MR>2){
         _cuts[4]+=1;
     }
-    if (R>1.2){ 
-        Rcheck += " ";
-        Rcheck += std::to_string(_nEvt);
-        Rcheck += " ";
+    if(R2 > 0.015 && MR > 1.5){ // same as 1 
+        _cuts[5]+=1;
     }
     // fill the razor variable plots: 
     if(_jetDetectability == 0){ 
@@ -495,12 +493,8 @@ void susyJetRazor::end(){
     _rootfile->Write();
    //cerr << "Total # events with 0 jet: "<< numj0eventsCheck << endl; 
     //cerr << "Total # events with 1 jet: "<< numj1eventsCheck << endl;  
-    cout << "CUTS: "<< endl; 
-    for(int i = 0; i< 5; i++){
-        cout << _cuts[i] << endl; 
-    }
     cerr << "CUTS: "<< endl; 
-    for(int i = 0; i< 5; i++){
+    for(int i = 0; i< 6; i++){
         cerr << _cuts[i] << endl; 
     }
 }

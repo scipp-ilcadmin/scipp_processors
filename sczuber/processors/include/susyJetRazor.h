@@ -103,7 +103,7 @@ class susyJetRazor : public Processor {
         
         int _boost; // the type of R-frame transformation to do   
  
-        int _cuts[5]; 
+        int _cuts[6]; 
   
         LCCollection* _inParVec; 
         std::vector<PseudoJet> _parp;
