@@ -94,7 +94,7 @@ tpJetRazor::tpJetRazor() : Processor("tpJetRazor") {
     registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") );
     registerProcessorParameter( "jetDetectability" ,
             "Detectability Level particles used in the Jet reconstruction:\n#\t0 : True\n#\t1 : Detectable\n#\t2 : Detected" ,
-            _jetDetectability, 1);
+            _jetDetectability, 0);
     registerProcessorParameter("boost", 
             "Which R-frame transformation to do:  \n#\t0 : None \n#\t1 : Original (equalizes magnitude of 3-momenta) \n#\t2 : Modified (equalizes the z-momenta) \n#t3 : New (Using beta_{L}^{R}*, should always be physical)",
             _boost, 1);
@@ -511,6 +511,9 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
     if(R2 > 0.015 && MR>1.5){
         _cuts[5]+=1;
     }
+    if(R2 > 1.5*exp(-0.8*MR)){
+        _concut += 1; 
+    }
     if(R>1.0){
         Rvals += " ";
         Rvals += std::to_string(R);
@@ -567,7 +570,9 @@ void tpJetRazor::end(){
         cerr << _cuts[i] << endl; 
     }
     double aveJets = totalJets/1600000; 
-    cerr << "Average # of Jets: "<< aveJets << endl ; 
+    //cerr << "Average # of Jets: "<< aveJets << endl ; 
+    cerr << "CONTOUR CUT: "<< endl;
+    cerr << _concut << endl;  
 }
 
 vector<vector<PseudoJet>> tpJetRazor::getMegajets(vector<PseudoJet> jets){

@@ -447,6 +447,11 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
     if(R2 > 0.015 && MR > 1.5){ // same as 1 
         _cuts[5]+=1;
     }
+
+    if(R2 > 1.5*exp(-0.8*MR)){
+        _concut += 1; 
+    }
+
     // fill the razor variable plots: 
     if(_jetDetectability == 0){ 
         _MR_TRU->Fill(MR);
@@ -497,6 +502,9 @@ void susyJetRazor::end(){
     for(int i = 0; i< 6; i++){
         cerr << _cuts[i] << endl; 
     }
+
+    cerr << "CONTOUR CUT: " << endl;
+    cerr <<  _concut << endl;  
 }
 
 //vector<PseudoJet> susyJetRazor::getMegajets(vector<PseudoJet> jets){

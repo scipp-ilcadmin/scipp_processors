@@ -93,7 +93,8 @@ class tpJetRazor : public Processor {
      
         int _boost;  
        
-        int _cuts[6]; 
+        int _cuts[6];
+        int _concut;  
         LCCollection* _inParVec;
         std::vector<PseudoJet> _parp;
         std::string filename;
