@@ -514,6 +514,12 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
     if(R2 > 1.5*exp(-0.8*MR)){
         _concut += 1; 
     }
+    if(R2 > 1.5*exp(-0.8*(MR- 0.5))){
+        _concut_green += 1; 
+    }
+    if(R2 > 1.5*exp(-0.8*(MR- 1))){
+        _concut_blue += 1; 
+    }
     if(R>1.0){
         Rvals += " ";
         Rvals += std::to_string(R);
@@ -573,6 +579,10 @@ void tpJetRazor::end(){
     //cerr << "Average # of Jets: "<< aveJets << endl ; 
     cerr << "CONTOUR CUT: "<< endl;
     cerr << _concut << endl;  
+    cerr << "GREEN CONTOUR CUT: "<< endl;
+    cerr << _concut_green << endl;  
+    cerr << "BLUE CONTOUR CUT: "<< endl;
+    cerr << _concut_blue << endl;  
 }
 
 vector<vector<PseudoJet>> tpJetRazor::getMegajets(vector<PseudoJet> jets){
