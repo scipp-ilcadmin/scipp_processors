@@ -108,6 +108,7 @@ class susyJetRazor : public Processor {
         int _concut;  
         int _concut_green;  
         int _concut_blue;  
+        int _concut_yellow;  
         LCCollection* _inParVec; 
         std::vector<PseudoJet> _parp;
         std::string filename;

@@ -145,7 +145,7 @@ void tpJetRazor::init() {
         
         freopen("tpJetRazor_eW.pW.I39212._DAB.log", "w",stdout);   
     }
-    if(_jetDetectability==2){_rootfile = new TFile("tpJetRazor_eW.pW.I39212._DED.root","RECREATE");
+    if(_jetDetectability==2){_rootfile = new TFile("tpJetRazor_eW.pB.I39213._DED.root","RECREATE");
         _R_DED = new TH1F("R_DED", "R=MTR/MR",1000,0,10); 
         _MR_DED = new TH1F("MR_DED", "MR",500,0,100); 
         _MRT_DED = new TH1F("MRT_DED", "MRT",250,0,50); 
@@ -153,7 +153,7 @@ void tpJetRazor::init() {
         _MRR2_DED = new TH2F("MRR2_DED", "MRR2", nxbins, xEdges, nybins, yEdges); 
      //   _beta_DED = new TH1F("beta_DED", "beta",130,-3,10); 
         
-        freopen("tpJetRazor_eW.pW.I39212._DED.log", "w",stdout);    
+        freopen("tpJetRazor_eW.pB.I39213._DED.log", "w",stdout);    
     }
 
     //irameters() ;
@@ -520,6 +520,9 @@ void tpJetRazor::processEvent( LCEvent * evt ) {
     if(R2 > 1.5*exp(-0.8*(MR- 1))){
         _concut_blue += 1; 
     }
+    if(R2 > 1.5*exp(-0.8*(MR- 1.4))){
+        _concut_yellow += 1; 
+    }
     if(R>1.0){
         Rvals += " ";
         Rvals += std::to_string(R);
@@ -582,7 +585,10 @@ void tpJetRazor::end(){
     cerr << "GREEN CONTOUR CUT: "<< endl;
     cerr << _concut_green << endl;  
     cerr << "BLUE CONTOUR CUT: "<< endl;
-    cerr << _concut_blue << endl;  
+    cerr << _concut_blue << endl; 
+    cerr << "------------------------------------"<< endl;  
+    cerr << "YELLOW CONTOUR CUT: "<< endl;
+    cerr << _concut_yellow  << endl;  
 }
 
 vector<vector<PseudoJet>> tpJetRazor::getMegajets(vector<PseudoJet> jets){

@@ -92,7 +92,7 @@ susyJetRazor::susyJetRazor() : Processor("susyJetRazor") {
     registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") ); 
     registerProcessorParameter( "jetDetectability",
             "Detectability of the Thrust Axis/Value to be used:\n#\t0 : True \n#t1 : Detectable \n#t2 : Detected" ,
-            _jetDetectability, 2);
+            _jetDetectability, 0);
     registerProcessorParameter("boost", 
             "Which R-frame transformation to do:\n#\t0 : None \n#t1 : Original (equalizes magnitude of 3-momenta) \n#t2 : Modified (equalizes the z-momenta) \n#t3 : New (using beta_{L}^{R}*, should always be physical) ",
              _boost, 1 ); 
@@ -458,6 +458,9 @@ void susyJetRazor::processEvent( LCEvent * evt ) {
     if(R2 > 1.5*exp(-0.8*(MR- 1))){
         _concut_blue += 1; 
     }
+    if(R2 > 1.5*exp(-0.8*(MR- 1.4))){
+        _concut_yellow += 1; 
+    }
     // fill the razor variable plots: 
     if(_jetDetectability == 0){ 
         _MR_TRU->Fill(MR);
@@ -515,6 +518,9 @@ void susyJetRazor::end(){
     cerr <<  _concut_green << endl;  
     cerr  <<"BLUE CONTOUR CUT: " <<endl;  
     cerr <<  _concut_blue << endl;  
+    cerr  <<"---------------------------------------- " <<endl;  
+    cerr  <<"YELLOW CONTOUR CUT: " <<endl;  
+    cerr <<  _concut_yellow << endl;  
 }
 
 //vector<PseudoJet> susyJetRazor::getMegajets(vector<PseudoJet> jets){
