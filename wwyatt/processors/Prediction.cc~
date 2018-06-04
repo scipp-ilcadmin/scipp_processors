@@ -117,7 +117,7 @@ void Prediction::init() {
   _observe = new TH2F("energy", "B vs System Energy", 1000, 0.0, 1.5, 1000, 0.0, 525);
   _p_theta = new TH1F("p_theta", "Theta between positron and hadronic system", 360, 0, .1);
   _e_theta = new TH1F("e_theta", "Theta between positron and hadronic system", 360, 0, .1);
-  _vector = new TH1F("vector", "Vector", 200, 0.0, 0.05);
+  _vector = new TH1F("mom", "Hadronic TMomentum Vector Sum", 300, 0.0, 5);
   zmom=new TH1F("zmom", "System energy", 500, 450, 550);
   tmom=new TH1F("tmom", "Eletron system energy", 500, 450, 550);
   amom=new TH1F("amom", "Distribution of Actual Positron Theta", 500, -1.6,1.6);
@@ -214,7 +214,8 @@ void Prediction::processEvent( LCEvent * evt ) {
   }
   positron_results.push_back(positron_result);
   electron_results.push_back(electron_result);
-  diff=(data.hadronic.e-data.hadronic_nopseudo.e);
+  diff=(getTMag(data.hadronic)-getTMag(data.hadronic_nopseudo));
+  _vector->Fill(data.hadronic_nopseudo.getTMom())
 }
 
 void Prediction::check( LCEvent * evt ) { 

@@ -63,7 +63,7 @@ void example::init() {
     _rootfile = new TFile("example.root","RECREATE");
 
     _plot = new TH2F("hh", "Hit-Hit HeatMap", 300.0, -150.0, 150.0, 300.0, -150.0, 150.0);
-    _histo = new TH1F("energy", "Energy Distribution", 300, 0, 550);
+    _histo = new TH1F("mom","Transverse Momentum Vector Sum",  300, 0, 5);
 
     _nEvt = 0 ;
 }
@@ -87,7 +87,8 @@ void example::processEvent( LCEvent * evt ) {
 	total+=final;
       }
     }
-    cout << "Transverse Momentum: " << TwoPhoton::getTMag(total) << endl;
+    _histo->Fill(TwoPhoton::getTMag(total));
+    //    cout << "Transverse Momentum: " << TwoPhoton::getTMag(total) << endl;
 }
 
 
