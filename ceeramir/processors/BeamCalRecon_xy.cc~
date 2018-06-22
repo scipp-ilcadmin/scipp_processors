@@ -83,6 +83,7 @@ static TH2F* _hlego;
 static TH2F* _hlego_detected;
 static TH2F* _hlego_zeros;
 static TH2F* _hlego_efficiency;
+static TH2F* _hlego_inefficiency;
 
 //static TH2I* _h2;
 static TH2F* _hlego_pol1;
@@ -333,6 +334,7 @@ void BeamCalRecon_xy::init() {
     _hlego_detected = new TH2F("hlego_1s", "" ,_LEGObins ,-150,150,_LEGObins,-150,150);    // ------ LEGO hits GRAPH ------
     _hlego_zeros = new TH2F("hlego_0s", "", _LEGObins,-150,150,_LEGObins,-150,150);
     _hlego_efficiency = new TH2F("hlego_efficiency", "", _LEGObins,-150,150,_LEGObins,-150,150);
+    _hlego_inefficiency = new TH2F("hlego_inefficiency", "", _LEGObins,-150,150,_LEGObins,-150,150);
     _hlego_pol1 = new TH2F("hlego_pol1", "" ,_POLARbins ,-150,150,_POLARbins,-150,150);
 
 
@@ -340,6 +342,7 @@ void BeamCalRecon_xy::init() {
     PlotTH2F(_hlego_detected,s1,"LEGO 1s,",_LEGObins);
     PlotTH2F(_hlego_zeros,s1,"LEGO 0s,",_LEGObins);    // ------ LEGO non-hits GRAPH ------
     PlotTH2F(_hlego_efficiency,s1,"LEGO eff,",_LEGObins);
+    PlotTH2F(_hlego_inefficiency,s1,"LEGO ineff,",_LEGObins);
     PlotTH2F(_hlego_pol1,s1,"LEGO1sPol,",_POLARbins);
 
     //*********************************************************************************
@@ -465,7 +468,7 @@ void BeamCalRecon_xy::processEvent( LCEvent* signal_event ) {
     _radeff->Fill(radius,detected);             //bools and ints are basically interchangeable...
     _detected_num += detected;
 
-    _hlego->Fill(endx,endy,detected);
+    _hlego->Fill(endx,endy,1.);
     if(detected){                               //Graph of detected
         _hitmap_bgd->Fill(endx,endy,detected);    //      _hitmap_bgd->Fill(endx,endy);
 	_hlego_detected->Fill(endx,endy,detected);
@@ -499,9 +502,11 @@ void BeamCalRecon_xy::check( LCEvent * evt ){
 
 
 void BeamCalRecon_xy::end(){
-    _hlego_efficiency->Add(_hlego_detected);
+    _hlego_efficiency->Add(_hlego_detected,1.);
     _hlego_efficiency->Divide(_hlego);
     
+    _hlego_inefficiency->Add(_hlego_zeros);
+    _hlego_inefficiency->Divide(_hlego);
 
     cout << "\ndetected: " << _detected_num << endl;
     cout << "max radius: " << _max_radius << endl;

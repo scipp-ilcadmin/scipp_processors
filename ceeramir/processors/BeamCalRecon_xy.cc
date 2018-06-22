@@ -468,7 +468,7 @@ void BeamCalRecon_xy::processEvent( LCEvent* signal_event ) {
     _radeff->Fill(radius,detected);             //bools and ints are basically interchangeable...
     _detected_num += detected;
 
-    _hlego->Fill(endx,endy,detected);
+    _hlego->Fill(endx,endy,1.);
     if(detected){                               //Graph of detected
         _hitmap_bgd->Fill(endx,endy,detected);    //      _hitmap_bgd->Fill(endx,endy);
 	_hlego_detected->Fill(endx,endy,detected);
