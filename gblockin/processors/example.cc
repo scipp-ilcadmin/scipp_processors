@@ -49,7 +49,7 @@ example::example() : Processor("example") {
     _description = "Protype Processor" ;
 
     // register steering parameters: name, description, class-variable, default value
-    registerInputCollection( LCIO::MCPARTICLE, "CollectionName" , "Name of the MCParticle collection"  , _colName , std::string("MCParticle") );
+    registerInputCollection( LCIO::SIMCALORIMETERHIT, "CollectionName" , "Name of the MCParticle collection"  , _colName , std::string("LumiCalHit") );
     
     registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") );
 }
@@ -75,15 +75,16 @@ void example::processRunHeader( LCRunHeader* run) {
 void example::processEvent( LCEvent * evt ) { 
     LCCollection* col = evt->getCollection( _colName );
     _nEvt++;
-    for(int i=0; i < col->getNumberOfElements(); ++i){
-      MCParticle* particle=dynamic_cast<MCParticle*>(col->getElementAt(i));
-      int pid=particle->getPDG();
-      cout << pid << endl;
-      double energy = particle->getEnergy();
-      cout << "energy: ";
-      cout << energy << endl;
-      _histo->Fill(energy);
-    }
+    //for(int i=0; i < col->getNumberOfElements(); ++i){
+      //MCParticle* particle=dynamic_cast<MCParticle*>(col->getElementAt(i));
+      //int pid=particle->getPDG();
+      //cout << pid << endl;
+      //double energy = particle->getEnergy();
+      //cout << "energy: ";
+      //cout << energy << endl;
+      // _histo->Fill(energy);
+    //}
+    cout << col->getNumberOfElements();
     cout << endl;
 }
 
