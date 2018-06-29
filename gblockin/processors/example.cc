@@ -49,8 +49,8 @@ example::example() : Processor("example") {
     _description = "Protype Processor" ;
 
     // register steering parameters: name, description, class-variable, default value
-    registerInputCollection( LCIO::SIMCALORIMETERHIT, "CollectionName" , "Name of the MCParticle collection"  , _colName , std::string("LumiCalHit") );
-    
+    registerInputCollection( LCIO::SIMCALORIMETERHIT, "CollectionName" , "Name of the MCParticle collection"  , _colName , std::string("BeamCalHits") );
+    //    cout << "we are in the example function: " << _colName << endl;
     registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") );
 }
 
@@ -73,20 +73,15 @@ void example::processRunHeader( LCRunHeader* run) {
 //    _nRun++ ;
 } 
 void example::processEvent( LCEvent * evt ) { 
-    LCCollection* col = evt->getCollection( _colName );
+  //    cout << "got here" << endl;
+    LCCollection* bcalCol;
+    bcalCol = evt->getCollection ( _bcalColName )
+    int noBcalHits = bcalCol->getNumberOfElements();;
     _nEvt++;
-    //for(int i=0; i < col->getNumberOfElements(); ++i){
-      //MCParticle* particle=dynamic_cast<MCParticle*>(col->getElementAt(i));
-      //int pid=particle->getPDG();
-      //cout << pid << endl;
-      //double energy = particle->getEnergy();
-      //cout << "energy: ";
-      //cout << energy << endl;
-      // _histo->Fill(energy);
-    //}
-    cout << col->getNumberOfElements();
-    cout << endl;
-}
+    for(int iHit=0; iHit < noBcalHits; ++iHit)
+    {
+      SimCalorimeterHit *bcalHit = dynamic_cast<SimCalorimeterHit*>(bcalCol->getElementAt(        
+    }
 
 
 void example::check( LCEvent * evt ) { 

@@ -1,4 +1,4 @@
-1;95;0c#undef _GLIBCXX_USE_CXX11_ABI
+#undef _GLIBCXX_USE_CXX11_ABI
 #define _GLIBCXX_USE_CXX11_ABI 0
 /* 
  * Ok, so I like C++11. Unfortunately,
@@ -49,8 +49,8 @@ example::example() : Processor("example") {
     _description = "Protype Processor" ;
 
     // register steering parameters: name, description, class-variable, default value
-    registerInputCollection( LCIO::MCPARTICLE, "CollectionName" , "Name of the MCParticle collection"  , _colName , std::string("MCParticle") );
-    
+    registerInputCollection( LCIO::SIMCALORIMETERHIT, "CollectionName" , "Name of the MCParticle collection"  , _colName , std::string("BeamCalHits") );
+    //    cout << "we are in the example function: " << _colName << endl;
     registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") );
 }
 
@@ -73,19 +73,15 @@ void example::processRunHeader( LCRunHeader* run) {
 //    _nRun++ ;
 } 
 void example::processEvent( LCEvent * evt ) { 
-    LCCollection* col = evt->getCollection( _colName );
+  bcalEnergySum = 0;
+    LCCollection* bcalCol;
+    bcalCol = evt->getCollection ( _bcalColName )
+    int noBcalHits = bcalCol->getNumberOfElements();;
     _nEvt++;
-    for(int i=0; i < col->getNumberOfElements(); ++i){
-      MCParticle* particle=dynamic_cast<MCParticle*>(col->getElementAt(i));
-      int pid=particle->getPDG();
-      cout << pid << endl;
-      double energy = particle->getEnergy();
-      cout << "energy: ";
-      cout << energy << endl;
-      _histo->Fill(energy);
+    for(int iHit=0; iHit < noBcalHits; ++iHit)
+    {
+      SimCalorimeterHit *bcalHit = dynamic_cast<SimCalorimeterHit*>(bcalCol->getElementAt(iHit);        
     }
-    cout << endl;
-}
 
 
 void example::check( LCEvent * evt ) { 

@@ -35,10 +35,10 @@ class example : public Processor {
 
   /** Called for every event - the working horse.
    */
-  virtual void processEvent( LCEvent * evt ) ; 
+  virtual void processEvent( SimCalorimeterHit * evt ) ; 
 
 
-  virtual void check( LCEvent * evt ) ; 
+  virtual void check( SimCalorimeterHit * evt ) ; 
 
 
   /** Called after data processing for clean up.
