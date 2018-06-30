@@ -2,62 +2,44 @@
 #define test_h 1
 
 #include "marlin/Processor.h"
-
 #include "lcio.h"
 #include <string>
-#include <vector>
-#include "scipp_ilc_utilities.h"
-#include <TFile.h>
-#include <TH2D.h>
 
-using namespace std;
 using namespace lcio ;
 using namespace marlin ;
 
-//Normal Processor Header
 class test : public Processor {
-
+  
  public:
-
-  virtual Processor*  newProcessor() { return new test ; }
-
-
+  
+  virtual Processor*  newProcessor() { return new test ;  }
+  
   test() ;
 
-  /** Called at the begin of the job before anything is read.
-   * Use to initialize the processor, e.g. book histograms.
-   */
   virtual void init() ;
+  
+  virtual void processRunHeader( LCRunHeader* run  ) ;
 
-  /** Called for every run.
-   */
-  virtual void processRunHeader( LCRunHeader* run ) ;
+  virtual void processEvent( LCEvent * evt  ) ;
 
-  /** Called for every event - the working horse.
-   */
-  virtual void processEvent( LCEvent * evt ) ; 
-
-
-  virtual void check( LCEvent * evt ) ; 
-
-
-  /** Called after data processing for clean up.
-   */
+  virtual void bcalLoop ( LCEvent * evt ) ;
+  
+  virtual void check( LCEvent * evt  ) ; 
+  
   virtual void end() ;
-
-
+  
+  // declare your new methods here
  protected:
 
-  /** Input collection name.
-   */
-  std::string _colName ;
-  std::string _root_file_name;
-
+  std::string _colName;
+  std::string _bcolName;
+  // tell you which event is running 
   int _nRun ;
   int _nEvt ;
-};
+
+  // declare your new variables here
+} ;
 
 #endif
-
 
 

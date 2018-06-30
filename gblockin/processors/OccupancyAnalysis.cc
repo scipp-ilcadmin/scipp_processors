@@ -73,6 +73,7 @@ void OccupancyAnalysis::end()
 void OccupancyAnalysis::processEvent(LCEvent* evt)
 {
   LCCollection* col = evt->getCollection(_colName);
+  cout << evt->getCollectionNames() << endl;
   _nEvt++;
   for (int i=0; i < col->getNumberOfElements(); i++)
   {

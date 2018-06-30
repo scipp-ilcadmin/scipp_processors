@@ -1,0 +1,390 @@
+#include "test.hh"
+
+#include <cfloat>
+#include <iostream>
+
+#include "TSystem.h"
+#include "TMath.h"
+#include "TROOT.h"
+#include "TF1.h"
+#include "TLinearFitter.h"
+#include "TGeoMatrix.h"
+
+#include "EVENT/SimCalorimeterHit.h"
+#include <EVENT/LCCollection.h>
+#include "UTIL/CellIDDecoder.h"
+
+#include <string>
+
+using namespace lcio;
+using namespace std;
+using namespace marlin ;
+
+
+
+
+//#define test_DEBUG
+
+
+test test;
+
+const int test::_fRhoBinWidthDefault;
+
+/*******************************************************************************************/
+/*                                                                                         */
+/*                                                                                         */
+/*                                                                                         */
+/*******************************************************************************************/
+
+test::test(): Processor("test")
+{
+  _description = "bla";
+  
+
+  registerProcessorParameter("inputHcalCollection",
+			     "Name of HCAL input collection",
+			     _hcalColName,
+			     std::string("hcalSD"));
+
+  registerProcessorParameter("inputEcalCollection",
+			     "Name of ECAL input collection",
+			     _ecalColName,
+			     std::string("ProtoSD03Collection"));
+
+  registerProcessorParameter("inputTcmtCollection",
+			     "Name of TCMT input collection",
+			     _tcmtColName,
+			     std::string("catcherSD"));
+ 
+  registerProcessorParameter("inputDriftChambersCollection",
+			     "Name of drift chambers input collection",
+			     _trkColName,
+			     std::string("dchSDxy0"));
+ 
+  registerProcessorParameter("rootFileName",
+			     "Name of output ROOT file",
+			     _rootFileName,
+			     std::string("test.root"));
+  
+  registerOptionalParameter( "rootFileMode","Mode for opening ROOT file",
+			     _rootFileMode, std::string("RECREATE")      );
+
+
+  registerProcessorParameter("rhoBinWidth" ,
+                             "rho bin width, in mm" ,
+                             _fRhoBinWidth,
+			     _fRhoBinWidthDefault);
+
+
+
+}
+/*******************************************************************************************/
+/*                                                                                         */
+/*                                                                                         */
+/*                                                                                         */
+/*******************************************************************************************/
+test::~test(){}
+
+
+/*******************************************************************************************/
+/*                                                                                         */
+/*                                                                                         */
+/*                                                                                         */
+/*******************************************************************************************/
+void test::init( )
+{
+  /*need libMinuit because of TLinearFit*/
+  gSystem->Load("libMinuit");
+
+  gSystem->Load("libGeom");
+  _fHcalModuleGeo = this->buildHcalModule();
+
+  /*------------------------- hcal -----------------------------------------------------------------*/
+  _histHcalLongProfile = new TH1F("hcalLongProfile", "hcalLongProfile", 38, 0.5, 38.5);
+
+  _fNoRhoBins = int(_fMaxHcalX/_fRhoBinWidth);
+  _histHcalTransProfile                = new TH1F("hcalTransProfile", "hcalTransProfile", _fNoRhoBins, 0, 450);
+  _histHcalTransProfile_weighted       = new TH1F("hcalTransProfile_weighted", "hcalTransProfile_weighted", _fNoRhoBins, 0, 450);
+  _histHcalTransProfile_weighted_area  = new TH1F("hcalTransProfile_weighted_area", "hcalTransProfile_weighted_area", _fNoRhoBins, 0, 450);
+
+  _histHcalTransProfile_mesons         = new TH1F("hcalTransProfile_mesons", "hcalTransProfile_mesons", _fNoRhoBins, 0, 450);
+  _histHcalTransProfile_electrons      = new TH1F("hcalTransProfile_electrons", "hcalTransProfile_electrons", _fNoRhoBins, 0, 450);
+  _histHcalTransProfile_protons        = new TH1F("hcalTransProfile_protons", "hcalTransProfile_protons", _fNoRhoBins, 0, 450);
+  _histHcalTransProfile_neutrals       = new TH1F("hcalTransProfile_neutrals", "hcalTransProfile_neutrals", _fNoRhoBins, 0, 450);
+  _histHcalTransProfile_gammas         = new TH1F("hcalTransProfile_gammas", "hcalTransProfile_gammas", _fNoRhoBins, 0, 450);
+  _histHcalTransProfile_others         = new TH1F("hcalTransProfile_others", "hcalTransProfile_others", _fNoRhoBins, 0, 450);
+
+  _histHcalEnergySum         = new TH1F("hcalEnergySum", "hcalEnergySum", 200, 0, 1);
+  _histHcalNoHits            = new TH1F("hcalNoHits", "hcalNoHits", 100, 0, 1500);
+  _histHcalNoHitsPerLayer    = new TH1F("hcalNoHitsPerLayer"HcalYvsXcog           = new TH2F("hcalYvsXcog", "hcalYvsXcog", 90, -450, 450, 90, -450, 450);
+
+					_histHcalShowerRadius      = new TH1F("hcH2F("hcalAreaWeights_vs_rhoBin", "hcalAreaWeigh0);
+					_histHcalXvsY_insideCircle_60  = new TH2F("hcalXvsY_insideCircle_60", "hcalXvsY_insideCircle_60", 900, -450, 450, 900, -450, 450);
+					_histHcalXvsY_insideCircle_70  = new TH2F("hcalXvsY_insideCircle_70", "hcalXvsY_insideCircle_70Y_insideCircle_130", 900, -450, 450, 900, -450, 450);
+					_histHcalXvsY_insideCircle_140 = new TH2F("hcalXvsY_insideCircle_140", "hcalXvsY_insideCircle_140", 900, -450, 450, 900, -450, 450);
+					_histHcalXvsY_insideCircle_150 = new TH2F("hcalXvsY_insideCircle_150", "hcalXvsY_insideCircle_150", 900, -450, 450, 900, -450, 450);
+					/*-----------------------------------------------------------------------------------*/
+					/*---5, 20.5);
+
+					  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+					/*track plots*/
+					_histTrk_x_hcalFront      = new TH1F("histTrk_x_hcalFront", "histTrk_x_hcalFront", 100, -100, 100);
+					_histTrk_y_hcalFront      = new TH1F("histTrk_y_hcalFront", "histTrk_y_hcalFront", 100, -100, 100);
+					_histTrk_x_vs_y_hcalFront = new TH2F("histTrk_x_vs_y_hcalFront---- deltaX ---------------------------------------------------------------*/
+  _histDeltaX_hcalFrontFace = new TH1F("deltaX_hcalFrontFace", "deltaX", 100, -500, 500);
+  _histDeltaX_from-----------------------------*/
+  /*                                                     */
+  /* initialize some useful variables                    */
+  /*                                                     */
+  /*----------------------------------- TFile(_rootFileName.c_str(),_rootFileMode.c_str());
+    }
+  
+
+  /*---------------------------------------------------*/
+  /*-------stHcalYcog_vs_yTrk->Write();
+  _histHcalAreaWeights->Write();
+  _histHcalAreaWei>cd();
+  /*---------------------------------------------------                                                        */
+/*                                                                                         */
+/*                                                                                         */
+/*********************************************************************************~~~~~~~~~~~~~~~~~~~*/
+  /*                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /*                                          */
+  /*  loop over drift chamber hits            */
+  /*                                          */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  this->trackLoop(evt);
+  
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /*                                          */
+  /*  loop over HCAL hits                     */
+  /*                                         oopAndHistos(LCEvent *evt)
+{
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /*                                                          */
+  /* Calculate offsets due to misalignment                    */
+  /*                                                          */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  float xOffsetHcal  = 0, yOffsetHcal  = 0;
+  float xOffsetTrack = 0al + _p0YTrk;
+
+  float xTrkAtHcalFrontAligned = xTrkAtHcalFront - xOffsetTrack;
+  float yTrkAtHcalFrontAligned = yTrkAtHcalFront - yOffsetTrack;
+
+  float weightArea[_fNoRhoBins];
+  for (int iRho = 0; iRho <_fNoRhoBins; ++iRho)
+    {
+      weightArea[iRho] = -999;
+    }
+  if (_fHasMin3DchHits && _fIsFitOK)
+    {
+      this->setHalfRingAreaWeights(xTrkAtHcalFrontAligned, yTrkAtHcalFrontAligned, weightArea, _fNoRhorLayer[_fNoHcalLayers];
+    
+    for (int i = 0; i < _fNoHcalLayers; ++i)
+      {
+noHcalHitsPerLayer[i] = 0;
+hcalEnergySumPerLayer[i] = 0;
+      }
+    float rhoBin[_fNoRhoBins];
+    float hcalEnergySumBinnedRhoAllLayers[_fNoRhoBins];
+    float hcalEnergySumBinnedRhoAllLayers_mesons[_fNoRhoBins];
+    float hcalEnergySumBinnedRhoAllLayers= 0;
+hcalEnergySumBinnedRhoAllLayers_others[iRho]   = 0;
+      }    
+    
+    float hcalXcog         = 0;
+    float hcalYcog         = 0;
+    float hcalERsum        = 0; /*HCAL energy weighted shower radius*/
+    CellIDDecoder<SimCalorimeterHit> decoder(calCol);
+
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+    /*       loop       D EVENT NUMBER: "<<evtNumber<<"\n\n"
+									     <<endl;
+									     }
+
+  
+					_histHcalZ->Fill(hitPos[2]);
+					if (layer <= 30)
+					  {
+					    _histHcalXFine->Fill(hitPos[0]);
+					    _histHcalYFine->Fill(hitPos[1]);
+					    _histHcalYvsXFine->Fill(hitPos[0], hitPos[1]);
+					  }
+					
+					noHcalHitsPerLayer[layer-1]++;
+					hcalEnergySumPerLayer[layer-1] += energy;
+					hcalEnergySum += energy;
+
+					/*--------------------------------*/
+					hcalXcog += hitPos[0] * energy;
+					e->Fill(deltaX);
+					_histDeltaY_hcalFrontFace->Fill(deltaY);
+
+					float rho = sqrt(pow(deltaX, 2) + pow(deltaY, 2));
+					_histRho->Fill(rho);
+					
+					/*--------------------------------*/
+					float hcalShowerRadius = sqrt( deltaX * deltaX + deltaY * deltaY );
+					hcalERsum += energy * hcalShowerRadius;
+					/*--------------------ergyMC;
+					      
+					  else if (abs(pdg) == 22      /*photon*/
+					|| abs(pdg) == 111  /*pi0*/
+					) energy_gammas += energyMC;
+      
+  else if (abs(pdg) == 2112    /*neutron*/
+	   || abs(pdg) == 130  /*K0*/
+	   ) energy_neutrals += energyMC;
+
+  else energy_others += energyMC;
+}
+
+
+/*-------------------------------------------*/
+/*==============================::vector<double> pointsOutsideRingY; 
+  int fix_iRhoBin = -999;
+
+
+  for (int iRhoBin = 0; iRhoBin < _fNoRhoBins; ++iRhoBin)
+    {
+        float min = iRhoBin * _fRhoBinWidth;
+	    float max = (iRhoBin + 1) * _fRhoBinWidth;
+	        
+	    rhoBin[iRhoBin] = (min + max)/2;       
+	        
+	    /*-------------------------------------------------------------------*/
+if (rho >= min && rho < max ) 
+  {
+    hcalEnergySumBinnedRhoAllLayers[iRhoBin] += energy;
+    hcalEnergySumBinnedRhoAnd if rho...---------------------------------------*/
+      }/*------------------------- end loop over iRhoBin ------------------------------*/
+/*================================================================================================*/
+
+
+}/*------------ end loop over HCAL hits -----------------------------------------------------*/
+   
+/*===========================================================================dth;
+  rhoBin[iRhoBin] = (min + max)/2;
+         
+  float area = TMath::Pi()*(max*max - min*min);
+       
+  if (rhoBin[iRhoBin] > 0)
+    {
+        _histHcalTransProfile->Fill(rhoBin[iRhoBin], hcalEnergySumBinnedRhoAllLayers[iRhoBin]/area);
+	    _histHcalTransProfile_mesons->FiistHcalEnergySum->Fill(hcalEnergySum);
+	    _histHcalXcog->Fill(hcalXcog/hcalEnergySum);
+	    _histHcalYcog->Fill(hcalYcog/hcalEnergySum);
+	    _histHcalShowerRadius->Fill(hcalERsum/hcalEnergySum);
+      }
+
+
+      //cout<<"----------------------------------------"<<endl;
+      for (int iLa                           */
+/*                                                                                         */
+/*                                                                                         */
+/********************************************************************** ++;
+
+//int cellID = trkHit->getCellID();
+//cout<<"cellID: "<<cellID<<" x="<<position[0]<<" y="<<position[1]<<" z="<<position[2]<<endl;
+      }
+
+    if (nHitsDCh1 >0 && nHitsDCh2 > 0 && nHitsDCh3 > 0) _fHasMin3DchHits = true;
+
+
+    if (_fHasMin3DchHits )
+   3000 = _p1XTrk * (-3000.) + _p0XTrk;
+float trkYminus3000 = _p1YTrk * (-3000.) + _p0YTrk;
+_histTrkX_minus3000->Fill(trkXminus3000);
+_histTrkY_minus3000->Fill(trkYminus3000);
+
+delete xTrkArray;
+delete yTrkArray;
+delete zTrkArray;
+      }tResults(int nElements, Double_t *x, Double_t *y, float &p0, float &p1)
+{
+    
+  /*temporary variables for the linear fitter*/
+int ndim = 2;
+TLinearFitter *linearFitter = new TLinearFitter(ndim);
+meter(0);
+p1 = linearFitter->GetParameter(1);
+}    
+#ifdef ANAREC_DEBUG
+std::cout<<"  p0="<<p0<<" p1="<<p1<<std::endl;
+#endif 
+//cout<<"chi2: "<<linearFitter->GetChisquare()<<endl;
+  delete linearFitt~~~~~~~~~~~~~~~~~~~~~~~~*/
+  /*       loop                                  */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  for (int iHit=0; iHit < noEcalHits; ++iHit ) 
+    {
+      SimC            */
+	/*                                                                                         */
+	/*                                                                       tElementAt(iHit));
+										 float energy = tcmtHit->getEnergy();
+										 tcmtEnergySum += energy;
+
+										 int layer = decoder(tcmtHit)["K"];
+										 noTcmtHitsPerLayer[layer-1]++;
+      }
+      /*------------ end loop over TCMT hits -------------------------------------------------                                                             */
+	/*                                                                                         */
+	/************************************            */
+	/*                                                                                         */
+	/*                                                                                 */
+	/*******************************************************************************************/
+	void test::calculatePartialCorners(int indexIorJ, float &coord1, float &coord2, int cellSize)
+	{
+	  CenterCircle);
+
+      if (diffX2 + diffY2 >= rIn*rIn && diffX2 + diffY2 < rOut*rOut) return true;
+      else return false;
+
+    }
+/*******************************************************************************************/
+/*            tsideRingXOriginal.size();
+//   cout<<"   \nINITIAL: sizeX: "<<sizeX<<" fix_iRhoBin: "<<fix_iRhoBin
+//       <<" min: "<<min<<" max: "<<max
+//       <<endl;
+
+  std::vector<double> vecX;
+  std::vector<double> vecY;
+  std::vector<int> vecIndexToErase;
+  /*------------------------------------------------------------*/
+/*I know, bad idea of using hard coded numbers, unfortunately I have no other 
+    solution now...
+    Idea: look at +- 4 rings around the given ring, to distribute the energy.
+    For small cells: +-1 ring is enoze = pointsOutsideRingXOriginal.size();
+      for(unsigned int i = 0; i < size; ++i)
+      {
+        double xDiv = pointsOutsideRingXOriginal[i];
+	  double yDiv = pointsOutsideRingYOriginal[i];
+
+	    if (xDiv == -99999 && yDiv == -99999) continue;
+
+	      if (this->isPointInsideRing(xTrkAtHcalFrontAligned, yTrkAtHcalFrontAligned,
+	      eX: "<<pointsOutsideRingXOriginal.size()
+	      //   <<" sizeY: "<< pointsOutsideRingYOriginal.size()
+	      //   <<endl;
+
+      for (unsigned int j = 0; j < vecIndexToErase.size(); ++j)
+      {
+      //cout<<"eaWeights(float xCenterCircle, float yCenterCircle, float weightArea[], int length)
+{
+
+  for (int iRhoBin = 0; iRhoBin < length; ++iRhoBin)
+    {
+
+      float m
+      float tempX = xCenterCircle + r* TMath::Cos(i * TMath::DegToRad());
+      float tempY = yCenterCircle + r* TMath::Sin(i * TMath::DegToRad());
+_histHcalAreaWeights_vs_rhoBin->Fill(iRhoBin*_fRhoBinWidth, weightArea[iRhoBin]);
+
+      
+}/*end loop over rho bins*/
+}
+/**** boxB1_halfY;
+  float boxB4_halfX = boxB2_halfX;
+  float boxB4_halfY = boxB2_halfY;  /*___________________________________________________________________le*/
+  TGeoCompositeShape *cs = 
+    new TG
