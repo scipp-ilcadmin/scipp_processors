@@ -40,7 +40,8 @@ example example;
 static TFile* _rootfile;
 static TH2F* _plot;
 static TH1F* _momentum;
-
+static TH1F* _pos;
+static TH1F* _energy;
 static int _nEvt=0;
 
 
@@ -48,7 +49,7 @@ example::example() : Processor("example") {
   // modify processor description
   _description = "Protype Processor" ;
 
-  // register steering parameters: name, description, class-variable, default value
+  //  register steering parameters: name, description, class-variable, default value
   //  registerInputCollection( LCIO::SIMCALORIMETERHIT, "CollectionName" , "Name of the MCParticle collection"  , _colName , std::string("BeamCalHits") );
   //  registerInputCollection( LCIO::SIMTRACKERHIT, "CollectionName", "Name of MCParticle collection", _colName, std::string("SiTrackerHit"));    
   registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") );
@@ -59,7 +60,9 @@ void example::init() {
   streamlog_out(DEBUG) << "   init called  " << std::endl ;
   //  cout << "Initialized\n\n\n " << endl;
   _rootfile = new TFile("example.root","RECREATE");
-  _momentum = new TH1F("Momentum", "Momentum Distribution", .01 ,0, 2);
+  _momentum = new TH1F("Momentum", "Momentum Distribution", 50, -0.00177908, 0.002);
+  _energy = new TH1F("EnergyDeposited", "Energy Distribution", 50, 0.0, 11000);
+  _pos = new TH1F("Position", "Position", 50, -1200.0, 1200.0);
   _nEvt = 0 ;
 }
 
@@ -70,9 +73,13 @@ void example::processRunHeader( LCRunHeader* run) {
 } 
 void example::processEvent( LCEvent * evt ) 
 { 
+  vector<float> eDepVals;
+  vector<double> posVals;
   std::vector<std::string> collectionNames = *evt->getCollectionNames();
   LCCollection* bcalcol = evt->getCollection("BeamCalHits");
   LCCollection* sitrackcol = evt->getCollection("SiTrackerBarrelHits");
+  float pos_max = 0;
+  float pos_min = 1000000;
   /*for (int i=0; i < bcalcol->getNumberOfElements(); ++i)
   {
     //    cout << "THIS IS FOR SIMCALHITS:::::::" << endl;
@@ -85,20 +92,31 @@ void example::processEvent( LCEvent * evt )
     int nmcconts = hit->getNMCContributions();
     //    printf("Energy: %d, Position: %f, Cell1: %d, Cell2: %d, Number of MCParticles: %d\n", energy, pos, cell0, cell1, nmcconts);
     }*/
-  //  cout << endl << endl << endl << endl << endl;
-  for (int i=0; i < 481; ++i)
+  for (int i=0; i < sitrackcol->getNumberOfElements(); ++i)
   {
-    //    cout << "THIS IS FOR SIMTRACKERHITS::::::" << endl;
     SimTrackerHit* hit2=dynamic_cast<SimTrackerHit*>(sitrackcol->getElementAt(i));
+    if (pos_max < *hit2->getPosition()) 
+    {
+      pos_max = *hit2->getPosition();
+    }
+    if (pos_min > *hit2->getPosition())
+    {
+      pos_min = *hit2->getPosition();
+    }
+    //    cout << "THIS IS FOR SIMTRACKERHITS::::::" << endl;
     int sicell0 = hit2->getCellID0();
     int sicell1 = hit2->getCellID1();
     double sipos = *hit2->getPosition();
+    posVals.push_back(sipos);
     //    float edx = hit2->getEdx();
     float edep = hit2->getEDep();
+    eDepVals.push_back(edep * 1000000000);
     float time = hit2->getTime();
     float mom = *hit2->getMomentum();
     float pathlength = hit2->getPathLength();
+    _pos->Fill(sipos);
     _momentum->Fill(mom);
+    _energy->Fill(edep * 1000000000);
     //    printf("Cell1: %d, Cell2: %d, Position: %f, Energy Deposited: %f, Time: %f, Momentum: %f Path Length: \n", sicell0, sicell1, sipos, edep, time, mom, pathlength );
     }
   _nEvt++;
@@ -115,6 +133,6 @@ void example::check( LCEvent * evt ) {
 void example::end(){ 
   cout << "number of events: " << _nEvt << endl;
 
-  _momentum->Write();  
+  //  _momentum->Write();  
   _rootfile->Write();
 }
