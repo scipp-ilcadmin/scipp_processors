@@ -107,6 +107,7 @@ void example::processEvent( LCEvent * evt ) {
       if(particle->getGeneratorStatus()!=1) continue;
       //      if(energy == max_e || energy == max_p) continue;
       //      if(pid==1000022 || pid==1000023 || pid==1000025 || pid==1000035 || pid==1000015 || pid==2000015 /* pid==12 || pid==14 || pid==16 || pid==18*/) continue; //exclude four main types of neutralinos, neutrinos and stauons.
+      //      cout << "momentum:" << _momentum << endl;
       _histo->Fill(energy);
       double mom[3];
       mom[0]=particle->getMomentum()[0];
