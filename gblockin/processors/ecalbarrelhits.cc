@@ -17,6 +17,7 @@
 #include "ecalbarrelhits.h"
 #include "scipp_ilc_utilities.h"
 #include <iostream>
+#include <algorithm>
 
 #include <EVENT/SimTrackerHit.h>
 #include <EVENT/LCCollection.h>
@@ -60,9 +61,6 @@ void ecalbarrelhits::init() {
   streamlog_out(DEBUG) << "   init called  " << std::endl ;
   //  cout << "Initialized\n\n\n " << endl;
   _rootfile = new TFile("example.root","RECREATE");
-  _momentum = new TH1F("Momentum", "Momentum Distribution", 50, -0.00177908, 0.002);
-  _energy = new TH1F("EnergyDeposited", "Energy Distribution", 50, 0.0, 11000);
-  _pos = new TH1F("Position", "Position", 50, -1200.0, 1200.0);
   _nEvt = 0 ;
 }
 
@@ -73,35 +71,29 @@ void ecalbarrelhits::processRunHeader( LCRunHeader* run) {
 } 
 void ecalbarrelhits::processEvent( LCEvent * evt ) 
 { 
-  vector<float> eDepVals;
+  vector<float> eVals;
   vector<double> posVals;
+  vector<int> cell1Vals;
+  vector<int> cell2Vals;
+  vector<int> nmcVals;
   std::vector<std::string> collectionNames = *evt->getCollectionNames();
-  for (int a =0; a < collectionNames.size(); ++a) 
-  {
-    cout << collectionNames[a] << endl;
-  }
   LCCollection* ecalcol = evt->getCollection("EcalBarrelHits");
-  float pos_max = 0;
-  float pos_min = 1000000;
   for (int i=0; i < ecalcol->getNumberOfElements(); ++i)
   {
-    SimTrackerHit* hit2=dynamic_cast<SimTrackerHit*>(ecalcol->getElementAt(i));
-    /*  int sicell0 = hit2->getCellID0();
-    int sicell1 = hit2->getCellID1();
-    double sipos = *hit2->getPosition();
-    posVals.push_back(sipos);
-    //    float edx = hit2->getEdx();
-    float edep = hit2->getEDep();
-    eDepVals.push_back(edep * 1000000000);
-    float time = hit2->getTime();
-    float mom = *hit2->getMomentum();
-    float pathlength = hit2->getPathLength();
-    _pos->Fill(sipos);
-    _momentum->Fill(mom);
-    _energy->Fill(edep * 1000000000);
-    cout << i << endl;
-    //    printf("Cell1: %d, Cell2: %d, Position: %f, Energy Deposited: %f, Time: %f, Momentum: %f Path Length: \n", sicell0, sicell1, sipos, edep, time, mom, pathlength );
-   */ }
+    SimCalorimeterHit* hit=dynamic_cast<SimCalorimeterHit*>(ecalcol->getElementAt(i));
+    float energy = hit->getEnergy();
+    eVals.push_back(energy);
+    float pos = *hit->getPosition();
+    posVals.push_back(pos);
+    int cell0 = hit->getCellID0();
+    cell1Vals.push_back(cell0);
+    int cell1 = hit->getCellID1();
+    cell2Vals.push_back(cell1);
+    int nmcconts = hit->getNMCContributions();
+    nmcVals.push_back(nmcconts);  
+  }
+  float maxEnergy = *max_element(posVals.begin(), posVals.end());
+  cout << maxEnergy << endl;
   _nEvt++;
   cout << endl;
 }
@@ -113,9 +105,8 @@ void ecalbarrelhits::check( LCEvent * evt ) {
 
 
 
-void ecalbarrelhits::end(){ 
+void ecalbarrelhits::end()
+{ 
   cout << "number of events: " << _nEvt << endl;
-
-  //  _momentum->Write();  
   _rootfile->Write();
 }

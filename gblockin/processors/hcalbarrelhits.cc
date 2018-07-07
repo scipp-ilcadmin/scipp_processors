@@ -73,27 +73,26 @@ void hcalbarrelhits::processRunHeader( LCRunHeader* run) {
 } 
 void hcalbarrelhits::processEvent( LCEvent * evt ) 
 { 
-  vector<float> eDepVals;
-  vector<double> posVals;
+  vector<float> posVals;
+  vector<int> cell1Vals;
+  vector<int> cell2Vals;
+  vector<int> nmcVals;
+  vector<float> eVals;
   std::vector<std::string> collectionNames = *evt->getCollectionNames();
-  LCCollection* hcalcol = evt->getCollection("HcalBarrelHits");
+  LCCollection* hcalcol = evt->getCollection("HCalBarrelHits");
   for (int i=0; i < hcalcol->getNumberOfElements(); ++i)
-  {
-    SimTrackerHit* hit2=dynamic_cast<SimTrackerHit*>(hcalcol->getElementAt(i));
-    int sicell0 = hit2->getCellID0();
-    int sicell1 = hit2->getCellID1();
-    double sipos = *hit2->getPosition();
-    posVals.push_back(sipos);
-    //    float edx = hit2->getEdx();
-    float edep = hit2->getEDep();
-    eDepVals.push_back(edep * 1000000000);
-    float time = hit2->getTime();
-    float mom = *hit2->getMomentum();
-    float pathlength = hit2->getPathLength();
-    _pos->Fill(sipos);
-    _momentum->Fill(mom);
-    _energy->Fill(edep * 1000000000);
-    //    printf("Cell1: %d, Cell2: %d, Position: %f, Energy Deposited: %f, Time: %f, Momentum: %f Path Length: \n", sicell0, sicell1, sipos, edep, time, mom, pathlength );
+    {
+      SimCalorimeterHit* hit2=dynamic_cast<SimCalorimeterHit*>(hcalcol->getElementAt(i));
+      float pos = *hit2->getPosition();
+      posVals.push_back(pos);
+      int cell1 = hit2->getCellID0();
+      cell1Vals.push_back(cell1);
+      int cell2 = hit2->getCellID1();
+      cell2Vals.push_back(cell2);
+      int nmcconts = hit2->getNMCContributions();
+      nmcVals.push_back(nmcconts);
+      float energy = hit2->getEnergy();
+      eVals.push_back(energy);
     }
   _nEvt++;
   cout << endl;

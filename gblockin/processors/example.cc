@@ -73,51 +73,17 @@ void example::processRunHeader( LCRunHeader* run) {
 } 
 void example::processEvent( LCEvent * evt ) 
 { 
-  vector<float> eDepVals;
-  vector<double> posVals;
   std::vector<std::string> collectionNames = *evt->getCollectionNames();
-  LCCollection* bcalcol = evt->getCollection("BeamCalHits");
   LCCollection* sitrackcol = evt->getCollection("SiTrackerBarrelHits");
-  float pos_max = 0;
-  float pos_min = 1000000;
-  /*for (int i=0; i < bcalcol->getNumberOfElements(); ++i)
-  {
-    //    cout << "THIS IS FOR SIMCALHITS:::::::" << endl;
-    SimCalorimeterHit* hit=dynamic_cast<SimCalorimeterHit*>(bcalcol->getElementAt(i));
-    float energy = hit->getEnergy();
-    float pos = *hit->getPosition();
-    int cell0 = hit->getCellID0();
-    int cell1 = hit->getCellID1();
-    //    int nmcparts = hit->getNMCParticles(); !!DEPRECATED!!
-    int nmcconts = hit->getNMCContributions();
-    //    printf("Energy: %d, Position: %f, Cell1: %d, Cell2: %d, Number of MCParticles: %d\n", energy, pos, cell0, cell1, nmcconts);
-    }*/
-  for (int i=0; i < sitrackcol->getNumberOfElements(); ++i)
-  {
-    SimTrackerHit* hit2=dynamic_cast<SimTrackerHit*>(sitrackcol->getElementAt(i));
-    if (pos_max < *hit2->getPosition()) 
-    {
-      pos_max = *hit2->getPosition();
-    }
-    if (pos_min > *hit2->getPosition())
-    {
-      pos_min = *hit2->getPosition();
-    }
-    //    cout << "THIS IS FOR SIMTRACKERHITS::::::" << endl;
+  for (int i=0; i < sitrackcol->getNumberOfElements(); ++i) {
+    SimTrackerHit* hit2=dynamic_cast<SimTrackerHit*>(sitrackcol->getElementAt(i));    
     int sicell0 = hit2->getCellID0();
     int sicell1 = hit2->getCellID1();
     double sipos = *hit2->getPosition();
-    posVals.push_back(sipos);
-    //    float edx = hit2->getEdx();
     float edep = hit2->getEDep();
-    eDepVals.push_back(edep * 1000000000);
     float time = hit2->getTime();
     float mom = *hit2->getMomentum();
     float pathlength = hit2->getPathLength();
-    _pos->Fill(sipos);
-    _momentum->Fill(mom);
-    _energy->Fill(edep * 1000000000);
-    //    printf("Cell1: %d, Cell2: %d, Position: %f, Energy Deposited: %f, Time: %f, Momentum: %f Path Length: \n", sicell0, sicell1, sipos, edep, time, mom, pathlength );
     }
   _nEvt++;
   cout << endl;
