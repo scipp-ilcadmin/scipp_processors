@@ -43,7 +43,7 @@ static TH2F* _plot;
 static TH1F* _histo;
 
 static int _nEvt=0;
-
+static double total_tmom=0;
 
 example::example() : Processor("example") {
     // modify processor description
@@ -76,7 +76,7 @@ void example::processRunHeader( LCRunHeader* run) {
 void example::processEvent( LCEvent * evt ) { 
     LCCollection* col = evt->getCollection( _colName );
     _nEvt++;
-
+    
     fourvec total;
     for(int i=0; i < col->getNumberOfElements(); ++i){
       MCParticle* particle=dynamic_cast<MCParticle*>(col->getElementAt(i));
@@ -88,6 +88,7 @@ void example::processEvent( LCEvent * evt ) {
       }
     }
     _histo->Fill(TwoPhoton::getTMag(total));
+    total_tmom+=TwoPhoton::getTMag(total);
     //    cout << "Transverse Momentum: " << TwoPhoton::getTMag(total) << endl;
 }
 
@@ -100,6 +101,6 @@ void example::check( LCEvent * evt ) {
 
 void example::end(){ 
   cout << endl << "Total # of events: " << _nEvt << endl;
-  
+  cout << "total tmom: " << total_tmom/_nEvt << endl;
   _rootfile->Write();
 }
