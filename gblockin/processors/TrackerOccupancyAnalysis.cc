@@ -7,15 +7,13 @@
  * @author Gregory Blockinger
  * July 6th, 2018
  *
- *
- *
  */
 
 #include "TrackerOccupancyAnalysis.h"
 #include "scipp_ilc_utilities.h"
 #include <iostream>
-#include <algorithm>
 
+#include <UTIL/ILDConf.h>
 #include <EVENT/LCCollection.h>
 #include <EVENT/SimCalorimeterHit.h>
 #include <EVENT/SimTrackerHit.h>
@@ -34,24 +32,34 @@ using namespace std;
 
 TrackerOccupancyAnalysis TrackerOccupancyAnalysis;
 
-static int _nEvt = 0;
 static TFile* _rootfile;
-static vector<float> barrelMomentumVals;
+static int _nEvt = 0;
+static double pixelSize = 5.0; // Pixel size is in microns
+static double tileSize = 5.0; // Tile size also in microns
+static double brlLayerArea[5] = {14817.6, 21168, 31752, 42336, 52920};
+static int tileNumBrl[5];
+int shingleError = 0;
+int brlLyrN = 5;
+int bunchCrossigns = 1;
+bool aligned;
+
+
+static vector<int> barrelLayers;
+static vector<int> barrelSubDets;
+static vector<int> barrelModules;
+static vector<int> barrelSensors;
+static vector<int> barrelSides;
+static vector<float> barrelEnergyVals;
 static vector<double> barrelPosVals;
 static vector<int> barrelCell0Vals;
 static vector<int> barrelCell1Vals;
-static vector<float> barrelEdepVals;
-static vector<float> endcapMomentumVals;
-static vector<double> endcapPosVals;
-static vector<int> endcapCell0Vals;
-static vector<int> endcapCell1Vals;
-static vector<float> endcapEdepVals;
+static vector<int> barrelNmccontsVals;
 
 
 TrackerOccupancyAnalysis::TrackerOccupancyAnalysis() : Processor("TrackerOccupancyAnalysis") 
 {
   _description = "Protype Processor";
-  //    registerProcessorParameter("RootOutputName", "output file", _root_file_name, std::string("output.root"));
+    registerProcessorParameter("RootOutputName", "output file", _root_file_name, std::string("output.root"));
 
 }
 
@@ -59,7 +67,7 @@ void TrackerOccupancyAnalysis::init()
 {
   streamlog_out(DEBUG) << " init called " << endl;
   cout << "Initialized "  << endl;
-  //  _rootfile = new TFile("TrackerOccupancyAnalysis.root", "RECREATE");
+  _rootfile = new TFile("TrackerOccupancyAnalysis.root", "RECREATE");
   _nEvt = 0;
 
 }
@@ -78,48 +86,30 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
   bool reject_negative = false;
   int hit_count = 0;
   LCCollection* barrelHits = evt->getCollection("SiVertexBarrelHits");
-  LCCollection* endcapHits = evt->getCollection("SiVertexEndcapHits");
+  //LCCollection* endcapHits = evt->getCollection("SiVertexEndcapHuts"); will do endcaps after barrelHits
 
-  for (int i =0; i < barrelHits->getNumberOfElements(); ++i)
+  _nEvt++;
+  for (int i = 0; i < barrelHits->getNumberOfElements(); ++i)
     {
-      SimTrackerHit* hit=dynamic_cast<SimTrackerHit*>(barrelHits->getElementAt(i));
-      float barrelMomentum = *hit->getMomentum();
-      barrelMomentumVals.push_back(barrelMomentum);
-      float barrelPos = *hit->getPosition();
-      barrelPosVals.push_back(barrelPos);
-      int barrelCell0 = hit->getCellID0();
-      barrelCell0Vals.push_back(barrelCell0);
-      int barrelCell1 = hit->getCellID1();
-      barrelCell1Vals.push_back(barrelCell1);
-      float barrelEdep = hit->getEDep();
-      barrelEdepVals.push_back(barrelEdep);
+      SimTrackerHit* hit = dynamic_cast<SimTrackerHit*>(barrelHits->getElementAt(i));
+      CellIDDecoder<SimTrackerHit> idDec( barrelHits );
+      int layer = idDec( hit )[ILDCellID0::layer];
+      barrelLayers.push_back(layer);
+      int subdet = idDec( hit )[ILDCellID0::subdet];
+      barrelSubDets.push_back(subdet);
+      int module = idDec( hit )[ILDCellID0::module];
+      barrelModules.push_back(module);
+      int sensor = idDec( hit )[ILDCellID0::sensor];
+      barrelSensors.push_back(sensor);
+      int side = idDec( hit )[ILDCellID0::side];
+      barrelSides.push_back(side);
+      double pos = *hit->getPosition();
+      barrelPosVals.push_back(pos);
+      cout << i << "   layer: " << barrelLayers[i] << "   subdet: " << barrelSubDets[i] << "   ";
+      cout << "   module: " << barrelModules[i] << " sensor: " << barrelSensors[i] << endl;
     }
-  for (int i=0; i < endcapHits->getNumberOfElements(); ++i)
-    {
-      SimTrackerHit* hit2=dynamic_cast<SimTrackerHit*>(endcapHits->getElementAt(i));
-      float endcapMomentum = *hit2->getMomentum();
-      endcapMomentumVals.push_back(endcapMomentum);
-      float endcapPos = *hit2->getPosition();
-      endcapPosVals.push_back(endcapPos);
-      int endcapCell0 = hit2->getCellID0();
-      endcapCell0Vals.push_back(endcapCell0);
-      int endcapCell1 = hit2->getCellID1();
-      float endcapEdep = hit2->getEDep();
-      endcapEdepVals.push_back(endcapEdep);
-    }
-  /* cout << " barrel_max_MOM::  " << *max_element(barrelMomentumVals.begin(), barrelMomentumVals.end()) << endl;
-  cout << " barrel_min_MOM::  " << *min_element(barrelMomentumVals.begin(), barrelMomentumVals.end()) << endl;
-  cout << " barrel_max_POS::  " << *max_element(barrelPosVals.begin(), barrelPosVals.end()) << endl;
-  cout << " barrel_min_POS::  " << *min_element(barrelPosVals.begin(), barrelPosVals.end()) << endl;
-  cout << " barrel_max_EDEP:: " << *max_element(barrelEdepVals.begin(), barrelEdepVals.end()) << endl;
-  cout << " barrel_min_EDEP:: " << *min_element(barrelEdepVals.begin(), barrelEdepVals.end()) << endl << endl;
-  cout << " endcap_max_MOM::  " << *max_element(endcapMomentumVals.begin(), endcapMomentumVals.end()) << endl;
-  cout << " endcap_min_MOM::  " << *min_element(endcapMomentumVals.begin(), endcapMomentumVals.end()) << endl;
-  cout << " endcap_max_POS::  " << *max_element(endcapPosVals.begin(), endcapPosVals.end()) << endl;
-  cout << " endcap_min_POS::  " << *min_element(endcapPosVals.begin(), endcapPosVals.end()) << endl;
-  cout << " endcap_max_EDEP:: " << *max_element(endcapEdepVals.begin(), endcapEdepVals.end()) << endl;
-  cout << " endcap_min_EDEP:: " << *min_element(endcapEdepVals.begin(), endcapEdepVals.end()) << endl << endl;
-  */
+
+
 }
 
 
