@@ -105,8 +105,12 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
       barrelSides.push_back(side);
       double pos = *hit->getPosition();
       barrelPosVals.push_back(pos);
-      cout << i << "   layer: " << barrelLayers[i] << "   subdet: " << barrelSubDets[i] << "   ";
-      cout << "   module: " << barrelModules[i] << " sensor: " << barrelSensors[i] << endl;
+      int cell0 = hit->getCellID0();
+      barrelCell0Vals.push_back(cell0);
+      int cell1 = hit->getCellID1();
+      barrelCell1Vals.push_back(cell1);
+      cout << i << " layer: " << barrelLayers[i] << " subdet: " << barrelSubDets[i] << " module: " << barrelModules[i]; 
+      cout << " sensor: " << barrelSensors[i] << " cell0: " << cell0 << " cell1: " << cell1 << endl;
     }
 
 
