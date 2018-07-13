@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<!-- ?xml-stylesheet type="text/xsl" href="http://ilcsoft.desy.de/marlin/marlin.xsl"? -->
+<!-- ?xml-stylesheet type="text/xsl" href="marlin.xsl"? -->
+
+<marlin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://ilcsoft.desy.de/marlin/marlin.xsd">
+    <execute>
+      <processor name="file_list_handler"/>
+      <processor name="scipp_ilcsoft_processor"/>
+    </execute>
+
+    <global>
+        <parameter name="LCIOInputFiles"> </parameter>
+        <parameter name="MaxRecordNumber" value="50000" />    
+        <parameter name="SkipNEvents" value="0" />  
+        <parameter name="SupressCheck" value="false" />  
+        <parameter name="AllowToModifyEvent" value="false" />  
+        <parameter name="Verbosity" options="DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT"> SILENT  </parameter>
+        <parameter name="RandomSeed" value="3234567890" />
+    </global>
+
+    <processor name="file_list_handler" type="FileListReader">
+        <!-- 
+	   parameter name="FileListName" type="string">/var/ilc/scipp/input/lists/bhabha_zero.list</parameter
+	 <parameter name="FileListName" type="string">/export/home/wwyatt/input/archive_overlay/overlay.list</parameter> 
+         <parameter name="FileListName" type="string">/var/ilc/scipp/input/lists/aa_lowpt.eB.pW.I39214.list</parameter> 
+        <parameter name="FileListName" type="string">/var/ilc/scipp/input/lists/aa_lowpt.eB.pB.I39215.list</parameter>
+        <parameter name="FileListName" type="string">/var/ilc/scipp/input/lists/aa_lowpt.eW.pW.I39212.list</parameter> -->
+	 
+<!--	<parameter name="FileListName" type="string">/var/ilc/scipp/input/lists/aa_lowpt.eW.pB.I39213.list</parameter> -->
+	<parameter name="FileListName" type="string">/export/home/wwyatt/input/nunubar.list</parameter>
+    </processor>
+
+    <processor name="scipp_ilcsoft_processor" type="Prediction">
+        <parameter name="CollectionName" type="string" lcioInType="MCParticle">MCParticle</parameter>
+    </processor>
+</marlin>
