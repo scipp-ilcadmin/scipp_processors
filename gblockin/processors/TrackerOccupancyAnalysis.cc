@@ -34,6 +34,7 @@ using namespace std;
 TrackerOccupancyAnalysis TrackerOccupancyAnalysis;
 
 static TFile* _rootfile;
+static TH1D* _tileHits;
 static int _nEvt = 0;
 static double pixelSize = 5.0; // Pixel size is in microns
 static double tileSize; // Tile size also in microns
@@ -57,7 +58,8 @@ static vector<double> barrelPoszVals;
 static vector<int> barrelCell0Vals;
 static vector<int> barrelCell1Vals;
 static vector<int> barrelNmccontsVals;
-
+static vector<string> tileIDVals;
+static vector<string> uniqueTileVals;
 
 TrackerOccupancyAnalysis::TrackerOccupancyAnalysis() : Processor("TrackerOccupancyAnalysis") 
 {
@@ -70,7 +72,8 @@ void TrackerOccupancyAnalysis::init()
 {
   streamlog_out(DEBUG) << " init called " << endl;
   cout << "Initialized "  << endl;
-  //  _rootfile = new TFile("TrackerOccupancyAnalysis.root", "RECREATE");
+  _rootfile = new TFile("TrackerOccupancyAnalysis.root", "RECREATE");
+  _tileHits = new TH1D("BrlEventsVCsHit", "BrlEventsVCsHit", 50, 0, 0.0005);
   _nEvt = 0;
   tileSize = pixelSize/1000.0; // No clue why this is set like this
                                // It just is
@@ -99,6 +102,10 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
   bool use_limit = false;
   bool reject_negative = false;
   int hit_count = 0;
+  double brlXseg = tileSize;
+  double brlYseg = tileSize;
+  int offsetX = 500000;
+  int offsetY = 500000;
   LCCollection* barrelHits = evt->getCollection("SiVertexBarrelHits");
   //LCCollection* endcapHits = evt->getCollection("SiVertexEndcapHuts"); will do endcaps after barrelHits
 
@@ -127,13 +134,20 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
       barrelCell0Vals.push_back(cell0);
       int cell1 = hit->getCellID1();
       barrelCell1Vals.push_back(cell1);
+      auto IDx = to_string((int) ((posx/brlXseg) + offsetX));
+      auto IDy = to_string((int) ((posy/brlYseg) + offsetY));
+      auto modStr = to_string(module);
+      string tileID = (modStr + IDx + IDy);
+      tileIDVals.push_back(tileID);
+      uniqueTileVals.push_back(tileID);
+      uniqueTileVals.erase(unique(uniqueTileVals.begin(), uniqueTileVals.end()), uniqueTileVals.end());
       //cout << i << " layer: " << layer << " subdet: " << subdet << " module: " << module; 
-      //cout << " sensor: " << sensor  << " cell0: " << cell0;
-      //cout << " posx: " << posx << " posy: " << posy << " posz: " << posz << endl;
+      //cout << " sensor: " << sensor;
+      //cout << " tileID: " << tileID << endl;
     }
   //cout << *max_element(barrelLayers.begin(), barrelLayers.end()) << endl;
   //cout << *min_element(barrelLayers.begin(), barrelLayers.end()) << endl;
-  
+  cout << tileIDVals.size() << " " << uniqueTileVals.size() << endl;
 }
 
 
