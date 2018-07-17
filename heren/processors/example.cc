@@ -70,9 +70,9 @@ void example::init() {
     _plot = new TH2F("hh", "Hit-Hit HeatMap", 300.0, -150.0, 150.0, 300.0, -150.0, 150.0);
     _histo = new TH1F("energy", "Energy Distribution", 300, 0, 550);
     _momentum = new TH1F("momentum","Momentum Distribution",300,0,500);
-    _scalar = new TH1F("scalar","Scalar Distribution",300,0,500);
-    _vector = new TH1F("vector","Vector Distribution",300,0,50);
-    _mass = new TH1F("mass","Mass Distribution",300,0,5000);
+    _scalar = new TH1F("scalar","Scalar Distribution",300,0,5);
+    _vector = new TH1F("vector","Vector Distribution",300,0,5);
+    _mass = new TH1F("mass","Mass Distribution",300,0,5);
     _nEvt = 0 ;
 }
 
