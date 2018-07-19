@@ -36,7 +36,7 @@ TrackerOccupancyAnalysis TrackerOccupancyAnalysis;
 static TFile* _rootfile;
 static TH1D* _tileHits;
 static int _nEvt = 0;
-static double pixelSize = 5.0; // Pixel size is in microns
+static double pixelSize = 30.0; // Pixel size is in microns
 static double tileSize; // Tile size also in microns
 static double brlLayerArea[5] = {14817.6, 21168, 31752, 42336, 52920};
 static int tileNumBrl[5];
@@ -58,8 +58,7 @@ static vector<double> barrelPoszVals;
 static vector<int> barrelCell0Vals;
 static vector<int> barrelCell1Vals;
 static vector<int> barrelNmccontsVals;
-static vector<string> tileIDVals;
-static vector<string> uniqueTileVals;
+static vector<int> tileIDVals;
 
 TrackerOccupancyAnalysis::TrackerOccupancyAnalysis() : Processor("TrackerOccupancyAnalysis") 
 {
@@ -134,20 +133,20 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
       barrelCell0Vals.push_back(cell0);
       int cell1 = hit->getCellID1();
       barrelCell1Vals.push_back(cell1);
-      auto IDx = to_string((int) ((posx/brlXseg) + offsetX));
-      auto IDy = to_string((int) ((posy/brlYseg) + offsetY));
-      auto modStr = to_string(module);
-      string tileID = (modStr + IDx + IDy);
+      int IDx = (int) ((posx/brlXseg) + 500000);
+      int IDy = (int) ((posy/brlYseg) + 500000);
+      int tileID = (module + IDx + IDy);
       tileIDVals.push_back(tileID);
-      uniqueTileVals.push_back(tileID);
-      uniqueTileVals.erase(unique(uniqueTileVals.begin(), uniqueTileVals.end()), uniqueTileVals.end());
-      //cout << i << " layer: " << layer << " subdet: " << subdet << " module: " << module; 
-      //cout << " sensor: " << sensor;
-      //cout << " tileID: " << tileID << endl;
+      //uniqueTileVals.push_back(tileID);
+      //uniqueTileVals.erase(unique(uniqueTileVals.begin(), uniqueTileVals.end()), uniqueTileVals.end());
+      cout << i << " layer: " << layer << " subdet: " << subdet << " module: " << module; 
+      cout << " sensor: " << sensor;
+      cout << " tileID: " << tileID << endl;
     }
   //cout << *max_element(barrelLayers.begin(), barrelLayers.end()) << endl;
   //cout << *min_element(barrelLayers.begin(), barrelLayers.end()) << endl;
-  cout << tileIDVals.size() << " " << uniqueTileVals.size() << endl;
+  //cout << tileIDVals.size() << " " << uniqueTileVals.size() << endl;
+
 }
 
 

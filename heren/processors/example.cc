@@ -119,7 +119,7 @@ void example::processEvent( LCEvent * evt ) {
       // if(scipp_ilc::get_hitStatus(newX,mom[1],mom[2])>2)continue;
       double xyz=sqrt(pow(mom[0],2)+pow(mom[1],2)+pow(mom[2],2));//norm of the totoal momentum
       double cth=abs(mom[2]/xyz);//cosine of the angle between momentum vector and z-direction momentum
-      if(cth>0.9999) continue;
+      //      if(cth>0.9999) continue;
       // if(cth>0.9999 || cth<-0.9999) continue;
       double mag=sqrt(pow(mom[0],2)+pow(mom[1],2));//exclude z momentum
       _momentum->Fill(mag);

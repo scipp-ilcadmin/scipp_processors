@@ -1,7 +1,6 @@
 #include <TwoPhoton.h>
 #include <iostream>
 #include <iomanip>
-
 using namespace TwoPhoton;
 fourvec TwoPhoton::transform_to_lab(fourvec input){
   double px=input.x;
@@ -123,7 +122,7 @@ bundle TwoPhoton::getHadronicSystem(LCCollection* col, bool ptKick){
     }
   }
   out.hadronic_nopseudo=out.hadronic;
-  if(ptKick&&false){
+  if(ptKick){
   //PSEUDO PARTICLE
     out.pseudo=*(new fourvec(
 			     -(out.hadronic.x+out.positron.x+out.electron.x),
@@ -144,7 +143,7 @@ bundle TwoPhoton::getHadronicSystem(LCCollection* col, bool ptKick){
       //int id=particle->getPDG();
       //const double angle = 0.5; //Cutting angle
       //if(id==12||id==14||id==16||id==18|| (id>=1000001 && id<=1000039))continue;
-      //      if(true || abs(hadron.z/getMag(hadron)) < angle ){
+      //      if(abs(hadron.z/getMag(hadron)) < angle ){
       //out.hadronic += hadron;
       //}
     }
@@ -195,42 +194,49 @@ void TwoPhoton::recordHMValue(hmgrid &output, fourvec predicted, fourvec actual)
   else if(  hit_pred && !hit_real )output.hm++;
   else if( !hit_pred && !hit_real )output.mm++;
 }
-unsigned int TwoPhoton::decToBin(unsigned int dec){
-  unsigned int out=0000;
-  if((dec & 1)>0)out+=1;
-  if((dec & 2)>0)out+=10;
-  if((dec & 4)>0)out+=100;
-  if((dec & 8)>0)out+=1000;
+string TwoPhoton::getCombinationFromIndex(unsigned int dec){
+  string out="";
+  for(int i = 0; i <= 3; i++){
+    int val=1<<i;
+    if((dec & val)>0)out="1"+out;
+    else out="O"+out;
+  }
   return out;
 }
-void TwoPhoton::printGuessTable(vector<Result> positron, vector<Result> electron){  
+string TwoPhoton::getGoodOrBad(int index){
+  if(index==2||index==8||index==10)
+    return "!";
+  else return "-";
+}
+void TwoPhoton::printGuessTable(vector<Result> positron, vector<Result> electron){ 
   int array[16]={0};
   for(unsigned int i = 0; i < positron.size(); ++i){
     fourvec preal=getBeamcalPosition(positron[i].actual);
     fourvec ppred=getBeamcalPosition(positron[i].predicted);
     fourvec ereal=getBeamcalPosition(electron[i].actual);
     fourvec epred=getBeamcalPosition(electron[i].predicted);
-    unsigned int  phit_real=(get_hitStatus(preal)<3) << 0;
-    unsigned int  phit_pred=(get_hitStatus(ppred)<3) << 1;
-    unsigned int  ehit_real=(get_hitStatus(ereal)<3) << 2;
-    unsigned int  ehit_pred=(get_hitStatus(epred)<3) << 3;
+    
+    unsigned int ehit_pred=(get_hitStatus(epred)<3) << 3;
+    unsigned int ehit_real=(get_hitStatus(ereal)<3) << 2;
+    unsigned int phit_pred=(get_hitStatus(ppred)<3) << 1;
+    unsigned int phit_real=(get_hitStatus(preal)<3) << 0;
+    
     unsigned int out=phit_real|phit_pred|ehit_real|ehit_pred;
     ++array[out];
+    
   }
   cout << "Printing hit table " << endl;
-  cout << "#e+e- " << endl << "#TPTP" << endl;
+  cout << "#e-e+ " << endl << "#PTPT\t\t[Quantity]" << endl;
   double total=positron.size();
   long unsigned int bad=0;
   for(unsigned int i = 0; i < 16; ++i){
-    total+=array[i];
-    if(i==1||i==4||i==5||i==6||i==9){
+    if(i==2||i==8||i==10){
       bad += array[i];
     }
-
-    cout << "#" << decToBin(i) << ": " << array[i]/total << endl;
+    cout << setprecision(4) << fixed << getGoodOrBad(i) << getCombinationFromIndex(i) << ": " << 100*array[i]/total << "%\t[" << array[i] << "]" << endl;
   }
   cout << "total: " << positron.size() << endl;
-  cout << "bad events: " << bad/total << endl;
+  cout << "bad events(!): " << 100*bad/total <<"%" << endl;
 }
 void TwoPhoton::printHMGrid(vector<fourvec> pred, vector<fourvec> actual){
   printHMGrid(getHMGrid(pred,actual));
@@ -242,9 +248,14 @@ void TwoPhoton::printHMGrid(vector<Result> input, double energy_cut){
 void TwoPhoton::printHMGrid(hmgrid input){
   double sum=input.hh+input.hm+input.mh+input.mm;
   cout << "Total Events in HM Grid: " << sum << endl;
-  cout << "          | Truth Hit | Truth Miss" << endl;
+  /*  cout << "          | Truth Hit | Truth Miss" << endl;
   cout << "Pred Hit  | " << input.hh/sum << "   |  " << input.hm/sum << endl;
   cout << "Pred Miss | " << input.mh/sum << "   |  " << input.mm/sum << endl;
+  */
+ 
+  printf("%-10s | %10s | %10s \n","","Truth Hit","Truth Miss");
+  printf("%-10s | %10f | %10f \n","Pred Hit",input.hh/sum, input.hm/sum);
+  printf("%-10s | %10f | %10f \n","Pred Miss",input.mh/sum, input.mm/sum);
 }
 double* TwoPhoton::getVector(MCParticle* particle){
   double* output=new double[4];
@@ -302,12 +313,10 @@ double TwoPhoton::getTheta(fourvec a, fourvec b){
   //If acos(-1) it returns 0;
   double theta=a*b/(getMag(a)*getMag(b));
   double val=acos(theta);
-  double data_point = getTheta(data.hadronic, data.postiron);
   if(val!=val) return 0;
   return val;
 }
 
 double TwoPhoton::getPhi(fourvec input){
   return atan(input.y/input.x);
-
 }

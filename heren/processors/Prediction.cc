@@ -15,7 +15,7 @@
  * April 5, 2016
  */
 
-#include <Prediction.h>
+#include "Prediction.h"
 #include "scipp_ilc_utilities.h"
 #include <iostream>
 #include <iomanip> 
@@ -23,12 +23,9 @@
 #include <EVENT/LCCollection.h>
 #include <EVENT/SimCalorimeterHit.h>
 #include <EVENT/MCParticle.h>
-
+#include <TwoPhoton.h>
 #include <TFile.h>
 #include <TH2D.h>
-#include <TwoPhoton.h>
-#include <fourvec.h>
-
 
 // ----- include for verbosity dependend logging ---------
 #include "marlin/VerbosityLevels.h"
@@ -37,30 +34,25 @@
 using namespace lcio;
 using namespace marlin;
 using namespace std;
-
 using namespace TwoPhoton;
 
-int pdg_count=0;
 
 Prediction Prediction;
 
-fourvec eff_obj_p;
-fourvec eff_obj_e;
 
-static TH1F* _theta;
 static TFile* _rootfile;
 static TH2F* _prediction;
 static TH2F* _observe;
 static TH1F* _vector;
 static TH1F* _p_theta;
 static TH1F* _e_theta;
-static TH1F* _histo_pid;
 static TH1F* zmom;
 static TH1F* tmom;
 static TH1F* amom;
 static TH1F* bmom;
 static TH1F* cmom;
 static TH1F* dmom;
+
 
 
 static TH1F* _p_positron_phi;
@@ -101,7 +93,7 @@ static int nphotons=0;
 static int n_events=0;
 static int i_events=0;
 
-static int counter = 0;
+static double diff=0;
 
 Prediction::Prediction() : Processor("Prediction") {
   // modify processor description
@@ -121,14 +113,11 @@ void Prediction::init() {
   _rootfile = new TFile("ppredict.root","RECREATE");
   //usually a good idea to
   //printParameters() ;
-_histogram_name = new TH1F("myplot", "plot title", 300, 0, 50);  
-_theta = new TH1F("theta", "Theta Distribution", 300, -1.6, 1.6);
   _prediction = new TH2F("predict", "Predicted Angle of Scatter, Correct vs Incorrect Kinematics", 1000, 0.0, 0.01, 1000, 0.0, 0.01);
-  _histo_pid = new TH1F("pid", "Particle ID", 200, 0, 199);
   _observe = new TH2F("energy", "B vs System Energy", 1000, 0.0, 1.5, 1000, 0.0, 525);
   _p_theta = new TH1F("p_theta", "Theta between positron and hadronic system", 360, 0, .1);
   _e_theta = new TH1F("e_theta", "Theta between positron and hadronic system", 360, 0, .1);
-  _vector = new TH1F("vector", "Vector", 200, 0.0, 0.05);
+  _vector = new TH1F("mom", "Hadronic TMomentum Vector Sum", 300, 0.0, 5);
   zmom=new TH1F("zmom", "System energy", 500, 450, 550);
   tmom=new TH1F("tmom", "Eletron system energy", 500, 450, 550);
   amom=new TH1F("amom", "Distribution of Actual Positron Theta", 500, -1.6,1.6);
@@ -151,31 +140,22 @@ _theta = new TH1F("theta", "Theta Distribution", 300, -1.6, 1.6);
   _nEvt = 0 ;
 }
 
+
+
 void Prediction::processRunHeader( LCRunHeader* run) { 
   //    _nRun++ ;
 } 
 
 void Prediction::processEvent( LCEvent * evt ) { 
   // DISCLAIMER: THERE IS MORE DOCUMENTATION IN THE HEADER FILE (Will.h).
-  //cout << "Processing Event " << n_events << ": " << endl;
   LCCollection* col = evt->getCollection( _colName ) ;
   if( col == NULL )return;
   n_events++;
-
-  for(int i=0; i < col->getNumberOfElements(); ++i){
-      MCParticle* particle=dynamic_cast<MCParticle*>(col->getElementAt(i));
-      //cout <<"Proccessing Particle " << i << ": " << endl;
-      //if (particle->getGeneratorStatus()!=1) continue;i
-      if (particle->getPDG() == 11 | particle->getPDG() == -11) {
-          pdg_count++;
-          break;
-      }      
-  }
+  //Run janes code for comparison.
+  //getJane(col);
 
   TwoPhoton::bundle data = TwoPhoton::getHadronicSystem(col);  
-	_theta->Fill(getTheta(data.hadronic)) ;
- /* "getHadronicSystem(LCCollection)" Takes the collection, calculates the hadronic system.
- ;
+  /* "getHadronicSystem(LCCollection)" Takes the collection, calculates the hadronic system.
    * A bundle is a struct with several fourvectors in it:
    * - electron - Highest energy final state electron
    * - positron - Highest energy final state positron
@@ -185,11 +165,11 @@ void Prediction::processEvent( LCEvent * evt ) {
    *   |=> Transverse momentum means this is the particle that scattered.
    */
 
+
   //If there was no scatter, then there is nothing to see.
   //Also excludes small magnitude events.
   if(data.mag<=1) return;
-  //if(data.mag<=1) return;
-
+  //if(!data.scattered) return;
   i_events++;
 
   prediction p(data); //Store prediction vector as variable 'p';
@@ -199,15 +179,6 @@ void Prediction::processEvent( LCEvent * evt ) {
    * Only one of these will be correct; that can be checked by bundle.p_scatter and bundle.e_scatter.
    * I will make it easier to get the correct prediction.
    */
-  eff_obj_e = getBeamcalPosition(p.electron);
-  eff_obj_p = getBeamcalPosition(p.positron);
-  if (get_hitStatus(eff_obj_p) < 3 || get_hitStatus(eff_obj_e) < 3) {
-      counter ++;
-  }
-  
-   
-  //cout << "Running Total, Event " << n_events << ": " << counter << " Predicted Hits" << endl;  
-  
 
   /*Debugging wb events straight don't even work.*/
   _alpha->Fill(p.alpha);_beta->Fill(p.beta);
@@ -226,16 +197,6 @@ void Prediction::processEvent( LCEvent * evt ) {
   electron_result.predicted=p.electron;
   //cout << getPhi(data.electron) << "  :  " << getPhi(data.positron) << endl;
 
-  // Calculate Theta
-  for(int i=0; i < col->getNumberOfElements(); ++i){
-      double a_mag=positron_result.actual.getMag();
-      double p_mag=positron_result.predicted.getMag();
-      double d_theta = (positron_result.actual.x * positron_result.predicted.x + 
-                       positron_result.actual.y * positron_result.predicted.y +
-                       positron_result.actual.z * positron_result.predicted.z) / (a_mag*p_mag) ;
-      _theta->Fill(d_theta);
-  }
-
   //Make Delta-Theta and Phi plots (Delta-Theta is the angle difference between the predicted and actual momentum vector. Phi is the angle off the x-axis for the transverse momentum vector.)
   if(tot_energy > 494){
     double phi_ap=getPhi(data.positron), phi_ae=getPhi(data.electron), phi_pp=getPhi(p.positron), phi_pe=getPhi(p.electron);
@@ -253,30 +214,20 @@ void Prediction::processEvent( LCEvent * evt ) {
   }
   positron_results.push_back(positron_result);
   electron_results.push_back(electron_result);
+  diff=(getTMag(data.hadronic)-getTMag(data.hadronic_nopseudo));
+  _vector->Fill(data.hadronic_nopseudo.getTMag());
 }
-
 
 void Prediction::check( LCEvent * evt ) { 
   // nothing to check here - could be used to fill checkplots in reconstruction processor
 }
 
+
+
 void Prediction::end(){ 
-
-  /*    
-    cout << "Scatter Ratios:"<<endl;
-    cout << "(positrons:electrons)\t= " << p_scatter << ":"<<e_scatter<<endl;
-    cout << "Misc data: " << meta.MSC << endl;
-  */
-  //General Analysis
-  //cout << "total photons: " << photons << endl;
-  //cout << "Photons with pi-0 parent: " << nphotons << endl;
-  double eff = counter / n_events;
-  cout << "Efficiency " << eff; 
-
   cout << "==== " << n_events << " Events ====" << endl;
   cout << "==== " << i_events << " Counted Events (mag>1) ====" << endl;
-
-  //cout << "(scattered:not-scattered)\t= " << meta.SCATTERS << ":" << meta.NOSCATTERS << endl;  
+  cout << "Missing transverse momentum: " << diff << endl;
   cout << "Electron Results Collected:" << electron_results.size() << endl;
   cout << "Positron Results Collected:" << positron_results.size() << endl;
   cout << endl;
@@ -285,10 +236,8 @@ void Prediction::end(){
   cout << endl;
   cout << "Positron  HM Grid: " << endl;
   printHMGrid(positron_results);
-
+  printGuessTable(positron_results, electron_results);
   double cut=494;
-
-  cout << "Events with final state e+-" << pdg_count << endl;
   
   //HM Grids
   //This for loop will find out when the algorithm becomes very accurate
