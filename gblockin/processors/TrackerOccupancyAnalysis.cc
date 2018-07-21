@@ -33,8 +33,12 @@ using namespace std;
 
 TrackerOccupancyAnalysis TrackerOccupancyAnalysis;
 
+
 static TFile* _rootfile;
 static TH1D* _tileHits;
+static TH1D* _xPos;
+static TH1D* _yPos;
+static TH2D* _xyPos;
 static int _nEvt = 0;
 static double pixelSize = 30.0; // Pixel size is in microns
 static double tileSize; // Tile size also in microns
@@ -60,6 +64,17 @@ static vector<int> barrelCell1Vals;
 static vector<int> barrelNmccontsVals;
 static vector<int> tileIDVals;
 
+template<typename T>
+static T getMax(vector<T> &vec) 
+{
+  return *max_element(vec.begin(), vec.end());
+}
+template<typename T>
+static T getMin(vector<T> &vec)
+{
+  return *min_element(vec.begin(), vec.end());
+}
+
 TrackerOccupancyAnalysis::TrackerOccupancyAnalysis() : Processor("TrackerOccupancyAnalysis") 
 {
   _description = "Protype Processor";
@@ -71,8 +86,11 @@ void TrackerOccupancyAnalysis::init()
 {
   streamlog_out(DEBUG) << " init called " << endl;
   cout << "Initialized "  << endl;
-  _rootfile = new TFile("TrackerOccupancyAnalysis.root", "RECREATE");
-  _tileHits = new TH1D("BrlEventsVCsHit", "BrlEventsVCsHit", 50, 0, 0.0005);
+  _rootfile = new TFile("TOA.root", "RECREATE");
+  _tileHits = new TH1D("BrlEventsVCsHit", "BrlEventsVCsHit", 57, 997500, 1002000);
+  _xPos = new TH1D("xposhits", "xposhits", 57, -62.0, 55.0);
+  _yPos = new TH1D("yposhits", "yposhits", 57, -41.0, 48.0);
+  _xyPos = new TH2D("xypos", "xypos", 57, -100.0, 100.0, 57, -100.0, 100.0); 
   _nEvt = 0;
   tileSize = pixelSize/1000.0; // No clue why this is set like this
                                // It just is
@@ -137,16 +155,18 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
       int IDy = (int) ((posy/brlYseg) + 500000);
       int tileID = (module + IDx + IDy);
       tileIDVals.push_back(tileID);
+      _tileHits->Fill(tileID);
+      _xPos->Fill(posx);
+      _yPos->Fill(posy);
+      _xyPos->Fill(posx, posy);
       //uniqueTileVals.push_back(tileID);
       //uniqueTileVals.erase(unique(uniqueTileVals.begin(), uniqueTileVals.end()), uniqueTileVals.end());
-      cout << i << " layer: " << layer << " subdet: " << subdet << " module: " << module; 
-      cout << " sensor: " << sensor;
-      cout << " tileID: " << tileID << endl;
+      //cout << i << " layer: " << layer << " subdet: " << subdet << " module: " << module; 
+      //cout << " sensor: " << sensor;
+      //cout << " tileID: " << tileID << endl;
     }
-  //cout << *max_element(barrelLayers.begin(), barrelLayers.end()) << endl;
-  //cout << *min_element(barrelLayers.begin(), barrelLayers.end()) << endl;
-  //cout << tileIDVals.size() << " " << uniqueTileVals.size() << endl;
-
+  //cout << _nEvt << " Posxmax: " << getMax(barrelPosxVals) << " posxMin: " << getMin(barrelPosxVals) << endl;
+  //cout << _nEvt << " PosyMax: " << getMax(barrelPosyVals) << " posyMin: " << getMin(barrelPosyVals) << endl << endl << endl;
 }
 
 
@@ -157,5 +177,5 @@ void TrackerOccupancyAnalysis::check( LCEvent * evt)
 
 void TrackerOccupancyAnalysis::end()
 {
-  
+  _rootfile->Write();  
 }

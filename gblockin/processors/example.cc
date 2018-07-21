@@ -99,6 +99,5 @@ void example::check( LCEvent * evt ) {
 void example::end(){ 
   cout << "number of events: " << _nEvt << endl;
 
-  //  _momentum->Write();  
   _rootfile->Write();
 }
