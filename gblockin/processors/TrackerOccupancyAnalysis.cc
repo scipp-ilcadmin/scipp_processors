@@ -22,7 +22,7 @@
 
 #include <TFile.h>
 #include <TH2D.h>
-
+#include <TH3D.h>
 // ----- include for verbosity dependend logging ---------
 #include "marlin/VerbosityLevels.h"
 
@@ -36,9 +36,18 @@ TrackerOccupancyAnalysis TrackerOccupancyAnalysis;
 
 static TFile* _rootfile;
 static TH1D* _tileHits;
+static TH1I* _layers;
 static TH1D* _xPos;
 static TH1D* _yPos;
 static TH2D* _xyPos;
+static TH3D* _xyzPos;
+static TH1D* _eDep;
+static TH1D* _cells;
+static TH1F* _xmom;
+static TH1F* _ymom;
+static TH1F* _zmom;
+static TH2F* _xymom, *_yzmom, *_xzmom;
+static TH3F* _xyzmom;
 static int _nEvt = 0;
 static double pixelSize = 30.0; // Pixel size is in microns
 static double tileSize; // Tile size also in microns
@@ -50,20 +59,22 @@ int bunchCrossigns = 1;
 bool aligned;
 static vector< map<string,long> > BrlTiles;
 
-static vector<int> barrelLayers;
-static vector<int> barrelSubDets;
-static vector<int> barrelModules;
-static vector<int> barrelSensors;
-static vector<int> barrelSides;
-static vector<float> barrelEnergyVals;
-static vector<double> barrelPosxVals;
-static vector<double> barrelPosyVals;
-static vector<double> barrelPoszVals;
-static vector<int> barrelCell0Vals;
-static vector<int> barrelCell1Vals;
-static vector<int> barrelNmccontsVals;
+static vector<int> layers;
+static vector<int> subDets;
+static vector<int> modules;
+static vector<int> sensors;
+static vector<int> sides;
+static vector<float> eDepVals;
+static vector<double> posxVals;
+static vector<double> posyVals;
+static vector<double> poszVals;
+static vector<int> cell0Vals;
+static vector<int> cell1Vals;
+static vector<int> nmccontsVals;
 static vector<int> tileIDVals;
-
+static vector<float> xmomVals;
+static vector<float> ymomVals;
+static vector<float> zmomVals;
 template<typename T>
 static T getMax(vector<T> &vec) 
 {
@@ -90,7 +101,15 @@ void TrackerOccupancyAnalysis::init()
   _tileHits = new TH1D("BrlEventsVCsHit", "BrlEventsVCsHit", 57, 997500, 1002000);
   _xPos = new TH1D("xposhits", "xposhits", 57, -62.0, 55.0);
   _yPos = new TH1D("yposhits", "yposhits", 57, -41.0, 48.0);
-  _xyPos = new TH2D("xypos", "xypos", 57, -100.0, 100.0, 57, -100.0, 100.0); 
+  _xyPos = new TH2D("xypos", "xypos", 57, -100.0, 100.0, 57, -100.0, 100.0);
+  _xyzPos = new TH3D("xyzpos", "xyzpos", 57, -100.0, 100.0, 57, -100.0, 100.0, 57, -100.0, 100.0);
+  _layers = new TH1I("layers", "layers", 57, -1, 7);
+  _eDep = new TH1D("energy", "energy", 57, -1000, 1000);
+  _xmom = new TH1F("xmom", "xmom", 57, -85.0, 85.0);
+  _ymom = new TH1F("ymom", "ymom", 57, -85.0, 85.0);
+  _zmom = new TH1F("zmom", "zmom", 57, -85.0, 85.0);
+  _xymom = new TH2F("xymom", "xymom", 57, -85, 85, 57, -85, 85);
+  _xyzmom = new TH3F("xyzmom", "xyzmom", 57, -85, 85, 57, -85, 85, 57, -85, 85);
   _nEvt = 0;
   tileSize = pixelSize/1000.0; // No clue why this is set like this
                                // It just is
@@ -132,25 +151,33 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
       SimTrackerHit* hit = dynamic_cast<SimTrackerHit*>(barrelHits->getElementAt(i));
       CellIDDecoder<SimTrackerHit> idDec( barrelHits );
       int layer = idDec( hit )[ILDCellID0::layer];
-      barrelLayers.push_back(layer);
+      layers.push_back(layer);
       int subdet = idDec( hit )[ILDCellID0::subdet];
-      barrelSubDets.push_back(subdet);
+      subDets.push_back(subdet);
       int module = idDec( hit )[ILDCellID0::module];
-      barrelModules.push_back(module);
+      modules.push_back(module);
       int sensor = idDec( hit )[ILDCellID0::sensor];
-      barrelSensors.push_back(sensor);
+      sensors.push_back(sensor);
       int side = idDec( hit )[ILDCellID0::side];
-      barrelSides.push_back(side);
+      sides.push_back(side);
       double posx = hit->getPosition()[0]; // indecies for x,y,z components;
-      barrelPosxVals.push_back(posx);
+      posxVals.push_back(posx);
       double posy = hit->getPosition()[1];
-      barrelPosyVals.push_back(posy);
+      posyVals.push_back(posy);
       double posz = hit->getPosition()[2];
-      barrelPoszVals.push_back(posz);
+      poszVals.push_back(posz);
       int cell0 = hit->getCellID0();
-      barrelCell0Vals.push_back(cell0);
+      cell0Vals.push_back(cell0);
       int cell1 = hit->getCellID1();
-      barrelCell1Vals.push_back(cell1);
+      cell1Vals.push_back(cell1);
+      float eDep = hit->getEDep();
+      eDepVals.push_back(eDep);
+      float xmom = hit->getMomentum()[0];
+      xmomVals.push_back(xmom);
+      float ymom = hit->getMomentum()[1];
+      ymomVals.push_back(ymom);
+      float zmom = hit->getMomentum()[2];
+      zmomVals.push_back(zmom);
       int IDx = (int) ((posx/brlXseg) + 500000);
       int IDy = (int) ((posy/brlYseg) + 500000);
       int tileID = (module + IDx + IDy);
@@ -159,15 +186,16 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
       _xPos->Fill(posx);
       _yPos->Fill(posy);
       _xyPos->Fill(posx, posy);
-      //uniqueTileVals.push_back(tileID);
-      //uniqueTileVals.erase(unique(uniqueTileVals.begin(), uniqueTileVals.end()), uniqueTileVals.end());
-      //cout << i << " layer: " << layer << " subdet: " << subdet << " module: " << module; 
-      //cout << " sensor: " << sensor;
-      //cout << " tileID: " << tileID << endl;
+      _xyzPos->Fill(posx, posy, posz);
+      _layers->Fill(layer);
+      _eDep->Fill(eDep);
+      _xmom->Fill(xmom);
+      _ymom->Fill(ymom);
+      _zmom->Fill(zmom);
+      _xymom->Fill(xmom, ymom);
+      _xyzmom->Fill(xmom, ymom, zmom);
     }
-  //cout << _nEvt << " Posxmax: " << getMax(barrelPosxVals) << " posxMin: " << getMin(barrelPosxVals) << endl;
-  //cout << _nEvt << " PosyMax: " << getMax(barrelPosyVals) << " posyMin: " << getMin(barrelPosyVals) << endl << endl << endl;
-}
+  }
 
 
 void TrackerOccupancyAnalysis::check( LCEvent * evt)
@@ -177,5 +205,9 @@ void TrackerOccupancyAnalysis::check( LCEvent * evt)
 
 void TrackerOccupancyAnalysis::end()
 {
-  _rootfile->Write();  
+  cout << " max energy: " << getMax(eDepVals) << " MinEnergy: " << getMin(eDepVals) << endl;
+  cout << " max xmom: " << getMax(xmomVals) << " min xmom: " << getMin(xmomVals) << endl;
+  cout << " max ymom: " << getMax(ymomVals) << " min ymom: " <<getMin(ymomVals) << endl;
+  cout << " max zmom: " << getMax(xmomVals) << " min zmom: " <<getMin(zmomVals) << endl;
+  _rootfile->Write();
 }
