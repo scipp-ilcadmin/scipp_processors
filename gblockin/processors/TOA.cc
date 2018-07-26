@@ -40,6 +40,7 @@ static TH1D* _bxPos;
 static TH1D* _byPos;
 static TH2D* _bxyPos;
 static TH3D* _bxyzPos;
+static TH1I* _blayers;
 
 static TH1D* _exPos;
 static TH1D* _eyPos;
@@ -51,6 +52,7 @@ static int _nEvt = 0;
 static vector<double> bposxVals;
 static vector<double> bposyVals;
 static vector<double> bposzVals;
+static vector<int> blayers;
 
 static vector<double> eposxVals;
 static vector<double> eposyVals;
@@ -67,15 +69,15 @@ void TOA::init()
   streamlog_out(DEBUG) << " init called " << endl;
   cout << "Initialized "  << endl;
   _rootfile = new TFile("TOA.root", "RECREATE");
-
+  _blayers = new TH1I("blayers", "blayers", 7, -1, 7);
   _bxPos = new TH1D("bxposhits", "bxposhits", 57, -62.0, 55.0);
   _byPos = new TH1D("byposhits", "byposhits", 57, -41.0, 48.0);
   _bxyPos = new TH2D("bxypos", "bxypos", 57, -100.0, 100.0, 57, -100.0, 100.0);
-  _bxyzPos = new TH3D("bxyzpos", "bxyzpos", 57, -100.0, 100.0, 57, -100.0, 100.0, 57, -100.0, 100.0);
+  _bxyzPos = new TH3D("bxyzpos", "bxyzpos", 100, -100.0, 100.0, 100, -100.0, 100.0, 100, -100.0, 100.0);
   _exPos = new TH1D("exposhits", "exposhits", 57, -62.0, 55.0);
   _eyPos = new TH1D("eyposhits", "eyposhits", 57, -41.0, 48.0);
   _exyPos = new TH2D("exypos", "exypos", 57, -100.0, 100.0, 57, -100.0, 100.0);
-  _exyzPos = new TH3D("exyzpos", "exyzpos", 57, -100.0, 100.0, 57, -100.0, 100.0, 57, -100.0, 100.0);
+  _exyzPos = new TH3D("exyzpos", "exyzpos", 100, -100.0, 100.0, 100, -100.0, 100.0, 100, -100.0, 100.0);
   _nEvt = 0;
 }
 
@@ -102,6 +104,9 @@ void TOA::processEvent( LCEvent * evt)
       bposyVals.push_back(bposy);
       double bposz = hit->getPosition()[2];
       bposzVals.push_back(bposz);
+      int layer = idDec( hit) [ILDCellID0::layer];
+      blayers.push_back(layer);
+      _blayers->Fill(layer);
       _bxPos->Fill(bposx);
       _byPos->Fill(bposy);
       _bxyPos->Fill(bposx, bposy);
@@ -135,4 +140,5 @@ void TOA::check( LCEvent * evt)
 void TOA::end()
 {
   _rootfile->Write();
+  _rootfile->Close();
 }
