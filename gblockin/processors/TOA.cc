@@ -58,6 +58,17 @@ static vector<double> eposxVals;
 static vector<double> eposyVals;
 static vector<double> eposzVals;
 
+template<typename T>
+static T getMax(vector<T> &vec)
+{
+  return *max_element(vec.begin(), vec.end());
+}
+template<typename T>
+static T getMin(vector<T> &vec)
+{
+  return *min_element(vec.begin(), vec.end());
+}
+
 TOA::TOA() : Processor("TOA") 
 {
   _description = "Protype Processor";
@@ -70,10 +81,10 @@ void TOA::init()
   cout << "Initialized "  << endl;
   _rootfile = new TFile("TOA.root", "RECREATE");
   _blayers = new TH1I("blayers", "blayers", 7, -1, 7);
-  _bxPos = new TH1D("bxposhits", "bxposhits", 57, -62.0, 55.0);
-  _byPos = new TH1D("byposhits", "byposhits", 57, -41.0, 48.0);
-  _bxyPos = new TH2D("bxypos", "bxypos", 57, -100.0, 100.0, 57, -100.0, 100.0);
-  _bxyzPos = new TH3D("bxyzpos", "bxyzpos", 100, -100.0, 100.0, 100, -100.0, 100.0, 100, -100.0, 100.0);
+  _bxPos = new TH1D("bxposhits", "bxposhits", 57, -67.0, 67.0);
+  _byPos = new TH1D("byposhits", "byposhits", 57, -67.0, 67.0);
+  _bxyPos = new TH2D("bxypos", "bxypos", 57, -67.0, 67.0, 57, -67.0, 67.0);
+  _bxyzPos = new TH3D("bxyzpos", "bxyzpos", 100, -67.0, 67.0, 100, -67.0, 67.0, 100, -67.0, 67.0);
   _exPos = new TH1D("exposhits", "exposhits", 57, -62.0, 55.0);
   _eyPos = new TH1D("eyposhits", "eyposhits", 57, -41.0, 48.0);
   _exyPos = new TH2D("exypos", "exypos", 57, -100.0, 100.0, 57, -100.0, 100.0);
@@ -139,6 +150,10 @@ void TOA::check( LCEvent * evt)
 
 void TOA::end()
 {
+  cout << "MAX bPosX: " << getMax(bposxVals) << " MIN bPosX: " << getMin(bposxVals) <<  endl;
+  cout << "MAX bPosY: " << getMax(bposyVals) << " MIN bPosY: " << getMin(bposyVals) <<  endl;
+  cout << "MAX bPosZ: " << getMax(bposzVals) << " MIN bPosZ: " << getMin(bposzVals) <<  endl;
+  cout << _nEvt << endl;
   _rootfile->Write();
   _rootfile->Close();
 }
