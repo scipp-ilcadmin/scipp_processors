@@ -58,16 +58,17 @@ static vector<double> eposxVals;
 static vector<double> eposyVals;
 static vector<double> eposzVals;
 
-template<typename T>
+/*template<typename T>
 static T getMax(vector<T> &vec)
 {
   return *max_element(vec.begin(), vec.end());
 }
 template<typename T>
+
 static T getMin(vector<T> &vec)
 {
   return *min_element(vec.begin(), vec.end());
-}
+} */
 
 TOA::TOA() : Processor("TOA") 
 {
@@ -88,7 +89,7 @@ void TOA::init()
   _exPos = new TH1D("exposhits", "exposhits", 57, -62.0, 55.0);
   _eyPos = new TH1D("eyposhits", "eyposhits", 57, -41.0, 48.0);
   _exyPos = new TH2D("exypos", "exypos", 57, -100.0, 100.0, 57, -100.0, 100.0);
-  _exyzPos = new TH3D("exyzpos", "exyzpos", 100, -100.0, 100.0, 100, -100.0, 100.0, 100, -100.0, 100.0);
+  _exyzPos = new TH3D("exyzpos", "exyzpos", 100, -80.0, 80.0, 100, -80.0, 80.0, 100, -185.0, 185.0);
   _nEvt = 0;
 }
 
@@ -150,9 +151,9 @@ void TOA::check( LCEvent * evt)
 
 void TOA::end()
 {
-  cout << "MAX bPosX: " << getMax(bposxVals) << " MIN bPosX: " << getMin(bposxVals) <<  endl;
-  cout << "MAX bPosY: " << getMax(bposyVals) << " MIN bPosY: " << getMin(bposyVals) <<  endl;
-  cout << "MAX bPosZ: " << getMax(bposzVals) << " MIN bPosZ: " << getMin(bposzVals) <<  endl;
+  //cout << "MAX bPosX: " << getMax(eposxVals) << " MIN bPosX: " << getMin(eposxVals) <<  endl;
+  //cout << "MAX bPosY: " << getMax(eposyVals) << " MIN bPosY: " << getMin(eposyVals) <<  endl;
+  //cout << "MAX bPosZ: " << getMax(eposzVals) << " MIN bPosZ: " << getMin(eposzVals) <<  endl;
   cout << _nEvt << endl;
   _rootfile->Write();
   _rootfile->Close();
