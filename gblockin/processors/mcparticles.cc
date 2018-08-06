@@ -17,6 +17,7 @@
 #include "mcparticles.h"
 #include "scipp_ilc_utilities.h"
 #include <iostream>
+#include <algorithm>
 
 #include <EVENT/SimTrackerHit.h>
 #include <EVENT/LCCollection.h>
@@ -25,6 +26,7 @@
 
 #include <TFile.h>
 #include <TH2D.h>
+#include <TH3D.h>
 
 // ----- include for verbosity dependend logging ---------
 #include "marlin/VerbosityLevels.h"
@@ -38,11 +40,11 @@ using namespace std;
 mcparticles mcparticles;
 
 static TFile* _rootfile;
-static TH2F* _plot;
-static TH1F* _momentum;
-static TH1F* _pos;
-static TH1F* _energy;
+static TH3D* _posxyz;
 static int _nEvt=0;
+static vector<float> posxvals;
+static vector<float> posyvals;
+static vector<float> poszvals;
 
 
 mcparticles::mcparticles() : Processor("mcparticles") {
@@ -58,10 +60,8 @@ mcparticles::mcparticles() : Processor("mcparticles") {
 void mcparticles::init() { 
   streamlog_out(DEBUG) << "   init called  " << std::endl ;
   //  cout << "Initialized\n\n\n " << endl;
-  _rootfile = new TFile("example.root","RECREATE");
-  _momentum = new TH1F("Momentum", "Momentum Distribution", 50, -0.00177908, 0.002);
-  _energy = new TH1F("EnergyDeposited", "Energy Distribution", 50, 0.0, 11000);
-  _pos = new TH1F("Position", "Position", 50, -1200.0, 1200.0);
+  _rootfile = new TFile("mcparts.root","RECREATE");
+  _posxyz = new TH3D("posxyz", "posxyz", 250, -1600.0, 1600.0, 250, -1600.0, 1600.0, 250, -1600.0, 1600.0);
   _nEvt = 0 ;
 }
 
@@ -72,31 +72,21 @@ void mcparticles::processRunHeader( LCRunHeader* run) {
 } 
 void mcparticles::processEvent( LCEvent * evt ) 
 {
-  vector<float> evals;
-  vector<float> pvals;
-  vector<int> cell1vals;
-  vector<int> cell2vals;
-   
   std::vector<std::string> collectionNames = *evt->getCollectionNames();
-  LCCollection* bcalcol = evt->getCollection("BeamCalHits");
-  for (int i=0; i < bcalcol->getNumberOfElements(); ++i)
+  LCCollection* mcparts = evt->getCollection("MCParticle");
+  for (int i=0; i < mcparts->getNumberOfElements(); ++i)
   {
-    //    cout << "THIS IS FOR SIMCALHITS:::::::" << endl;
-    SimCalorimeterHit* hit=dynamic_cast<SimCalorimeterHit*>(bcalcol->getElementAt(i));
-    float energy = hit->getEnergy();
-    evals.push_back(energy);
-    float pos = *hit->getPosition();
-    pvals.push_back(pos);
-    int cell0 = hit->getCellID0();
-    cell1vals.push_back(cell0);
-    int cell1 = hit->getCellID1();
-    cell2vals.push_back(cell1);
-    //    int nmcparts = hit->getNMCParticles(); !!DEPRECATED!!
-    int nmcconts = hit->getNMCContributions();
-    //    printf("Energy: %d, Position: %f, Cell1: %d, Cell2: %d, Number of MCParticles: %d\n", energy, pos, cell0, cell1, nmcconts);
+    MCParticle* hit=dynamic_cast<MCParticle*>(mcparts->getElementAt(i));
+    float posx = hit->getEndpoint()[0];
+    posxvals.push_back(posx);
+    float posy = hit->getEndpoint()[1];
+    posyvals.push_back(posy);
+    float posz = hit->getEndpoint()[2];
+    poszvals.push_back(posz);
+    _posxyz->Fill(posx, posy, posz);
+    
     }
   _nEvt++;
-  cout << endl;
 }
 
 
@@ -108,5 +98,12 @@ void mcparticles::check( LCEvent * evt ) {
 
 void mcparticles::end(){ 
   cout << "number of events: " << _nEvt << endl;
+  cout << "xmax: " <<  *max_element(posxvals.begin(), posxvals.end());
+  cout << "  xmin:  " <<  *min_element(posxvals.begin(), posxvals.end()) << endl;
+  cout << "ymax: " <<  *max_element(posyvals.begin(), posyvals.end());
+  cout << "  ymin:  " <<  *min_element(posyvals.begin(), posyvals.end()) << endl;
+  cout << "zmax: " <<  *max_element(poszvals.begin(), poszvals.end());
+  cout << "  zmin:  " <<  *min_element(poszvals.begin(), poszvals.end()) << endl;
   _rootfile->Write();
+  _rootfile->Close();
 }

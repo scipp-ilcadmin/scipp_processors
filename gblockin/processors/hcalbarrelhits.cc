@@ -17,6 +17,7 @@
 #include "hcalbarrelhits.h"
 #include "scipp_ilc_utilities.h"
 #include <iostream>
+#include <algorithm>
 
 #include <EVENT/SimTrackerHit.h>
 #include <EVENT/LCCollection.h>
@@ -25,7 +26,7 @@
 
 #include <TFile.h>
 #include <TH2D.h>
-
+#include <TH3D.h>
 // ----- include for verbosity dependend logging ---------
 #include "marlin/VerbosityLevels.h"
 
@@ -38,12 +39,17 @@ using namespace std;
 hcalbarrelhits hcalbarrelhits;
 
 static TFile* _rootfile;
-static TH2F* _plot;
 static TH1F* _momentum;
-static TH1F* _pos;
+static TH1F* _posx;
+static TH1F* _posy;
+static TH1F* _posz;
+static TH3D* _posxyz;
 static TH1F* _energy;
 static int _nEvt=0;
 
+static vector<float> posxvals;
+static vector<float> posyvals;
+static vector<float> poszvals;
 
 hcalbarrelhits::hcalbarrelhits() : Processor("hcalbarrelhits") {
   // modify processor description
@@ -59,10 +65,8 @@ hcalbarrelhits::hcalbarrelhits() : Processor("hcalbarrelhits") {
 void hcalbarrelhits::init() { 
   streamlog_out(DEBUG) << "   init called  " << std::endl ;
   //  cout << "Initialized\n\n\n " << endl;
-  _rootfile = new TFile("example.root","RECREATE");
-  _momentum = new TH1F("Momentum", "Momentum Distribution", 50, -0.00177908, 0.002);
-  _energy = new TH1F("EnergyDeposited", "Energy Distribution", 50, 0.0, 11000);
-  _pos = new TH1F("Position", "Position", 50, -1200.0, 1200.0);
+  _rootfile = new TFile("hcal.root","RECREATE");
+  _posxyz = new TH3D("posxyz", "posxyz", 50, -2500.0, 2500.0, 50, -2500.0, 2500.0, 50, -2500.0, 2500.0);
   _nEvt = 0 ;
 }
 
@@ -73,26 +77,18 @@ void hcalbarrelhits::processRunHeader( LCRunHeader* run) {
 } 
 void hcalbarrelhits::processEvent( LCEvent * evt ) 
 { 
-  vector<float> posVals;
-  vector<int> cell1Vals;
-  vector<int> cell2Vals;
-  vector<int> nmcVals;
-  vector<float> eVals;
   std::vector<std::string> collectionNames = *evt->getCollectionNames();
-  LCCollection* hcalcol = evt->getCollection("HCalBarrelHits");
+  LCCollection* hcalcol = evt->getCollection("HcalBarrelHits");
   for (int i=0; i < hcalcol->getNumberOfElements(); ++i)
     {
       SimCalorimeterHit* hit2=dynamic_cast<SimCalorimeterHit*>(hcalcol->getElementAt(i));
-      float pos = *hit2->getPosition();
-      posVals.push_back(pos);
-      int cell1 = hit2->getCellID0();
-      cell1Vals.push_back(cell1);
-      int cell2 = hit2->getCellID1();
-      cell2Vals.push_back(cell2);
-      int nmcconts = hit2->getNMCContributions();
-      nmcVals.push_back(nmcconts);
-      float energy = hit2->getEnergy();
-      eVals.push_back(energy);
+      float posx = hit2->getPosition()[0];
+      float posy = hit2->getPosition()[1];
+      float posz = hit2->getPosition()[2];
+      posxvals.push_back(posx);
+      posyvals.push_back(posy);
+      poszvals.push_back(posz);
+      _posxyz->Fill(posx, posy, posz);
     }
   _nEvt++;
   cout << endl;
@@ -108,7 +104,14 @@ void hcalbarrelhits::check( LCEvent * evt ) {
 void hcalbarrelhits::end(){ 
   cout << "number of events: " << _nEvt << endl;
 
+  cout << "xmax: " <<  *max_element(posxvals.begin(), posxvals.end());
+  cout << "  xmin:  " <<  *min_element(posxvals.begin(), posxvals.end()) << endl;
+  cout << "ymax: " <<  *max_element(posyvals.begin(), posyvals.end());
+  cout << "  ymin:  " <<  *min_element(posyvals.begin(), posyvals.end()) << endl;
+  cout << "zmax: " <<  *max_element(poszvals.begin(), poszvals.end());
+  cout << "  zmin:  " <<  *min_element(poszvals.begin(), poszvals.end()) << endl;
+
   //  _momentum->Write();  
   _rootfile->Write();
-
+  _rootfile->Close();
     }
