@@ -40,14 +40,18 @@ pixelizing pixelizing;
 
 
 static TFile* _rootfile;
-
+static THStack* hs;
 static TH1D* _bpos;
 static TH1D* _bzPos;
 static TH2D* _bxzPos;
 static TH2D* _byzPos;
 static TH3D* _bxyzPos;
 static TH1I* _blayers;
-static TH1D* _radVals;
+static TH1D* _l1radVals;
+static TH1D* _l2radVals;
+static TH1D* _l3radVals;
+static TH1D* _l4radVals;
+static TH1D* _l5radVals;
 static int _nEvt = 0;
 
 static vector<double> bposxVals;
@@ -84,7 +88,11 @@ void pixelizing::init()
   _bzPos = new TH1D("bzposhits", "bzposhits", 57, -100, 100);
   _bxyzPos = new TH3D("bxyzpos", "bxyzpos", 200, -62.0, 62.0, 200, -62.0, 62.0, 200, -65.0, 65.0);
   _bpos = new TH1D("bpos", "bpos", 100, -100, 100);
-  _radVals = new TH1D("radVals", "radVals", 200, 12, 27);
+  _l1radVals = new TH1D("l1radVals", "l1radVals", 200, 0, 100);
+  _l2radVals = new TH1D("l2radVals", "l2radVals", 200, 0, 100);
+  _l3radVals = new TH1D("l3radVals", "l3radVals", 200, 0, 100);
+  _l4radVals = new TH1D("l4radVals", "l4radVals", 200, 0, 100);
+  _l5radVals = new TH1D("l5radVals", "l5radVals", 200, 0, 100);
   _nEvt = 0;
 }
 
@@ -115,17 +123,33 @@ void pixelizing::processEvent( LCEvent * evt)
       bposxVals.push_back(bposx);
       bposyVals.push_back(bposy);
       bposzVals.push_back(bposz);
-      xyradius.push_back(xyrad);
+      switch (entry.second)
+	{
+	case 1:
+	  _l1radVals->Fill(entry.first);
+	  break;
+	case 2:
+	  _l2radVals->Fill(entry.first);
+	  break;
+	case 3:
+	  _l3radVals->Fill(entry.first);
+	  break;
+	case 4:
+	  _l4radVals->Fill(entry.first);
+	  break;
+	case 5:
+	  _l5radVals->Fill(entry.first);
+	  break;
+	}
       blayers.push_back(layer);
-      data.push_back(entry);
-      
     
       _bzPos->Fill(bposz);
       _bpos->Fill(pos);
 
       _bxyzPos->Fill(bposx, bposy, bposz);
-      _radVals->Fill(xyrad);
-/*      std::sort(
+
+/*    data.push_back(entry);
+      std::sort(
 		data.begin(), 
 		data.end(), 
 		[&](const Entry &a, const Entry &b)
@@ -161,6 +185,18 @@ void pixelizing::end()
   _bxyzPos->GetYaxis()->SetTitle("Y (mm)");
   _bxyzPos->GetZaxis()->SetTitle("Z (mm)");
   */
+  THStack *hs = new THStack("hs", "");
+  _l1radVals->SetFillColor(kRed);
+  _l2radVals->SetFillColor(kBlack);
+  _l3radVals->SetFillColor(kAzure);
+  _l4radVals->SetFillColor(kTeal);
+  _l5radVals->SetFillColor(kYellow);
+  hs->Add(_l1radVals);
+  hs->Add(_l2radVals);
+  hs->Add(_l3radVals);
+  hs->Add(_l4radVals);
+  hs->Add(_l5radVals);
   _rootfile->Write();
   _rootfile->Close();
+  
 }
