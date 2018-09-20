@@ -27,6 +27,7 @@
 #include <TFile.h>
 #include <TH2D.h>
 #include <TH3D.h>
+
 // ----- include for verbosity dependend logging ---------
 #include "marlin/VerbosityLevels.h"
 
@@ -40,7 +41,7 @@ pixelizing pixelizing;
 
 
 static TFile* _rootfile;
-static THStack* hs;
+
 static TH1D* _bpos;
 static TH1D* _bzPos;
 static TH2D* _bxzPos;
@@ -52,6 +53,7 @@ static TH1D* _l2radVals;
 static TH1D* _l3radVals;
 static TH1D* _l4radVals;
 static TH1D* _l5radVals;
+static TH1D* _thetas;
 static int _nEvt = 0;
 
 static vector<double> bposxVals;
@@ -61,6 +63,7 @@ static vector<double> bposVals;
 static vector<pair<double, int>> data;
 static vector<int> blayers;
 static vector<double> xyradius;
+static vector<double> l1vals;
 
 template<typename T>
 static T getMax(vector<T> &vec)
@@ -93,6 +96,7 @@ void pixelizing::init()
   _l3radVals = new TH1D("l3radVals", "l3radVals", 200, 0, 100);
   _l4radVals = new TH1D("l4radVals", "l4radVals", 200, 0, 100);
   _l5radVals = new TH1D("l5radVals", "l5radVals", 200, 0, 100);
+  _thetas = new TH1D("thetas", "thetas", 50, -1, 7);
   _nEvt = 0;
 }
 
@@ -127,6 +131,12 @@ void pixelizing::processEvent( LCEvent * evt)
 	{
 	case 1:
 	  _l1radVals->Fill(entry.first);
+          l1vals.push_back(entry.first);
+          if (xyrad < 18)
+	  {
+            _thetas->Fill(atan2(bposy, bposx) + 3.14159);
+	  } 
+          
 	  break;
 	case 2:
 	  _l2radVals->Fill(entry.first);
@@ -185,18 +195,13 @@ void pixelizing::end()
   _bxyzPos->GetYaxis()->SetTitle("Y (mm)");
   _bxyzPos->GetZaxis()->SetTitle("Z (mm)");
   */
-  THStack *hs = new THStack("hs", "");
+  // THStack *hs = new THStack("hs", "");
   _l1radVals->SetFillColor(kRed);
   _l2radVals->SetFillColor(kBlack);
   _l3radVals->SetFillColor(kAzure);
   _l4radVals->SetFillColor(kTeal);
   _l5radVals->SetFillColor(kYellow);
-  hs->Add(_l1radVals);
-  hs->Add(_l2radVals);
-  hs->Add(_l3radVals);
-  hs->Add(_l4radVals);
-  hs->Add(_l5radVals);
   _rootfile->Write();
-  _rootfile->Close();
-  
+
+  cout << endl << "finished that shit homie" << endl;  
 }
