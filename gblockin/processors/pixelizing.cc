@@ -44,8 +44,10 @@ static TFile* _rootfile;
 
 static TH1D* _bpos;
 static TH1D* _bzPos;
-static TH2D* _bxzPos;
+static TH2D* _bxyPos;
 static TH2D* _byzPos;
+static TH2D* _byPos;
+static TH2D* _zandr;
 static TH3D* _bxyzPos;
 static TH1I* _blayers;
 static TH1D* _l1radVals;
@@ -58,6 +60,7 @@ static TH1D* _l2thetas;
 static TH1D* _l3thetas;
 static TH1D* _l4thetas;
 static TH1D* _l5thetas;
+static TH1D* _zpix;
 static int _nEvt = 0;
 
 static vector<double> bposxVals;
@@ -72,6 +75,7 @@ static vector<double> l2vals;
 static vector<double> l3vals;
 static vector<double> l4vals;
 static vector<double> l5vals;
+static vector<double> thetavals;
 
 template<typename T>
 static T getMax(vector<T> &vec)
@@ -96,19 +100,21 @@ void pixelizing::init()
   streamlog_out(DEBUG) << " init called " << endl;
   cout << "Initialized "  << endl;
   _rootfile = new TFile("pixelizing.root", "RECREATE");
-  _bzPos = new TH1D("bzposhits", "bzposhits", 57, -100, 100);
-  _bxyzPos = new TH3D("bxyzpos", "bxyzpos", 200, -62.0, 62.0, 200, -62.0, 62.0, 200, -65.0, 65.0);
+  _bxyPos = new TH2D("bxypos", "bxypos", 500, -30, 30, 500, -30, 30);
+  _bxyzPos = new TH3D("bxyzpos", "bxyzpos", 124, -62.0, 62.0, 124, -62.0, 62.0, 124, -65.0, 65.0);
   _bpos = new TH1D("bpos", "bpos", 100, -100, 100);
   _l1radVals = new TH1D("l1radVals", "l1radVals", 100, 13, 17);
   _l2radVals = new TH1D("l2radVals", "l2radVals", 200, 21.5, 25);
   _l3radVals = new TH1D("l3radVals", "l3radVals", 200, 34.5, 37);
   _l4radVals = new TH1D("l4radVals", "l4radVals", 200, 47, 50);
   _l5radVals = new TH1D("l5radVals", "l5radVals", 200, 59.5, 62);
-  _l1thetas = new TH1D("l1thetas", "l1thetas", 25, -1, 7);
-  _l2thetas = new TH1D("l2thetas", "l2thetas", 25, -1, 7);
-  _l3thetas = new TH1D("l3thetas", "l3thetas", 25, -1, 7);
-  _l4thetas = new TH1D("l4thetas", "l4thetas", 25, -1, 7);
-  _l5thetas = new TH1D("l5thetas", "l5thetas", 25, -1, 7);
+  _l1thetas = new TH1D("l1thetas", "l1thetas", 50, -20, 380);
+  _l2thetas = new TH1D("l2thetas", "l2thetas", 50, -20, 380);
+  _l3thetas = new TH1D("l3thetas", "l3thetas", 50, -20, 380);
+  _l4thetas = new TH1D("l4thetas", "l4thetas", 50, -20, 380);
+  _l5thetas = new TH1D("l5thetas", "l5thetas", 50, -20, 380);
+  _zandr = new TH2D("zandr", "zandr", 131, -70, 70, 131, -20, 20);
+  _zpix = new TH1D("zpix", "zpix", 131, -65, 65);
   _nEvt = 0;
 }
 
@@ -132,50 +138,53 @@ void pixelizing::processEvent( LCEvent * evt)
       double bposz = hit->getPosition()[2];
       double pos = sqrt( (bposx*bposx) + (bposy*bposy) + (bposz*bposz) );
       double xyrad = sqrt( (bposx*bposx) + (bposy*bposy) );
-      int layer = idDec( hit) [ILDCellID0::layer];
+      int layer = idDec(hit) [ILDCellID0::layer];
       Entry entry = std::make_pair(xyrad, layer);
-
+      double theta = (atan2(bposy, bposx) + M_PI); //angle in radians ranging from 0->2Pi
+      double arc = xyrad * theta;
       bposxVals.push_back(bposx);
       bposyVals.push_back(bposy);
       bposzVals.push_back(bposz);
+      
       switch (entry.second)
 	{
 	case 1:
 	  _l1radVals->Fill(entry.first);
           l1vals.push_back(entry.first);
-          if (xyrad < 20)
-	  {
-            _l1thetas->Fill(atan2(bposy, bposx) + 3.14159);
-	  }           
+          _l1thetas->Fill(theta);
+	  if (bposy < 0)
+	    {
+	      _zandr->Fill(bposz, xyrad * (-1));
+	    }
+	  else
+	    {
+	      _zandr->Fill(bposz, xyrad);
+	    }
+	  _bxyPos->Fill(bposx, bposy);
 	  break;
 	case 2:
 	  _l2radVals->Fill(entry.first);
 	  l2vals.push_back(entry.first);
-	  _l2thetas->Fill(atan2(bposy, bposx) + 3.14159);
+	  _l2thetas->Fill(theta);
 	  break;
 	case 3:
 	  _l3radVals->Fill(entry.first);
 	  l3vals.push_back(entry.first);
-	  _l3thetas->Fill(atan2(bposy, bposx) + 3.14159);
+	  _l3thetas->Fill(theta);
 	  break;
 	case 4:
 	  _l4radVals->Fill(entry.first);
 	  l4vals.push_back(entry.first);
-	  _l4thetas->Fill(atan2(bposy, bposx) + 3.14159);
+	  _l4thetas->Fill(theta);
 	  break;
 	case 5:
 	  _l5radVals->Fill(entry.first);
 	  l5vals.push_back(entry.first);
-	  _l5thetas->Fill(atan2(bposy, bposx) + 3.14159);
+	  _l5thetas->Fill(theta);
 	  break;
 	}
       blayers.push_back(layer);
     
-      _bzPos->Fill(bposz);
-      _bpos->Fill(pos);
-
-      _bxyzPos->Fill(bposx, bposy, bposz);
-
 /*    data.push_back(entry);
       std::sort(
 		data.begin(), 
@@ -205,15 +214,15 @@ void pixelizing::check( LCEvent * evt)
 
 void pixelizing::end()
 {
-  /*cout << "MAX bPosX: " << getMax(bposxVals) << " MIN bPosX: " << getMin(bposxVals) <<  endl;
-  cout << "MAX bPosY: " << getMax(bposyVals) << " MIN bPosY: " << getMin(bposyVals) <<  endl;
-  cout << "MAX bPosZ: " << getMax(bposzVals) << " MIN bPosZ: " << getMin(bposzVals) <<  endl;
-  cout << _nEvt << endl;
-  _bxyzPos->GetXaxis()->SetTitle("X (mm)");
-  _bxyzPos->GetYaxis()->SetTitle("Y (mm)");
-  _bxyzPos->GetZaxis()->SetTitle("Z (mm)");
-  */
-  // THStack *hs = new THStack("hs", "");
+  //cout << "MAX bPosX: " << getMax(bposxVals) << " MIN bPosX: " << getMin(bposxVals) <<  endl;
+  //cout << "MAX bPosY: " << getMax(bposyVals) << " MIN bPosY: " << getMin(bposyVals) <<  endl;
+  //cout << "MAX bPosZ: " << getMax(bposzVals) << " MIN bPosZ: " << getMin(bposzVals) <<  endl;
+  //cout << _nEvt << endl;
+  //_bxyzPos->GetXaxis()->SetTitle("X (mm)");
+  //_bxyzPos->GetYaxis()->SetTitle("Y (mm)");
+  //_bxyzPos->GetZaxis()->SetTitle("Z (mm)");
+
+
   _l1radVals->SetFillColor(kRed);
   _l2radVals->SetFillColor(kBlack);
   _l3radVals->SetFillColor(kAzure);
@@ -227,10 +236,10 @@ void pixelizing::end()
   _l5thetas->SetFillColor(kYellow);
 
   _rootfile->Write();
-  cout << "MAX l1val: " << getMax(l1vals) << " MIN l1val: " << getMin(l1vals) <<  endl;
-  cout << "MAX l2val: " << getMax(l2vals) << " MIN l2val: " << getMin(l2vals) <<  endl;
-  cout << "MAX l3val: " << getMax(l3vals) << " MIN l3val: " << getMin(l3vals) <<  endl;
-  cout << "MAX l4val: " << getMax(l4vals) << " MIN l4val: " << getMin(l4vals) <<  endl;
-  cout << "MAX l5val: " << getMax(l5vals) << " MIN l5val: " << getMin(l5vals) <<  endl;
-  cout << endl << "finished that shit homie" << endl;  
+
+  //cout << "MAX theta: " << getMax(thetavals) << " MIN theta: " << getMin(thetavals) <<  endl;
+  //cout << "MAX l2val: " << getMax(l2vals) << " MIN l2val: " << getMin(l2vals) <<  endl;
+  //cout << "MAX l3val: " << getMax(l3vals) << " MIN l3val: " << getMin(l3vals) <<  endl;
+  //cout << "MAX l4val: " << getMax(l4vals) << " MIN l4val: " << getMin(l4vals) <<  endl;
+  //cout << "MAX l5val: " << getMax(l5vals) << " MIN l5val: " << getMin(l5vals) <<  endl;
 }
