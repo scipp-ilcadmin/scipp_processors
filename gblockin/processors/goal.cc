@@ -89,7 +89,7 @@ void goal::init()
   streamlog_out(DEBUG) << " init called " << endl;
   cout << "Initialized "  << endl;
   _rootfile = new TFile("goal.root", "RECREATE");
-  _bxyPos = new TH2D("bxypos", "bxypos", 500, -30, 30, 500, -30, 30);
+  _bxyPos = new TH2D("bxypos", "bxypos", 500, 12, 17, 500, -2, 11);
   _l1bxyzPos = new TH3D("l1bxyzpos", "l1bxyzpos", 124, -62.0, 62.0, 124, -62.0, 62.0, 124, -65.0, 65.0);
   _l1radVals = new TH1D("l1radVals", "l1radVals", 100, 13, 17);
   _l1thetas = new TH1D("l1thetas", "l1thetas", 50, -20, 380);
@@ -117,6 +117,8 @@ void goal::processEvent( LCEvent * evt)
       double bposx = hit->getPosition()[0]; // indecies for x,y,z components;
       double bposy = hit->getPosition()[1];
       double bposz = hit->getPosition()[2];
+      int mcpart = hit->getMCParticle()->getPDG();
+      cout << mcpart << endl;
       double xyrad = sqrt( (bposx*bposx) + (bposy*bposy) );
       int layer = idDec(hit) [ILDCellID0::layer];
       int side = idDec(hit) [ILDCellID0::side];
@@ -126,25 +128,27 @@ void goal::processEvent( LCEvent * evt)
       double theta = (atan2(bposy, bposx) + M_PI); //angle in radians ranging from 0->2Pi
       double arc = xyrad * theta;
       thetavals.push_back(theta);
-      bposxVals.push_back(bposx);
-      bposyVals.push_back(bposy);
-      bposzVals.push_back(bposz);
+      //bposxVals.push_back(bposx);
+      //bposyVals.push_back(bposy);
+      //bposzVals.push_back(bposz);
       blayers.push_back(layer);
-
       sidevals.push_back(side);
       sensorvals.push_back(sensor);
       switch (entry.second)
 	{
 	case 1:
-	  _l1radVals->Fill(entry.first);
-          l1vals.push_back(entry.first);
-          _l1thetas->Fill(theta);
-	  _l1bxyzPos->Fill(bposx, bposy, bposz);
-	  if (module == 0)
-	    {
-	      _bxyPos->Fill(bposx, bposy);
-	    }
-	  modvals.push_back(module);
+	  {
+	    vector<double> vecx;
+	    vector<double> vecy;
+	    _l1radVals->Fill(entry.first);
+            l1vals.push_back(entry.first);
+            _l1thetas->Fill(theta);
+	    _l1bxyzPos->Fill(bposx, bposy, bposz);
+	    if (module == 0)
+	      {
+		
+	      }
+	  }
 	  break;
 	case 2:
 	  break;
@@ -185,10 +189,9 @@ void goal::check( LCEvent * evt)
 
 void goal::end()
 {
-  cout << "MAX module: " << getMax(modvals) << " MIN module: " << getMin(modvals) <<  endl;
+  //cout << "MAX module: " << getMax(modvals) << " MIN module: " << getMin(modvals) <<  endl;
   //cout << "MAX bPosY: " << getMax(bposyVals) << " MIN bPosY: " << getMin(bposyVals) <<  endl;
-  //cout << "MAX bPosZ: " << getMax(bposzVals) << " MIN bPosZ: " << getMin(bposzVals) <<  endl;
-  //cout << _nEvt << endl;
+  //cout << "MAX bPosX: " << getMax(bposxVals) << " MIN bPosX: " << getMin(bposxVals) <<  endl;
   //_bxyzPos->GetXaxis()->SetTitle("X (mm)");
   //_bxyzPos->GetYaxis()->SetTitle("Y (mm)");
   //_bxyzPos->GetZaxis()->SetTitle("Z (mm)");
