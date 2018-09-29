@@ -46,6 +46,7 @@ static TH1D* _bzPos;
 static TH2D* _bxyPos;
 static TH2D* _byzPos;
 static TH2D* _byPos;
+static TH3D* _bxyzPos;
 static TH2D* _zandr;
 static TH3D* _l1bxyzPos;
 static TH1I* _blayers;
@@ -90,7 +91,7 @@ void goal::init()
   cout << "Initialized "  << endl;
   _rootfile = new TFile("goal.root", "RECREATE");
   _bxyPos = new TH2D("bxypos", "bxypos", 500, 12, 17, 500, -2, 11);
-  _l1bxyzPos = new TH3D("l1bxyzpos", "l1bxyzpos", 124, -62.0, 62.0, 124, -62.0, 62.0, 124, -65.0, 65.0);
+  _bxyzPos = new TH3D("bxyzpos", "Barrel (X,Y,Z) Distribution", 124, -62.0, 62.0, 124, -62.0, 62.0, 124, -65.0, 65.0);
   _l1radVals = new TH1D("l1radVals", "l1radVals", 100, 13, 17);
   _l1thetas = new TH1D("l1thetas", "l1thetas", 50, -20, 380);
   _zandr = new TH2D("zandr", "zandr", 131, -70, 70, 131, -20, 20);
@@ -118,7 +119,7 @@ void goal::processEvent( LCEvent * evt)
       double bposy = hit->getPosition()[1];
       double bposz = hit->getPosition()[2];
       int mcpart = hit->getMCParticle()->getPDG();
-      cout << mcpart << endl;
+      //cout << mcpart << endl;
       double xyrad = sqrt( (bposx*bposx) + (bposy*bposy) );
       int layer = idDec(hit) [ILDCellID0::layer];
       int side = idDec(hit) [ILDCellID0::side];
@@ -134,6 +135,7 @@ void goal::processEvent( LCEvent * evt)
       blayers.push_back(layer);
       sidevals.push_back(side);
       sensorvals.push_back(sensor);
+      _bxyzPos->Fill(bposx,bposy,bposz);
       switch (entry.second)
 	{
 	case 1:
@@ -143,12 +145,8 @@ void goal::processEvent( LCEvent * evt)
 	    _l1radVals->Fill(entry.first);
             l1vals.push_back(entry.first);
             _l1thetas->Fill(theta);
-	    _l1bxyzPos->Fill(bposx, bposy, bposz);
-	    if (module == 0)
-	      {
-		
-	      }
-	  }
+	    //_l1bxyzPos->Fill(bposx, bposy, bposz);
+      	  }
 	  break;
 	case 2:
 	  break;
@@ -194,7 +192,7 @@ void goal::end()
   //cout << "MAX bPosX: " << getMax(bposxVals) << " MIN bPosX: " << getMin(bposxVals) <<  endl;
   //_bxyzPos->GetXaxis()->SetTitle("X (mm)");
   //_bxyzPos->GetYaxis()->SetTitle("Y (mm)");
-  //_bxyzPos->GetZaxis()->SetTitle("Z (mm)");
+  _bxyzPos->GetZaxis()->SetTitle("Z (mm)");
 
 
   _l1radVals->SetFillColor(kRed);

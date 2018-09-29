@@ -164,6 +164,7 @@ void pixelizing::processEvent( LCEvent * evt)
           _l1thetas->Fill(theta);
 	  _l1bxyzPos->Fill(bposx, bposy, bposz);
 	  _zandr->Fill(bposz, xyrad);
+	  _l1bxyzPos->Fill(bposx,bposy,bposz);
 	  //	  _bxyPos->Fill(bposx, bposy);
 	  break;
 	case 2:
