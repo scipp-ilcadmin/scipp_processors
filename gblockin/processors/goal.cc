@@ -91,7 +91,7 @@ void goal::init()
   cout << "Initialized "  << endl;
   _rootfile = new TFile("goal.root", "RECREATE");
   _bxyPos = new TH2D("bxypos", "bxypos", 500, 12, 17, 500, -2, 11);
-  _bxyzPos = new TH3D("bxyzpos", "Barrel (X,Y,Z) Distribution", 124, -62.0, 62.0, 124, -62.0, 62.0, 124, -65.0, 65.0);
+  _bxyzPos = new TH3D("bxyzpos", "Barrel (X,Y,Z) Distribution", 124, -1000.0, 1000.0, 124, -1000.0, 1000.0, 124, -2500.0, 2500.0);
   _l1radVals = new TH1D("l1radVals", "l1radVals", 100, 13, 17);
   _l1thetas = new TH1D("l1thetas", "l1thetas", 50, -20, 380);
   _zandr = new TH2D("zandr", "zandr", 131, -70, 70, 131, -20, 20);
@@ -107,10 +107,10 @@ void goal::processRunHeader( LCRunHeader* run)
 void goal::processEvent( LCEvent * evt)
 {
   _nEvt++;
-  LCCollection* barrelHits = evt->getCollection("SiVertexBarrelHits");
+  LCCollection* barrelHits = evt->getCollection("SiTrackerEndcapHits");
+  //SiTrackerEndcapHits
   int size = barrelHits->getNumberOfElements();
   _nEvt++;
-  int pixels[20];
   for (int i = 0; i < barrelHits->getNumberOfElements(); ++i)
     {
       SimTrackerHit* hit = dynamic_cast<SimTrackerHit*>(barrelHits->getElementAt(i));
@@ -118,6 +118,7 @@ void goal::processEvent( LCEvent * evt)
       double bposx = hit->getPosition()[0]; // indecies for x,y,z components;
       double bposy = hit->getPosition()[1];
       double bposz = hit->getPosition()[2];
+      //cout << bposx << "  " << bposy << "  " << bposz << endl;
       int mcpart = hit->getMCParticle()->getPDG();
       //cout << mcpart << endl;
       double xyrad = sqrt( (bposx*bposx) + (bposy*bposy) );
@@ -187,13 +188,12 @@ void goal::check( LCEvent * evt)
 
 void goal::end()
 {
-  //cout << "MAX module: " << getMax(modvals) << " MIN module: " << getMin(modvals) <<  endl;
+  //cout << "MAX bPosZ: " << getMax(bposzVals) << " MIN bPosZ: " << getMin(bposzVals) <<  endl;
   //cout << "MAX bPosY: " << getMax(bposyVals) << " MIN bPosY: " << getMin(bposyVals) <<  endl;
   //cout << "MAX bPosX: " << getMax(bposxVals) << " MIN bPosX: " << getMin(bposxVals) <<  endl;
   //_bxyzPos->GetXaxis()->SetTitle("X (mm)");
   //_bxyzPos->GetYaxis()->SetTitle("Y (mm)");
   _bxyzPos->GetZaxis()->SetTitle("Z (mm)");
-
 
   _l1radVals->SetFillColor(kRed);
   _l1thetas->SetFillColor(kRed);
