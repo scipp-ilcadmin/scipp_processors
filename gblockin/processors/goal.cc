@@ -39,7 +39,6 @@ using Entry = std::pair<double, int>;
 
 goal goal;
 
-
 static TFile* _rootfile;
 
 static TH1D* _bzPos;
@@ -90,14 +89,14 @@ void goal::init()
   streamlog_out(DEBUG) << " init called " << endl;
   cout << "Initialized "  << endl;
   _rootfile = new TFile("goal.root", "RECREATE");
-  _bxyPos = new TH2D("bxypos", "bxypos", 500, 12, 17, 500, -2, 11);
-  _bxyzPos = new TH3D("bxyzpos", "Barrel (X,Y,Z) Distribution", 124, -1000.0, 1000.0, 124, -1000.0, 1000.0, 124, -2500.0, 2500.0);
-  _l1radVals = new TH1D("l1radVals", "l1radVals", 100, 13, 17);
+  _bxyPos = new TH2D("bxypos", "EndCap (X,Y) Distribution (All layers)", 500, -80, 80, 500, -80, 80);
+  _bxyzPos = new TH3D("bxyzpos", "Endcap (X,Y,Z) Distribution", 124, -80.0, 80.0, 124, -80.0, 80.0, 124, -190.0, 190.0);
+  _l1radVals = new TH1D("l1radVals", "EndCap Radial (X,Y) Distribution (All layers)", 100, -100, 100);
   _l1thetas = new TH1D("l1thetas", "l1thetas", 50, -20, 380);
   _zandr = new TH2D("zandr", "zandr", 131, -70, 70, 131, -20, 20);
   _zpix = new TH1D("zpix", "zpix", 131, -65, 65);
   _nEvt = 0;
-}
+ }
 
 void goal::processRunHeader( LCRunHeader* run)
 {
@@ -107,8 +106,7 @@ void goal::processRunHeader( LCRunHeader* run)
 void goal::processEvent( LCEvent * evt)
 {
   _nEvt++;
-  LCCollection* barrelHits = evt->getCollection("SiTrackerEndcapHits");
-  //SiTrackerEndcapHits
+  LCCollection* barrelHits = evt->getCollection("SiVertexEndcapHits");
   int size = barrelHits->getNumberOfElements();
   _nEvt++;
   for (int i = 0; i < barrelHits->getNumberOfElements(); ++i)
@@ -118,9 +116,6 @@ void goal::processEvent( LCEvent * evt)
       double bposx = hit->getPosition()[0]; // indecies for x,y,z components;
       double bposy = hit->getPosition()[1];
       double bposz = hit->getPosition()[2];
-      //cout << bposx << "  " << bposy << "  " << bposz << endl;
-      int mcpart = hit->getMCParticle()->getPDG();
-      //cout << mcpart << endl;
       double xyrad = sqrt( (bposx*bposx) + (bposy*bposy) );
       int layer = idDec(hit) [ILDCellID0::layer];
       int side = idDec(hit) [ILDCellID0::side];
@@ -130,53 +125,15 @@ void goal::processEvent( LCEvent * evt)
       double theta = (atan2(bposy, bposx) + M_PI); //angle in radians ranging from 0->2Pi
       double arc = xyrad * theta;
       thetavals.push_back(theta);
-      //bposxVals.push_back(bposx);
-      //bposyVals.push_back(bposy);
-      //bposzVals.push_back(bposz);
+      bposxVals.push_back(bposx);
+      bposyVals.push_back(bposy);
+      bposzVals.push_back(bposz);
       blayers.push_back(layer);
       sidevals.push_back(side);
       sensorvals.push_back(sensor);
       _bxyzPos->Fill(bposx,bposy,bposz);
-      switch (entry.second)
-	{
-	case 1:
-	  {
-	    vector<double> vecx;
-	    vector<double> vecy;
-	    _l1radVals->Fill(entry.first);
-            l1vals.push_back(entry.first);
-            _l1thetas->Fill(theta);
-	    //_l1bxyzPos->Fill(bposx, bposy, bposz);
-      	  }
-	  break;
-	case 2:
-	  break;
-	case 3:
-	  break;
-	case 4:
-	  break;
-	case 5:
-	  break;
-	}
-    
-/*    data.push_back(entry);
-      std::sort(
-		data.begin(), 
-		data.end(), 
-		[&](const Entry &a, const Entry &b)
-		{ 
-		  return a.first < b.first;
-		});
-        
-      std::cout << "Sorted (by layer)" << std::endl;
-      std::for_each(
-		    data.begin(), 
-		    data.end(),
-		    [](const Entry &entry)
-		    {
-		      std::cout << entry.first << " " << entry.second << std::endl;
-		    });
-*/
+      _bxyPos->Fill(bposx,bposy);
+      _l1radVals->Fill(xyrad);
     }
 
 }
@@ -188,15 +145,18 @@ void goal::check( LCEvent * evt)
 
 void goal::end()
 {
-  //cout << "MAX bPosZ: " << getMax(bposzVals) << " MIN bPosZ: " << getMin(bposzVals) <<  endl;
-  //cout << "MAX bPosY: " << getMax(bposyVals) << " MIN bPosY: " << getMin(bposyVals) <<  endl;
-  //cout << "MAX bPosX: " << getMax(bposxVals) << " MIN bPosX: " << getMin(bposxVals) <<  endl;
-  //_bxyzPos->GetXaxis()->SetTitle("X (mm)");
-  //_bxyzPos->GetYaxis()->SetTitle("Y (mm)");
+  cout << "MAX bPosZ: " << getMax(bposzVals) << " MIN bPosZ: " << getMin(bposzVals) <<  endl;
+  cout << "MAX bPosY: " << getMax(bposyVals) << " MIN bPosY: " << getMin(bposyVals) <<  endl;
+  cout << "MAX bPosX: " << getMax(bposxVals) << " MIN bPosX: " << getMin(bposxVals) <<  endl;
+  //cout << *max_element(bposzVals.begin(), bposzVals.end()) << endl;
+  //cout << *min_element(bposzVals.begin(), bposzVals.end()) << endl;
+
+  _bxyPos->GetXaxis()->SetTitle("X (mm)");
+  _bxyPos->GetYaxis()->SetTitle("Y (mm)");
   _bxyzPos->GetZaxis()->SetTitle("Z (mm)");
 
-  _l1radVals->SetFillColor(kRed);
-  _l1thetas->SetFillColor(kRed);
+  //_l1radVals->SetFillColor(kRed);
+  //_l1thetas->SetFillColor(kRed);
   _rootfile->Write();
 
 }
