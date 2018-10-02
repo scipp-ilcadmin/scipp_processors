@@ -51,6 +51,7 @@ static TH2D* _exzPos;
 static TH2D* _eyzPos;
 static TH3D* _exyzPos;
 
+static TH3D* _dpos;
 static int _nEvt = 0;
 
 static vector<double> bposxVals;
@@ -98,6 +99,7 @@ void TOA::init()
   //_exzPos = new TH2D("exzpos", "exzpos", 100, -80.0, 80.0, 100, -185.0, 185.0);
   //_eyzPos = new TH2D("eyzpos", "eyzpos", 100, -80.0, 80.0, 100, -185.0, 185.0);
   _exyzPos = new TH3D("exyzpos", "exyzpos", 200, -80.0, 80.0, 200, -80.0, 80.0, 200, -185.0, 185.0);
+  _dpos = new TH3D("_dpos", "_dpos", 200, -80, 80, 200, -80, 80, 200, -200, 200);
   _nEvt = 0;
 }
 
@@ -131,6 +133,7 @@ void TOA::processEvent( LCEvent * evt)
       //_byPos->Fill(bposy);
       _bxyPos->Fill(bposx, bposy);
       _bxyzPos->Fill(bposx, bposy, bposz);
+      _dpos->Fill(bposx, bposy, bposz);
       //_bxzPos->Fill(bposx, bposz);
       //_byzPos->Fill(bposy, bposz);
     }
@@ -150,6 +153,7 @@ void TOA::processEvent( LCEvent * evt)
       //_eyPos->Fill(eposy);
       _exyPos->Fill(eposx, eposy);
       _exyzPos->Fill(eposx, eposy, eposz);
+      _dpos->Fill(eposx, eposy, eposz);
       //_exzPos->Fill(eposx, eposz);
       //_eyzPos->Fill(eposy, eposz);
 
