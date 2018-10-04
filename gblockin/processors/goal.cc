@@ -106,7 +106,7 @@ void goal::processRunHeader( LCRunHeader* run)
 void goal::processEvent( LCEvent * evt)
 {
   _nEvt++;
-  LCCollection* barrelHits = evt->getCollection("SiVertexEndcapHits");
+  LCCollection* barrelHits = evt->getCollection("SiVertexBarrelHits");
   int size = barrelHits->getNumberOfElements();
   _nEvt++;
   for (int i = 0; i < barrelHits->getNumberOfElements(); ++i)
