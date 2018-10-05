@@ -5,7 +5,7 @@
  *
  * final.cc
  * @author Gregory Blockinger
- * September 26th, 2018
+ * October 4th, 2018
  *
  */
 
@@ -54,6 +54,7 @@ static TH1D* _l1thetas;
 static TH1D* _zpix;
 static int _nEvt = 0;
 
+static vector<TH2D*> files;
 static vector<double> posxVals;
 static vector<double> posyVals;
 static vector<double> poszVals;
@@ -82,11 +83,20 @@ final::final() : Processor("final")
   //registerProcessorParameter("RootOutputName", "output file", _root_file_name, std::string("output.root"));
 }
 
+string str(int i)
+{
+  return std::to_string(i);
+}
+
 void final::init()
 {
   streamlog_out(DEBUG) << " init called " << endl;
   cout << "Initialized "  << endl;
   _rootfile = new TFile("final.root", "RECREATE");
+  for (int i = 0; i < 12; ++i)
+    {
+      files.push_back(new TH2D("test"+i, "test", 500, -80, 80, 500, -100, 100));
+    }
   _xyPos = new TH2D("xypos", "(X,Y) Distribution (All layers)", 500, -80, 80, 500, -80, 80);
   _xyzPos = new TH3D("xyzpos", "(X,Y,Z) Distribution", 124, -80.0, 80.0, 124, -80.0, 80.0, 124, -190.0, 190.0);
   _l1radVals = new TH1D("l1radVals", "Radial (X,Y) Distribution (All layers)", 100, -100, 100);
@@ -124,7 +134,15 @@ void final::processEvent( LCEvent * evt)
 	{
 	case 1:
 	  {
-	    cout << module << endl;
+	    //cout << module << endl;
+	    for (int i = 0; i < 12; ++i)
+	      {
+		if (module == i)
+		  {
+		    files[i]->Fill(posx, posy);
+		  }
+
+	      }
 	  }
 	
 	}
@@ -139,15 +157,15 @@ void final::check( LCEvent * evt)
 
 void final::end()
 {
-  cout << "MAX bPosZ: " << getMax(poszVals) << " MIN bPosZ: " << getMin(poszVals) <<  endl;
-  cout << "MAX bPosY: " << getMax(posyVals) << " MIN bPosY: " << getMin(posyVals) <<  endl;
-  cout << "MAX bPosX: " << getMax(posxVals) << " MIN bPosX: " << getMin(posxVals) <<  endl;
+  //cout << "MAX bPosZ: " << getMax(poszVals) << " MIN bPosZ: " << getMin(poszVals) <<  endl;
+  //cout << "MAX bPosY: " << getMax(posyVals) << " MIN bPosY: " << getMin(posyVals) <<  endl;
+  //cout << "MAX bPosX: " << getMax(posxVals) << " MIN bPosX: " << getMin(posxVals) <<  endl;
   //cout << *max_element(bposzVals.begin(), bposzVals.end()) << endl;
   //cout << *min_element(bposzVals.begin(), bposzVals.end()) << endl;
 
-  _xyPos->GetXaxis()->SetTitle("X (mm)");
-  _xyPos->GetYaxis()->SetTitle("Y (mm)");
-  _xyzPos->GetZaxis()->SetTitle("Z (mm)");
+  //_xyPos->GetXaxis()->SetTitle("X (mm)");
+  //_xyPos->GetYaxis()->SetTitle("Y (mm)");
+  //_xyzPos->GetZaxis()->SetTitle("Z (mm)");
 
   //_l1radVals->SetFillColor(kRed);
   //_l1thetas->SetFillColor(kRed);
