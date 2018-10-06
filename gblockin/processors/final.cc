@@ -38,7 +38,6 @@ using namespace std;
 using Entry = std::pair<double, int>;
 
 final final;
-
 static TFile* _rootfile;
 
 static TH1D* _zPos;
@@ -54,7 +53,7 @@ static TH1D* _l1thetas;
 static TH1D* _zpix;
 static int _nEvt = 0;
 
-static vector<TH2D*> files;
+static vector<TH2D> files;
 static vector<double> posxVals;
 static vector<double> posyVals;
 static vector<double> poszVals;
@@ -93,16 +92,17 @@ void final::init()
   streamlog_out(DEBUG) << " init called " << endl;
   cout << "Initialized "  << endl;
   _rootfile = new TFile("final.root", "RECREATE");
-  for (int i = 0; i < 12; ++i)
-    {
-      files.push_back(new TH2D("test"+i, "test", 500, -80, 80, 500, -100, 100));
-    }
   _xyPos = new TH2D("xypos", "(X,Y) Distribution (All layers)", 500, -80, 80, 500, -80, 80);
   _xyzPos = new TH3D("xyzpos", "(X,Y,Z) Distribution", 124, -80.0, 80.0, 124, -80.0, 80.0, 124, -190.0, 190.0);
   _l1radVals = new TH1D("l1radVals", "Radial (X,Y) Distribution (All layers)", 100, -100, 100);
   _l1thetas = new TH1D("l1thetas", "l1thetas", 50, -20, 380);
   _zandr = new TH2D("zandr", "zandr", 131, -70, 70, 131, -20, 20);
   _zpix = new TH1D("zpix", "zpix", 131, -65, 65);
+  for (int i = 0; i < 12; ++i)
+    {
+      TH2D *test = new TH2D(Form("test%d ", i), "test", 500, -80, 80, 500, -100, 100);
+      files.push_back(*test);
+    }
   _nEvt = 0;
  }
 
@@ -139,7 +139,7 @@ void final::processEvent( LCEvent * evt)
 	      {
 		if (module == i)
 		  {
-		    files[i]->Fill(posx, posy);
+		    files[i].Fill(posx, posy);
 		  }
 
 	      }
