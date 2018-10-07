@@ -92,12 +92,12 @@ void final::init()
   streamlog_out(DEBUG) << " init called " << endl;
   cout << "Initialized "  << endl;
   _rootfile = new TFile("final.root", "RECREATE");
-  _xyPos = new TH2D("xypos", "(X,Y) Distribution (All layers)", 500, -80, 80, 500, -80, 80);
-  _xyzPos = new TH3D("xyzpos", "(X,Y,Z) Distribution", 124, -80.0, 80.0, 124, -80.0, 80.0, 124, -190.0, 190.0);
-  _l1radVals = new TH1D("l1radVals", "Radial (X,Y) Distribution (All layers)", 100, -100, 100);
-  _l1thetas = new TH1D("l1thetas", "l1thetas", 50, -20, 380);
-  _zandr = new TH2D("zandr", "zandr", 131, -70, 70, 131, -20, 20);
-  _zpix = new TH1D("zpix", "zpix", 131, -65, 65);
+  //_xyPos = new TH2D("xypos", "(X,Y) Distribution (All layers)", 500, -80, 80, 500, -80, 80);
+  //_xyzPos = new TH3D("xyzpos", "(X,Y,Z) Distribution", 124, -80.0, 80.0, 124, -80.0, 80.0, 124, -190.0, 190.0);
+  //_l1radVals = new TH1D("l1radVals", "Radial (X,Y) Distribution (All layers)", 100, -100, 100);
+  //_l1thetas = new TH1D("l1thetas", "l1thetas", 50, -20, 380);
+  //_zandr = new TH2D("zandr", "zandr", 131, -70, 70, 131, -20, 20);
+  //_zpix = new TH1D("zpix", "zpix", 131, -65, 65);
   for (int i = 0; i < 12; ++i)
     {
       TH2D *test = new TH2D(Form("test%d ", i), "test", 500, -80, 80, 500, -100, 100);
@@ -169,6 +169,6 @@ void final::end()
 
   //_l1radVals->SetFillColor(kRed);
   //_l1thetas->SetFillColor(kRed);
-  _rootfile->Write();
+  _rootfile->Write(0,TObject::kOverwrite);
 
 }
