@@ -123,7 +123,7 @@ void final::processEvent( LCEvent * evt)
       CellIDDecoder<SimTrackerHit> idDec( hits );
       double posx = hit->getPosition()[0]; // indecies for x,y,z components;
       double posy = hit->getPosition()[1];
-      double posz = hit->getPosition()[2];
+      double posz = hit->getPosition()[2];  //positions are in mm
       double xyrad = sqrt( (posx*posx) + (posy*posy) );
       int layer = idDec(hit) [ILDCellID0::layer];
       int module = idDec(hit) [ILDCellID0::module];
@@ -137,9 +137,11 @@ void final::processEvent( LCEvent * evt)
 	    //cout << module << endl;
 	    for (int i = 0; i < 12; ++i)
 	      {
-		if (module == i)
+		if (module == 0)
 		  {
-		    files[i].Fill(posx, posy);
+		    posxVals.push_back(posx);
+		    posyVals.push_back(posy);
+		    files[0].Fill(posx, posy);
 		  }
 
 	      }
@@ -158,11 +160,15 @@ void final::check( LCEvent * evt)
 void final::end()
 {
   //cout << "MAX bPosZ: " << getMax(poszVals) << " MIN bPosZ: " << getMin(poszVals) <<  endl;
-  //cout << "MAX bPosY: " << getMax(posyVals) << " MIN bPosY: " << getMin(posyVals) <<  endl;
-  //cout << "MAX bPosX: " << getMax(posxVals) << " MIN bPosX: " << getMin(posxVals) <<  endl;
+  cout << "MAX bPosY: " << getMax(posyVals) << " MIN bPosY: " << getMin(posyVals) <<  endl;
+  cout << "MAX bPosX: " << getMax(posxVals) << " MIN bPosX: " << getMin(posxVals) <<  endl;
   //cout << *max_element(bposzVals.begin(), bposzVals.end()) << endl;
   //cout << *min_element(bposzVals.begin(), bposzVals.end()) << endl;
-
+  double maxx = getMax(posxVals);
+  double maxy = getMax(posyVals);
+  double minx = getMin(posxVals);
+  double miny = getMin(posyVals);
+  cout << sqrt((maxx-minx)*(maxx-minx)+(miny-maxy)*(miny-maxy)) << endl;
   //_xyPos->GetXaxis()->SetTitle("X (mm)");
   //_xyPos->GetYaxis()->SetTitle("Y (mm)");
   //_xyzPos->GetZaxis()->SetTitle("Z (mm)");
