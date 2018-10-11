@@ -52,7 +52,7 @@ static TH1D* _l1radVals;
 static TH1D* _l1thetas;
 static TH1D* _zpix;
 static int _nEvt = 0;
-
+static double pixSize = .005; //pixel size, in microns
 static vector<TH2D> files;
 static vector<double> posxVals;
 static vector<double> posyVals;
@@ -142,6 +142,8 @@ void final::processEvent( LCEvent * evt)
 		    posxVals.push_back(posx);
 		    posyVals.push_back(posy);
 		    files[0].Fill(posx, posy);
+		    int x = xyrad / pixSize;
+		    cout << x << endl;
 		  }
 
 	      }
