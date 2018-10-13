@@ -63,6 +63,7 @@ static vector<double> xyradius;
 static vector<double> l1vals;
 static vector<double> thetavals;
 static vector<double> modvals;
+static vector<double> fackTest;
 
 template<typename T>
 static T getMax(vector<T> &vec)
@@ -89,6 +90,7 @@ string str(int i)
 
 void final::init()
 {
+  fackTest.push_back(0.0);
   streamlog_out(DEBUG) << " init called " << endl;
   cout << "Initialized "  << endl;
   _rootfile = new TFile("final.root", "RECREATE");
@@ -117,6 +119,7 @@ void final::processEvent( LCEvent * evt)
   LCCollection* hits = evt->getCollection("SiVertexBarrelHits");
   int size = hits->getNumberOfElements();
   _nEvt++;
+  
   for (int i = 0; i < hits->getNumberOfElements(); ++i)
     {
       SimTrackerHit* hit = dynamic_cast<SimTrackerHit*>(hits->getElementAt(i));
@@ -143,8 +146,8 @@ void final::processEvent( LCEvent * evt)
 		    posyVals.push_back(posy);
 		    files[0].Fill(posx, posy);
 		    int x = xyrad / pixSize;
-		    cout << x << endl;
-		  }
+		    fackTest.push_back(
+		  } 
 
 	      }
 	  }
