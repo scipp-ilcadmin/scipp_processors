@@ -63,7 +63,6 @@ static vector<double> xyradius;
 static vector<double> l1vals;
 static vector<double> thetavals;
 static vector<double> modvals;
-static vector<double> fackTest;
 
 template<typename T>
 static T getMax(vector<T> &vec)
@@ -90,7 +89,6 @@ string str(int i)
 
 void final::init()
 {
-  fackTest.push_back(0.0);
   streamlog_out(DEBUG) << " init called " << endl;
   cout << "Initialized "  << endl;
   _rootfile = new TFile("final.root", "RECREATE");
@@ -102,7 +100,7 @@ void final::init()
   //_zpix = new TH1D("zpix", "zpix", 131, -65, 65);
   for (int i = 0; i < 12; ++i)
     {
-      TH2D *test = new TH2D(Form("test%d ", i), "test", 500, -80, 80, 500, -100, 100);
+      TH2D *test = new TH2D(Form("l1test%d ", i), "test", 500, -80, 80, 500, -100, 100);
       files.push_back(*test);
     }
   _nEvt = 0;
@@ -133,23 +131,36 @@ void final::processEvent( LCEvent * evt)
       Entry entry = std::make_pair(xyrad, layer);
       double theta = (atan2(posy, posx) + M_PI); //angle in radians ranging from 0->2Pi
       double arc = xyrad * theta;
+      vector<double> pixies;
       switch (layer)
 	{
 	case 1:
 	  {
-	    //cout << module << endl;
 	    for (int i = 0; i < 12; ++i)
 	      {
 		if (module == 0)
 		  {
-		    posxVals.push_back(posx);
-		    posyVals.push_back(posy);
-		    files[0].Fill(posx, posy);
-		    int x = xyrad / pixSize;
-		    fackTest.push_back(
+		    //posxVals.push_back(posx);
+		    //posyVals.push_back(posy);
+		    //files[0].Fill(posx, posy);
+		    //int x = xyrad / pixSize;
 		  } 
-
 	      }
+	  }
+	case 2:
+	  {
+	  }
+	case 3:
+	  {
+	  }
+	case 4:
+	  {
+	  }
+	case 5:
+	  {
+	  }
+	case 6:
+	  {
 	  }
 	
 	}
@@ -165,14 +176,14 @@ void final::check( LCEvent * evt)
 void final::end()
 {
   //cout << "MAX bPosZ: " << getMax(poszVals) << " MIN bPosZ: " << getMin(poszVals) <<  endl;
-  cout << "MAX bPosY: " << getMax(posyVals) << " MIN bPosY: " << getMin(posyVals) <<  endl;
-  cout << "MAX bPosX: " << getMax(posxVals) << " MIN bPosX: " << getMin(posxVals) <<  endl;
-  //cout << *max_element(bposzVals.begin(), bposzVals.end()) << endl;
-  //cout << *min_element(bposzVals.begin(), bposzVals.end()) << endl;
+  //cout << "MAX bPosY: " << getMax(posyVals) << " MIN bPosY: " << getMin(posyVals) <<  endl;
+  //cout << "MAX bPosX: " << getMax(posxVals) << " MIN bPosX: " << getMin(posxVals) <<  endl;
+  //cout << getMax(modvals) << "    " << getMin(modvals) << endl;
   double maxx = getMax(posxVals);
   double maxy = getMax(posyVals);
   double minx = getMin(posxVals);
   double miny = getMin(posyVals);
+  cout << "MODULE LENGTH: " << endl;
   cout << sqrt((maxx-minx)*(maxx-minx)+(miny-maxy)*(miny-maxy)) << endl;
   //_xyPos->GetXaxis()->SetTitle("X (mm)");
   //_xyPos->GetYaxis()->SetTitle("Y (mm)");
