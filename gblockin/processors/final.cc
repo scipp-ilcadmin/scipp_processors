@@ -52,6 +52,7 @@ static TH1D* _l1radVals;
 static TH1D* _l1thetas;
 static TH1D* _zpix;
 static int _nEvt = 0;
+
 static double pixSize = .005; //pixel size, in microns
 static vector<TH2D> files;
 static vector<double> posxVals;
@@ -63,6 +64,12 @@ static vector<double> xyradius;
 static vector<double> l1vals;
 static vector<double> thetavals;
 static vector<double> modvals;
+
+static double modlen  = 9.546;
+static double zerox = 13.5182;
+static double zeroy = 8.56747;
+static int pixelamt = (int)(modlen/pixSize);
+static int arr[pixelamt];
 
 template<typename T>
 static T getMax(vector<T> &vec)
@@ -129,9 +136,6 @@ void final::processEvent( LCEvent * evt)
       int layer = idDec(hit) [ILDCellID0::layer];
       int module = idDec(hit) [ILDCellID0::module];
       Entry entry = std::make_pair(xyrad, layer);
-      double theta = (atan2(posy, posx) + M_PI); //angle in radians ranging from 0->2Pi
-      double arc = xyrad * theta;
-      vector<double> pixies;
       switch (layer)
 	{
 	case 1:
@@ -140,10 +144,10 @@ void final::processEvent( LCEvent * evt)
 	      {
 		if (module == 0)
 		  {
-		    //posxVals.push_back(posx);
-		    //posyVals.push_back(posy);
-		    //files[0].Fill(posx, posy);
-		    //int x = xyrad / pixSize;
+		    arr[dist]++;
+		    //cout <<  "hits in pixel" << arr[dist] << endl;
+		    int dist = static_cast<int>(sqrt((zerox-posx)*(zerox-posx) + (zeroy-posy)*(zeroy-posy)));
+		    cout << "arr0: " << arr[0] << "     arr1: " << arr[1] << endl;
 		  } 
 	      }
 	  }
@@ -176,15 +180,16 @@ void final::check( LCEvent * evt)
 void final::end()
 {
   //cout << "MAX bPosZ: " << getMax(poszVals) << " MIN bPosZ: " << getMin(poszVals) <<  endl;
-  //cout << "MAX bPosY: " << getMax(posyVals) << " MIN bPosY: " << getMin(posyVals) <<  endl;
-  //cout << "MAX bPosX: " << getMax(posxVals) << " MIN bPosX: " << getMin(posxVals) <<  endl;
+  cout << "MAX bPosY: " << getMax(posyVals) << " MIN bPosY: " << getMin(posyVals) <<  endl;
+  cout << "MAX bPosX: " << getMax(posxVals) << " MIN bPosX: " << getMin(posxVals) <<  endl;
   //cout << getMax(modvals) << "    " << getMin(modvals) << endl;
   double maxx = getMax(posxVals);
   double maxy = getMax(posyVals);
   double minx = getMin(posxVals);
   double miny = getMin(posyVals);
+ 
   cout << "MODULE LENGTH: " << endl;
-  cout << sqrt((maxx-minx)*(maxx-minx)+(miny-maxy)*(miny-maxy)) << endl;
+  cout << sqrt((maxx-minx)*(maxx-minx) + (maxy-miny)*(maxy-miny)) << endl;
   //_xyPos->GetXaxis()->SetTitle("X (mm)");
   //_xyPos->GetYaxis()->SetTitle("Y (mm)");
   //_xyzPos->GetZaxis()->SetTitle("Z (mm)");
