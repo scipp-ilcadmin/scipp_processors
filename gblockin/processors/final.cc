@@ -51,9 +51,9 @@ static TH1I* _layers;
 static TH1D* _l1radVals;
 static TH1D* _l1thetas;
 static TH1D* _zpix;
+static TH1I* _l1m0;
 static int _nEvt = 0;
 
-static double pixSize = .005; //pixel size, in microns
 static vector<TH2D> files;
 static vector<double> posxVals;
 static vector<double> posyVals;
@@ -65,11 +65,12 @@ static vector<double> l1vals;
 static vector<double> thetavals;
 static vector<double> modvals;
 
-static double modlen  = 9.546;
-static double zerox = 13.5182;
-static double zeroy = 8.56747;
-static int pixelamt = (int)(modlen/pixSize);
-static int arr[pixelamt];
+const double pixsize= 0.005; // pixel size in microns
+const double modlen = 9.546;
+const double zerox = 13.5182;
+const double zeroy = 8.56747;
+const int pixnum = static_cast<int>(modlen/pixsize);
+static int arr[pixnum];
 
 template<typename T>
 static T getMax(vector<T> &vec)
@@ -105,6 +106,7 @@ void final::init()
   //_l1thetas = new TH1D("l1thetas", "l1thetas", 50, -20, 380);
   //_zandr = new TH2D("zandr", "zandr", 131, -70, 70, 131, -20, 20);
   //_zpix = new TH1D("zpix", "zpix", 131, -65, 65);
+  _l1m0 = new TH1I("l1m0", "l1m0", 1909, 0, 1909);
   for (int i = 0; i < 12; ++i)
     {
       TH2D *test = new TH2D(Form("l1test%d ", i), "test", 500, -80, 80, 500, -100, 100);
@@ -140,16 +142,14 @@ void final::processEvent( LCEvent * evt)
 	{
 	case 1:
 	  {
-	    for (int i = 0; i < 12; ++i)
-	      {
-		if (module == 0)
-		  {
-		    arr[dist]++;
-		    //cout <<  "hits in pixel" << arr[dist] << endl;
-		    int dist = static_cast<int>(sqrt((zerox-posx)*(zerox-posx) + (zeroy-posy)*(zeroy-posy)));
-		    cout << "arr0: " << arr[0] << "     arr1: " << arr[1] << endl;
-		  } 
-	      }
+	   if (module == 0)
+	     {
+	       //cout <<  "hits in pixel" << arr[dist] << endl;
+	       int dist = static_cast<int>(sqrt((zerox-posx)*(zerox-posx) + (zeroy-posy)*(zeroy-posy))/0.005);
+	       //cout << dist << endl;;
+	       _l1m0->Fill(dist);
+	       arr[dist] += 1;
+	     } 
 	  }
 	case 2:
 	  {
@@ -169,7 +169,6 @@ void final::processEvent( LCEvent * evt)
 	
 	}
     }
-
 }
 
 void final::check( LCEvent * evt)
@@ -180,22 +179,23 @@ void final::check( LCEvent * evt)
 void final::end()
 {
   //cout << "MAX bPosZ: " << getMax(poszVals) << " MIN bPosZ: " << getMin(poszVals) <<  endl;
-  cout << "MAX bPosY: " << getMax(posyVals) << " MIN bPosY: " << getMin(posyVals) <<  endl;
-  cout << "MAX bPosX: " << getMax(posxVals) << " MIN bPosX: " << getMin(posxVals) <<  endl;
+  //cout << "MAX bPosY: " << getMax(posyVals) << " MIN bPosY: " << getMin(posyVals) <<  endl;
+  //cout << "MAX bPosX: " << getMax(posxVals) << " MIN bPosX: " << getMin(posxVals) <<  endl;
   //cout << getMax(modvals) << "    " << getMin(modvals) << endl;
-  double maxx = getMax(posxVals);
-  double maxy = getMax(posyVals);
-  double minx = getMin(posxVals);
-  double miny = getMin(posyVals);
+  //double maxx = getMax(posxVals);
+  //double maxy = getMax(posyVals);
+  //double minx = getMin(posxVals);
+  //double miny = getMin(posyVals);
  
-  cout << "MODULE LENGTH: " << endl;
-  cout << sqrt((maxx-minx)*(maxx-minx) + (maxy-miny)*(maxy-miny)) << endl;
+  //cout << "MODULE LENGTH: " << endl;
+  //cout << sqrt((maxx-minx)*(maxx-minx) + (maxy-miny)*(maxy-miny)) << endl;
   //_xyPos->GetXaxis()->SetTitle("X (mm)");
   //_xyPos->GetYaxis()->SetTitle("Y (mm)");
   //_xyzPos->GetZaxis()->SetTitle("Z (mm)");
 
   //_l1radVals->SetFillColor(kRed);
   //_l1thetas->SetFillColor(kRed);
+  copy (arr, arr + sizeof(arr) / sizeof(arr[0]), ostream_iterator<short>(cout, "\n"));
   _rootfile->Write(0,TObject::kOverwrite);
 
 }
