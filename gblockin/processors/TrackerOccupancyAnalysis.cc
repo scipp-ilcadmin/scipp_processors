@@ -55,6 +55,7 @@ static vector<int> tileIDVals;
 static vector<float> xmomVals;
 static vector<float> ymomVals;
 static vector<float> zmomVals;
+static vector<vector<double>> test;
 template<typename T>
 static T getMax(vector<T> &vec) 
 {
@@ -143,9 +144,10 @@ void TrackerOccupancyAnalysis::check( LCEvent * evt)
 
 void TrackerOccupancyAnalysis::end()
 {
+  
   //cout << " max energy: " << getMax(eDepVals) << " MinEnergy: " << getMin(eDepVals) << endl;
-  //cout << " max xmom: " << getMax(xmomVals) << " min xmom: " << getMin(xmomVals) << endl;
-  //cout << " max ymom: " << getMax(ymomVals) << " min ymom: " <<getMin(ymomVals) << endl;
-  //cout << " max zmom: " << getMax(xmomVals) << " min zmom: " <<getMin(zmomVals) << endl;
+  cout << " max x: " << getMax(posxVals) << " min x: " << getMin(posxVals) << endl;
+  cout << " max y: " << getMax(posyVals) << " min y: " << getMin(posyVals) << endl;
+  cout << " max z: " << getMax(poszVals) << " min z: " << getMin(poszVals) << endl;
   _rootfile->Write();
 }
