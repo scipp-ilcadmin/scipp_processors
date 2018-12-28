@@ -25,6 +25,7 @@
 #include <TFile.h>
 #include <TH2D.h>
 #include <TH3D.h>
+#include <TGraph2D.h>
 // ----- include for verbosity dependend logging ---------
 #include "marlin/VerbosityLevels.h"
 
@@ -41,6 +42,8 @@ static TH2D* _l1xyPos;
 static TH2D* _l2xyPos;
 static TH2D* _l3xyPos;
 static TH2D* _l4xyPos;
+static TH2D* _xyPos;
+static TGraph2D* gr;
 static int _nEvt = 0;
 
 static vector<int> layers;
@@ -80,6 +83,7 @@ void TrackerOccupancyAnalysis::init()
   _l2xyPos = new TH2D("l2xypos", "l2xypos", 57, -100.0, 100.0, 57, -100.0, 100.0);
   _l3xyPos = new TH2D("l3xypos", "l3xypos", 57, -100.0, 100.0, 57, -100.0, 100.0);
   _l4xyPos = new TH2D("l4xypos", "l4xypos", 57, -100.0, 100.0, 57, -100.0, 100.0);
+  _xyPos = new TH2D(  "xypos",   "xyPos",   57, -100.0, 100.0, 57, -100.0, 100.0);
   _nEvt = 0;
 
 }
@@ -114,6 +118,7 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
 	      int posx = hit->getPosition()[0] + xmin; // indecies for x,y,z components;
 	      int posy = hit->getPosition()[1] + ymin;
 	      _l1xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
+	      _xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
 	      if ((posx < 160 && posy < 160) && (posx >= 0 && posy >= 0))
 		{ 
 		  layer1[posx/step][posy/step]++;
@@ -127,9 +132,10 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
 	  if (side == 1)
 	    {
 	      hitcount++;
-	      int posx = hit->getPosition()[0] + xmin; // indecies for x,y,z components;                                                                                       
+	      int posx = hit->getPosition()[0] + xmin; // indecies for x,y,z components;
 	      int posy = hit->getPosition()[1] + ymin;
 	      _l2xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
+       	      _xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
 	      if ((posx < 160 && posy < 160) && (posx >= 0 && posy >= 0))
 		{
 		  layer2[posx/step][posy/step]++;
@@ -139,6 +145,40 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
 		  cout << posx << ", " << posy << endl;
 		} 
 	    }
+	case (3):
+	  if (side == 1)
+	    {
+              hitcount++;
+              int posx = hit->getPosition()[0] + xmin; // indecies for x,y,z components;
+	      int posy = hit->getPosition()[1] + ymin;
+              _l3xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
+       	      _xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
+              if ((posx < 160 && posy < 160) && (posx >= 0 && posy >= 0))
+                {
+                  layer3[posx/step][posy/step]++;
+                }
+              else
+                {
+                  cout << posx << ", " << posy << endl;
+                }
+	    }
+	case (4):
+	  if (side == 1)
+            {
+	      hitcount++;
+              int posx = hit->getPosition()[0] + xmin; // indecies for x,y,z components;
+	      int posy = hit->getPosition()[1] + ymin;
+              _l4xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
+       	      _xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
+              if ((posx < 160 && posy < 160) && (posx >= 0 && posy >= 0))
+                {
+		  layer4[posx/step][posy/step]++;
+                }
+	      else
+                {
+                  cout << posx << ", " << posy << endl;
+                }
+            }
 	}
     }
 }
@@ -164,7 +204,7 @@ void TrackerOccupancyAnalysis::end()
       cout << endl;
     }
   cout << endl << endl << endl << endl;
-  for (auto vec : layer2)
+  /*  for (auto vec : layer2)
     {
       for (auto hit : vec)
 	{
@@ -172,6 +212,26 @@ void TrackerOccupancyAnalysis::end()
 	}
       cout << endl;
     }
+  cout << endl << endl << endl << endl;
+  for (auto vec : layer3)
+    {
+      for (auto hit : vec)
+        {
+          cout << setw(2) << hit << " ";
+        }
+      cout << endl;
+    }
+  cout << endl << endl << endl << endl;
+  for (auto vec : layer4)
+    {
+      for (auto hit : vec)
+        {
+          cout << setw(2) << hit << " ";
+        }
+      cout << endl;
+    }
+  */
   cout << "hitcount: " << hitcount << endl;
+  //  _rootfile->WriteObject(gr,"gr");
   _rootfile->Write();
 }
