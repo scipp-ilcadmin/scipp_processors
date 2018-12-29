@@ -51,7 +51,7 @@ static TH1I* _layers;
 static TH1D* _l1radVals;
 static TH1D* _l1thetas;
 static TH1D* _zpix;
-static TH1I* _l1m0;
+static TH2D* _l1m0;
 static int _nEvt = 0;
 
 static vector<TH2D> files;
@@ -106,12 +106,13 @@ void final::init()
   //_l1thetas = new TH1D("l1thetas", "l1thetas", 50, -20, 380);
   //_zandr = new TH2D("zandr", "zandr", 131, -70, 70, 131, -20, 20);
   //_zpix = new TH1D("zpix", "zpix", 131, -65, 65);
-  _l1m0 = new TH1I("l1m0", "l1m0", 1909, 0, 1909);
-  for (int i = 0; i < 12; ++i)
+  _l1m0 = new TH2D("l1m0", "l1m0", 10, -100, 100, 10, -100, 100);
+  /*  for (int i = 0; i < 12; ++i)
     {
       TH2D *test = new TH2D(Form("l1test%d ", i), "test", 500, -80, 80, 500, -100, 100);
       files.push_back(*test);
     }
+  */
   _nEvt = 0;
  }
 
@@ -122,7 +123,6 @@ void final::processRunHeader( LCRunHeader* run)
 
 void final::processEvent( LCEvent * evt)
 {
-  _nEvt++;
   LCCollection* hits = evt->getCollection("SiVertexBarrelHits");
   int size = hits->getNumberOfElements();
   _nEvt++;
@@ -134,10 +134,10 @@ void final::processEvent( LCEvent * evt)
       double posx = hit->getPosition()[0]; // indecies for x,y,z components;
       double posy = hit->getPosition()[1];
       double posz = hit->getPosition()[2];  //positions are in mm
-      double xyrad = sqrt( (posx*posx) + (posy*posy) );
+      //double xyrad = sqrt( (posx*posx) + (posy*posy) );
       int layer = idDec(hit) [ILDCellID0::layer];
       int module = idDec(hit) [ILDCellID0::module];
-      Entry entry = std::make_pair(xyrad, layer);
+      //Entry entry = std::make_pair(xyrad, layer);
       switch (layer)
 	{
 	case 1:
@@ -145,10 +145,10 @@ void final::processEvent( LCEvent * evt)
 	   if (module == 0)
 	     {
 	       //cout <<  "hits in pixel" << arr[dist] << endl;
-	       int dist = static_cast<int>(sqrt((zerox-posx)*(zerox-posx) + (zeroy-posy)*(zeroy-posy))/0.005);
-	       //cout << dist << endl;;
-	       _l1m0->Fill(dist);
-	       arr[dist] += 1;
+	       //int dist = static_cast<int>(sqrt((zerox-posx)*(zerox-posx) + (zeroy-posy)*(zeroy-posy))/0.005);
+	       //cout << dist << endl;
+	       _l1m0->Fill(posx,posy);
+	       //arr[dist] += 1;
 	     } 
 	  }
 	case 2:
@@ -195,7 +195,7 @@ void final::end()
 
   //_l1radVals->SetFillColor(kRed);
   //_l1thetas->SetFillColor(kRed);
-  copy (arr, arr + sizeof(arr) / sizeof(arr[0]), ostream_iterator<short>(cout, "\n"));
-  _rootfile->Write(0,TObject::kOverwrite);
+  //copy (arr, arr + sizeof(arr) / sizeof(arr[0]), ostream_iterator<short>(cout, "\n"));
+  _rootfile->Write();
 
 }
