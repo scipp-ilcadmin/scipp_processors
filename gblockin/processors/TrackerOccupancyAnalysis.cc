@@ -79,7 +79,7 @@ void TrackerOccupancyAnalysis::init()
   streamlog_out(DEBUG) << " init called " << endl;
   cout << "Initialized "  << endl;
   _rootfile = new TFile("TOA.root", "RECREATE");
-  _l1xyPos = new TH2D("l1xypos", "l1xypos", 16, -100.0, 100.0, 16, -100.0, 100.0);
+  _l1xyPos = new TH2D("l1xypos", "l1xypos", 100, -100.0, 100.0, 100, -100.0, 100.0);
   _l2xyPos = new TH2D("l2xypos", "l2xypos", 57, -100.0, 100.0, 57, -100.0, 100.0);
   _l3xyPos = new TH2D("l3xypos", "l3xypos", 57, -100.0, 100.0, 57, -100.0, 100.0);
   _l4xyPos = new TH2D("l4xypos", "l4xypos", 57, -100.0, 100.0, 57, -100.0, 100.0);
