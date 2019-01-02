@@ -17,6 +17,8 @@
 #include <utility>
 #include <vector>
 #include <string>
+#include <iomanip>
+#include <sstream>
 
 #include <UTIL/ILDConf.h>
 #include <EVENT/LCCollection.h>
@@ -54,6 +56,7 @@ static TH1D* _l1thetas;
 static TH1D* _zpix;
 static int _nEvt = 0;
 
+static vector<vector<int>> layer1(16, vector<int>(16, 0));
 static vector<double> bposxVals;
 static vector<double> bposyVals;
 static vector<double> bposzVals;
@@ -108,20 +111,21 @@ void goal::processEvent( LCEvent * evt)
   _nEvt++;
   LCCollection* barrelHits = evt->getCollection("SiVertexBarrelHits");
   int size = barrelHits->getNumberOfElements();
+  static const int step = 10;
   _nEvt++;
   for (int i = 0; i < barrelHits->getNumberOfElements(); ++i)
     {
       SimTrackerHit* hit = dynamic_cast<SimTrackerHit*>(barrelHits->getElementAt(i));
       CellIDDecoder<SimTrackerHit> idDec( barrelHits );
+      int module = idDec(hit) [ILDCellID0::module];
       int layer = idDec(hit) [ILDCellID0::layer];
-      if (layer == 1)
+      if ((layer == 1) && (module %2 != 0))
 	{
 	  double bposx = hit->getPosition()[0]; // indecies for x,y,z components;
 	  double bposy = hit->getPosition()[1];
 	  double bposz = hit->getPosition()[2];
 	  double xyrad = sqrt( (bposx*bposx) + (bposy*bposy) );
 	  int side = idDec(hit) [ILDCellID0::side];
-	  int module = idDec(hit) [ILDCellID0::module];
 	  int sensor = idDec(hit) [ILDCellID0::sensor];
 	  Entry entry = std::make_pair(xyrad, layer);
 	  double theta = (atan2(bposy, bposx) + M_PI) * 180/M_PI; //angle in radians ranging from 0->2Pi
@@ -134,8 +138,13 @@ void goal::processEvent( LCEvent * evt)
 	  sidevals.push_back(side);
 	  sensorvals.push_back(sensor);
 	  _l1radVals->Fill(xyrad);
-	  _bxyPos->Fill(bposx, bposy);
+
 	  _zpix->Fill(theta);
+	  if ((bposx < 160 && bposy < 160) && (bposx >= 0 && bposy >= 0))
+	    {
+	      _bxyPos->Fill(bposx, bposy);
+	      layer1[bposx/step][bposy/step]++;
+	    }
 	}
 
     }
@@ -160,6 +169,15 @@ void goal::end()
 
   //_l1radVals->SetFillColor(kRed);
   //_l1thetas->SetFillColor(kRed);
+  for (auto vec : layer1)
+    {
+      for (auto hit: vec)
+        {
+          cout << setw(2) << hit << " ";
+        }
+      cout << endl;
+    }
+  cout << endl << endl << endl << endl;
   _rootfile->Write();
 
 }

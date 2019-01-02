@@ -117,6 +117,7 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
 	      hitcount++;
 	      int posx = hit->getPosition()[0] + xmin; // indecies for x,y,z components;
 	      int posy = hit->getPosition()[1] + ymin;
+	      posxVals.push_back(posx);
 	      _l1xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
 	      _xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
 	      if ((posx < 160 && posy < 160) && (posx >= 0 && posy >= 0))
@@ -192,7 +193,7 @@ void TrackerOccupancyAnalysis::end()
 {
 
   //cout << " max energy: " << getMax(eDepVals) << " MinEnergy: " << getMin(eDepVals) << endl;
-  //cout << " max x: " << getMax(posxVals) << " min x: " << getMin(posxVals) << endl;
+  cout << " max x: " << getMax(posxVals) << " min x: " << getMin(posxVals) << endl;
   //cout << " max y: " << getMax(posyVals) << " min y: " << getMin(posyVals) << endl;
   //cout << " max z: " << getMax(poszVals) << " min z: " << getMin(poszVals) << endl;
   for (auto vec : layer1)
