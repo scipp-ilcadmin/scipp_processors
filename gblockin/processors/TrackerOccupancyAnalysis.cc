@@ -81,8 +81,8 @@ void TrackerOccupancyAnalysis::init()
   _rootfile = new TFile("TOA.root", "RECREATE");
   _l1xyPos = new TH2D("l1xypos", "l1xypos", 100, -100.0, 100.0, 100, -100.0, 100.0);
   _l2xyPos = new TH2D("l2xypos", "l2xypos", 57, -100.0, 100.0, 57, -100.0, 100.0);
-  _l3xyPos = new TH2D("l3xypos", "l3xypos", 57, -100.0, 100.0, 57, -100.0, 100.0);
-  _l4xyPos = new TH2D("l4xypos", "l4xypos", 57, -100.0, 100.0, 57, -100.0, 100.0);
+  _l3xyPos = new TH2D("l3xypos", "l3xypos", 500, -100.0, 100.0, 500, -100.0, 100.0);
+  _l4xyPos = new TH2D("l4xypos", "l4xypos", 1000, -100.0, 100.0, 1000, -100.0, 100.0);
   _xyPos = new TH2D(  "xypos",   "xyPos",   57, -100.0, 100.0, 57, -100.0, 100.0);
   _nEvt = 0;
 
