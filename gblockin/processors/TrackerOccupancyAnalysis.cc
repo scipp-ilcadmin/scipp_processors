@@ -43,13 +43,14 @@ static TH2D* _l2xyPos;
 static TH2D* _l3xyPos;
 static TH2D* _l4xyPos;
 static TH2D* _xyPos;
-static TGraph2D* gr;
+static TH1D* _angles;
 static int _nEvt = 0;
 
 static vector<int> layers;
 static vector<double> posxVals;
 static vector<double> posyVals;
 static vector<double> poszVals;
+static vector<double> angles;
 static vector<vector<int>> layer1(16, vector<int>(16, 0));
 static vector<vector<int>> layer2(16, vector<int>(16, 0));
 static vector<vector<int>> layer3(16, vector<int>(16, 0));
@@ -80,10 +81,11 @@ void TrackerOccupancyAnalysis::init()
   cout << "Initialized "  << endl;
   _rootfile = new TFile("TOA.root", "RECREATE");
   _l1xyPos = new TH2D("l1xypos", "l1xypos", 100, -100.0, 100.0, 100, -100.0, 100.0);
-  _l2xyPos = new TH2D("l2xypos", "l2xypos", 57, -100.0, 100.0, 57, -100.0, 100.0);
-  _l3xyPos = new TH2D("l3xypos", "l3xypos", 500, -100.0, 100.0, 500, -100.0, 100.0);
-  _l4xyPos = new TH2D("l4xypos", "l4xypos", 1000, -100.0, 100.0, 1000, -100.0, 100.0);
-  _xyPos = new TH2D(  "xypos",   "xyPos",   57, -100.0, 100.0, 57, -100.0, 100.0);
+  _l2xyPos = new TH2D("l2xypos", "l2xypos", 100, -100.0, 100.0, 100, -100.0, 100.0);
+  _l3xyPos = new TH2D("l3xypos", "l3xypos", 100, -100.0, 100.0, 100, -100.0, 100.0);
+  _l4xyPos = new TH2D("l4xypos", "l4xypos", 100, -100.0, 100.0, 100, -100.0, 100.0);
+  _xyPos = new TH2D(  "xypos",   "xyPos",   100, -100.0, 100.0, 100, -100.0, 100.0);
+  _angles = new TH1D("angles", "angles", 100, -10, 370);
   _nEvt = 0;
 
 }
@@ -118,6 +120,8 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
 	      int posx = hit->getPosition()[0] + xmin; // indecies for x,y,z components;
 	      int posy = hit->getPosition()[1] + ymin;
 	      posxVals.push_back(posx);
+	      double theta = (atan2(hit->getPosition()[1], hit->getPosition()[0]) + M_PI) * 180/M_PI; // angles in degrees
+	      _angles->Fill(theta);
 	      _l1xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
 	      _xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
 	      if ((posx < 160 && posy < 160) && (posx >= 0 && posy >= 0))
@@ -126,7 +130,7 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
 		}
 	      else 
 		{
-		  cout << posx << ", " << posy << endl;
+		  cout << posx << ", " << posy << ":::::::::::Error in 1" << endl;
 		}
 	    }
 	case (2):
@@ -135,6 +139,8 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
 	      hitcount++;
 	      int posx = hit->getPosition()[0] + xmin; // indecies for x,y,z components;
 	      int posy = hit->getPosition()[1] + ymin;
+	      double theta = (atan2(hit->getPosition()[1], hit->getPosition()[0]) + M_PI) * 180/M_PI; // angles in degrees
+              _angles->Fill(theta);
 	      _l2xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
        	      _xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
 	      if ((posx < 160 && posy < 160) && (posx >= 0 && posy >= 0))
@@ -143,7 +149,7 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
 		}
 	      else
 		{
-		  cout << posx << ", " << posy << endl;
+		  cout << posx << ", " << posy << ":::::::::::Error in 2" << endl;
 		} 
 	    }
 	case (3):
@@ -152,6 +158,8 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
               hitcount++;
               int posx = hit->getPosition()[0] + xmin; // indecies for x,y,z components;
 	      int posy = hit->getPosition()[1] + ymin;
+	      double theta = (atan2(hit->getPosition()[1], hit->getPosition()[0]) + M_PI) * 180/M_PI; // angles in degrees
+              _angles->Fill(theta);
               _l3xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
        	      _xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
               if ((posx < 160 && posy < 160) && (posx >= 0 && posy >= 0))
@@ -160,7 +168,7 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
                 }
               else
                 {
-                  cout << posx << ", " << posy << endl;
+                  cout << posx << ", " << posy << ":::::::::::Error in 3" << endl;
                 }
 	    }
 	case (4):
@@ -169,6 +177,8 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
 	      hitcount++;
               int posx = hit->getPosition()[0] + xmin; // indecies for x,y,z components;
 	      int posy = hit->getPosition()[1] + ymin;
+	      double theta = (atan2(hit->getPosition()[1], hit->getPosition()[0]) + M_PI) * 180/M_PI; // angles in degrees
+              _angles->Fill(theta);
               _l4xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
        	      _xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
               if ((posx < 160 && posy < 160) && (posx >= 0 && posy >= 0))
@@ -177,7 +187,7 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
                 }
 	      else
                 {
-                  cout << posx << ", " << posy << endl;
+                  cout << posx << ", " << posy << ":::::::::::Error in 4" << endl;
                 }
             }
 	}
@@ -193,10 +203,10 @@ void TrackerOccupancyAnalysis::end()
 {
 
   //cout << " max energy: " << getMax(eDepVals) << " MinEnergy: " << getMin(eDepVals) << endl;
-  cout << " max x: " << getMax(posxVals) << " min x: " << getMin(posxVals) << endl;
+  //cout << " max x: " << getMax(posxVals) << " min x: " << getMin(posxVals) << endl;
   //cout << " max y: " << getMax(posyVals) << " min y: " << getMin(posyVals) << endl;
   //cout << " max z: " << getMax(poszVals) << " min z: " << getMin(poszVals) << endl;
-  for (auto vec : layer1)
+  /*  for (auto vec : layer1)
     {
       for (auto hit: vec)
 	{
@@ -205,7 +215,7 @@ void TrackerOccupancyAnalysis::end()
       cout << endl;
     }
   cout << endl << endl << endl << endl;
-  /*  for (auto vec : layer2)
+    for (auto vec : layer2)
     {
       for (auto hit : vec)
 	{
