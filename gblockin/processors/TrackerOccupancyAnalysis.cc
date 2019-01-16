@@ -114,11 +114,12 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
       switch (layer)
 	{
 	case(1):
-	  if (side == 1)
+	  if (side == 2)
 	    {
 	      hitcount++;
 	      int posx = hit->getPosition()[0] + xmin; // indecies for x,y,z components;
 	      int posy = hit->getPosition()[1] + ymin;
+	      cout << hit->getPosition()[2] << endl;
 	      posxVals.push_back(posx);
 	      double theta = (atan2(hit->getPosition()[1], hit->getPosition()[0]) + M_PI) * 180/M_PI; // angles in degrees
 	      _angles->Fill(theta);
@@ -134,11 +135,12 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
 		}
 	    }
 	case (2):
-	  if (side == 1)
+	  if (side == 2)
 	    {
 	      hitcount++;
 	      int posx = hit->getPosition()[0] + xmin; // indecies for x,y,z components;
 	      int posy = hit->getPosition()[1] + ymin;
+	      cout << hit->getPosition()[2] << endl;
 	      double theta = (atan2(hit->getPosition()[1], hit->getPosition()[0]) + M_PI) * 180/M_PI; // angles in degrees
               _angles->Fill(theta);
 	      _l2xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
@@ -153,11 +155,12 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
 		} 
 	    }
 	case (3):
-	  if (side == 1)
+	  if (side == 2)
 	    {
               hitcount++;
               int posx = hit->getPosition()[0] + xmin; // indecies for x,y,z components;
 	      int posy = hit->getPosition()[1] + ymin;
+	      cout << hit->getPosition()[2] << endl;
 	      double theta = (atan2(hit->getPosition()[1], hit->getPosition()[0]) + M_PI) * 180/M_PI; // angles in degrees
               _angles->Fill(theta);
               _l3xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
@@ -172,11 +175,12 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
                 }
 	    }
 	case (4):
-	  if (side == 1)
+	  if (side == 2)
             {
 	      hitcount++;
               int posx = hit->getPosition()[0] + xmin; // indecies for x,y,z components;
 	      int posy = hit->getPosition()[1] + ymin;
+	      cout << hit->getPosition()[2] << endl;
 	      double theta = (atan2(hit->getPosition()[1], hit->getPosition()[0]) + M_PI) * 180/M_PI; // angles in degrees
               _angles->Fill(theta);
               _l4xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
