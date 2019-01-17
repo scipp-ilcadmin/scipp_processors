@@ -1,0 +1,3 @@
+anajob:  will open and read from files: 
+ A runtime error has occured : lcio::IOException: [LCSIO::seekStream] Can't seek stream to -136  errno : 22
+ the program will have to be terminated - sorry.
