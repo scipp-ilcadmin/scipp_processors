@@ -50,9 +50,10 @@ static vector<double> posxVals;
 static vector<double> posyVals;
 static vector<double> poszVals;
 static vector<double> angles;
-static vector<vector<int>> layer1(25, vector<int>(25, 0));
-static vector<vector<int>> layer2(25, vector<int>(25, 0));
-static int hitcount = 0;
+static vector<vector<int>> layer1(16, vector<int>(16, 0));
+static vector<vector<int>> layer2(16, vector<int>(16, 0));
+static int l1m1hitcount = 0;
+static int l1m2hitcount = 0;
 
 template<typename T>
 static T getMax(vector<T> &vec) 
@@ -97,7 +98,7 @@ void barrel::processEvent( LCEvent * evt)
   LCCollection* endcapHits = evt->getCollection("SiVertexBarrelHits");
   static const double ymin = 75;
   static const double xmin = 75;
-  static const int step = 10;
+  static const int step = 9;
   
   for (int i = 0; i < endcapHits->getNumberOfElements(); ++i)
     {
@@ -108,16 +109,17 @@ void barrel::processEvent( LCEvent * evt)
       int module = idDec ( hit )[ILDCellID0::module];
       int posx = hit->getPosition()[0] + xmin;
       int posy = hit->getPosition()[1] + ymin;
+      layer1[posx/step][posy/step]++;
       switch (layer)
 	{
-	case(2):
+	case(1):
 	  if (module % 2 == 0)
 	    {
-	      hitcount++;
+	      l1m1hitcount++;
 	      double theta = (atan2(hit->getPosition()[1], hit->getPosition()[0]) + M_PI) * 180/M_PI; // angles in degrees
 	      _angles->Fill(theta);
 	      _xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
-	      if ((posx < 320 && posy < 320) && (posx >= 0 && posy >= 0))
+	      if ((posx < 160 && posy < 160) && (posx >= 0 && posy >= 0))
 		{ 
 		  layer1[posx/step][posy/step]++;
 		}
@@ -128,11 +130,11 @@ void barrel::processEvent( LCEvent * evt)
 	    }
 	  if (module % 2 != 0)
 	    {
-	      hitcount++;
+	      l1m2hitcount++;
 	      double theta = (atan2(hit->getPosition()[1], hit->getPosition()[0]) + M_PI) * 180/M_PI; // angles in degrees
 	      _angles2->Fill(theta);
 	      _xyPos2->Fill(hit->getPosition()[0],hit->getPosition()[1]);
-	      if ((posx < 320 && posy < 320) && (posx >= 0 && posy >= 0))
+	      if ((posx < 160 && posy < 160) && (posx >= 0 && posy >= 0))
                 {
                   layer2[posx/step][posy/step]++;
                 }
@@ -167,7 +169,8 @@ void barrel::end()
       cout << endl;
     }
   cout << endl << endl << endl << endl;
-  cout << "hitcount: " << hitcount << endl;
-  //  _rootfile->WriteObject(gr,"gr");
+  cout << "l1m1hitcount: " << l1m1hitcount << endl;
+  cout << "l1m2hitcount: " << l1m2hitcount << endl;
+  cout << _nEvt << endl;
   _rootfile->Write();
 }

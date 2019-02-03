@@ -167,20 +167,20 @@ void TOA::check( LCEvent * evt)
 
 void TOA::end()
 {
-  /*cout << "MAX bPosX: " << getMax(bposxVals) << " MIN bPosX: " << getMin(bposxVals) <<  endl;
+  cout << "MAX bPosX: " << getMax(bposxVals) << " MIN bPosX: " << getMin(bposxVals) <<  endl;
   cout << "MAX bPosY: " << getMax(bposyVals) << " MIN bPosY: " << getMin(bposyVals) <<  endl;
-  cout << "MAX bPosZ: " << getMax(bposzVals) << " MIN bPosZ: " << getMin(bposzVals) <<  endl;
-  cout << "MAX ePosX: " << getMax(eposxVals) << " MIN ePosX: " << getMin(eposxVals) <<  endl;
-  cout << "MAX ePosY: " << getMax(eposyVals) << " MIN ePosY: " << getMin(eposyVals) <<  endl;
-  cout << "MAX ePosZ: " << getMax(eposzVals) << " MIN ePosZ: " << getMin(eposzVals) <<  endl;
+  //cout << "MAX bPosZ: " << getMax(bposzVals) << " MIN bPosZ: " << getMin(bposzVals) <<  endl;
+  //cout << "MAX ePosX: " << getMax(eposxVals) << " MIN ePosX: " << getMin(eposxVals) <<  endl;
+  //cout << "MAX ePosY: " << getMax(eposyVals) << " MIN ePosY: " << getMin(eposyVals) <<  endl;
+  //cout << "MAX ePosZ: " << getMax(eposzVals) << " MIN ePosZ: " << getMin(eposzVals) <<  endl;
   cout << _nEvt << endl;
-  _bxyzPos->GetXaxis()->SetTitle("X (mm)");
-  _bxyzPos->GetYaxis()->SetTitle("Y (mm)");
-  _bxyzPos->GetZaxis()->SetTitle("Z (mm)");
-  _exyzPos->GetXaxis()->SetTitle("X (mm)");
-  _exyzPos->GetYaxis()->SetTitle("Y (mm)");
-  _exyzPos->GetZaxis()->SetTitle("Z (mm)");
-  */
+  //_bxyzPos->GetXaxis()->SetTitle("X (mm)");
+  //_bxyzPos->GetYaxis()->SetTitle("Y (mm)");
+  //_bxyzPos->GetZaxis()->SetTitle("Z (mm)");
+  //_exyzPos->GetXaxis()->SetTitle("X (mm)");
+  //_exyzPos->GetYaxis()->SetTitle("Y (mm)");
+  //_exyzPos->GetZaxis()->SetTitle("Z (mm)");
+
   _rootfile->Write();
   _rootfile->Close();
 }
