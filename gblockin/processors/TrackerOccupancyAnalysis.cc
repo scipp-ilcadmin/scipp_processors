@@ -51,10 +51,10 @@ static vector<double> posxVals;
 static vector<double> posyVals;
 static vector<double> poszVals;
 static vector<double> angles;
-static vector<vector<int>> layer1(16, vector<int>(16, 0));
-static vector<vector<int>> layer2(16, vector<int>(16, 0));
-static vector<vector<int>> layer3(16, vector<int>(16, 0));
-static vector<vector<int>> layer4(16, vector<int>(16, 0));
+static vector<vector<int>> layer1(160, vector<int>(160, 0));
+static vector<vector<int>> layer2(160, vector<int>(160, 0));
+static vector<vector<int>> layer3(160, vector<int>(160, 0));
+static vector<vector<int>> layer4(160, vector<int>(160, 0));
 static int hitcount = 0;
 
 template<typename T>
@@ -102,7 +102,7 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
   LCCollection* endcapHits = evt->getCollection("SiVertexEndcapHits");
   static const double xmin = 75;
   static const double ymin = 75;
-  static const int step = 10;
+  static const int step = 1;
   
   for (int i = 0; i < endcapHits->getNumberOfElements(); ++i)
     {
@@ -206,7 +206,7 @@ void TrackerOccupancyAnalysis::end()
   //cout << " max x: " << getMax(posxVals) << " min x: " << getMin(posxVals) << endl;
   //cout << " max y: " << getMax(posyVals) << " min y: " << getMin(posyVals) << endl;
   //cout << " max z: " << getMax(poszVals) << " min z: " << getMin(poszVals) << endl;
-  /*  for (auto vec : layer1)
+  for (auto vec : layer1)
     {
       for (auto hit: vec)
 	{
@@ -215,7 +215,7 @@ void TrackerOccupancyAnalysis::end()
       cout << endl;
     }
   cout << endl << endl << endl << endl;
-    for (auto vec : layer2)
+  /*    for (auto vec : layer2)
     {
       for (auto hit : vec)
 	{
