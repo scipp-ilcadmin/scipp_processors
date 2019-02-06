@@ -80,8 +80,8 @@ void barrel::init()
   _nEvt = 0;
   for (int i =0; i < 6; i++)
     {
-      graphs.push_back(new TH2D(Form("layer%d ", i), "test", 1000, -80, 80, 1000, -80, 80)); 
-      angles.push_back(new TH1D(Form("angles%d", i), "fuckyou", 100, -10, 370));
+      graphs.push_back(new TH2D(Form("layer%d ", i), "layersBREH", 1000, -80, 80, 1000, -80, 80)); 
+      angles.push_back(new TH1D(Form("angles%d", i), "anglesBREH", 100, -10, 370));
     }
 }
 
