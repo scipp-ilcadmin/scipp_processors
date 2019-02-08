@@ -40,6 +40,7 @@ typedef vector<vector<int>> PixelGrid;
 typedef vector<PixelGrid> Layers;
 
 static TFile* _rootfile;
+static TH2D* totes;
 static int _nEvt = 0;
 
 //static vector<int> layers;
@@ -51,8 +52,7 @@ static vector<TH2D*> graphs;
 static vector<TH1D*> angles;
 static vector<vector<int>> l1inner(150*100, vector<int>(150*100, 0));
 static vector<vector<int>> l1outer(150*100, vector<int>(150*100, 0));
-static int l1m1hitcount = 0;
-static int l1m2hitcount = 0;
+
 
 template<typename T>
 static T getMax(vector<T> &vec) 
@@ -77,6 +77,7 @@ void barrel::init()
   streamlog_out(DEBUG) << " init called " << endl;
   cout << "Initialized "  << endl;
   _rootfile = new TFile("barrel.root", "RECREATE");
+  totes = new TH2D("totes", "totesmagotes", 100, -100, 100, 100, -100, 100);
   _nEvt = 0;
   for (int i =0; i < 6; i++)
     {
@@ -108,6 +109,7 @@ void barrel::processEvent( LCEvent * evt)
       int module = idDec ( hit )[ILDCellID0::module];
       int posx = (hit->getPosition()[0] + xmin)*100;
       int posy = (hit->getPosition()[1] + ymin)*100;
+      totes->Fill(hit->getPosition()[0], hit->getPosition()[1]);
 
       [&] () 
 	{
@@ -186,7 +188,7 @@ void barrel::end()
     }
   */
   cout << endl << endl << endl << endl;
-  cout << "l1m1hitcount: " << l1m1hitcount << endl;
+  //cout << "l1m1hitcount: " << l1m1hitcount << endl;
   cout << _nEvt << endl;
   _rootfile->Write();
 }
