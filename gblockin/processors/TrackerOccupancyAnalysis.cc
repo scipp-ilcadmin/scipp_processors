@@ -51,7 +51,8 @@ static vector<double> posxVals;
 static vector<double> posyVals;
 static vector<double> poszVals;
 static vector<double> angles;
-static vector<vector<int>> layer1(160, vector<int>(160, 0));
+static vector<vector<int>> layer1(16000, vector<int>(16000, 0));
+static int numpix = layer1[0].size()*layer1[1].size();
 static vector<vector<int>> layer2(160, vector<int>(160, 0));
 static vector<vector<int>> layer3(160, vector<int>(160, 0));
 static vector<vector<int>> layer4(160, vector<int>(160, 0));
@@ -100,16 +101,17 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
   _nEvt++;
   //LCCollection* barrelHits = evt->getCollection("SiVertexBarrelHits");
   LCCollection* endcapHits = evt->getCollection("SiVertexEndcapHits");
-  static const double xmin = 75;
-  static const double ymin = 75;
+  static const double xmin = 80;
+  static const double ymin = 80;
   static const int step = 1;
-  
   for (int i = 0; i < endcapHits->getNumberOfElements(); ++i)
     {
       SimTrackerHit* hit = dynamic_cast<SimTrackerHit*>(endcapHits->getElementAt(i));
       CellIDDecoder<SimTrackerHit> idDec( endcapHits );
       int layer = idDec( hit )[ILDCellID0::layer];
       int side = idDec ( hit )[ILDCellID0::side];
+      posxVals.push_back(hit->getPosition()[0]);
+      posyVals.push_back(hit->getPosition()[1]);
       layers.push_back(layer);
       switch (layer)
 	{
@@ -117,14 +119,13 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
 	  if (side == 2)
 	    {
 	      hitcount++;
-	      int posx = hit->getPosition()[0] + xmin; // indecies for x,y,z components;
-	      int posy = hit->getPosition()[1] + ymin;
-	      posxVals.push_back(posx);
+	      int posx = (hit->getPosition()[0] + xmin)*100; // indecies for x,y,z components;
+	      int posy = (hit->getPosition()[1] + ymin)*100;
 	      double theta = (atan2(hit->getPosition()[1], hit->getPosition()[0]) + M_PI) * 180/M_PI; // angles in degrees
 	      _angles->Fill(theta);
 	      _l1xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
 	      _xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
-	      if ((posx < 160 && posy < 160) && (posx >= 0 && posy >= 0))
+	      if ((posx < 16000 && posy < 16000) && (posx >= 0 && posy >= 0))
 		{ 
 		  layer1[posx/step][posy/step]++;
 		}
@@ -133,7 +134,7 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
 		  cout << posx << ", " << posy << ":::::::::::Error in 1" << endl;
 		}
 	    }
-	case (2):
+	  /*	case (2):
 	  if (side == 2)
 	    {
 	      hitcount++;
@@ -190,6 +191,7 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
                   cout << posx << ", " << posy << ":::::::::::Error in 4" << endl;
                 }
             }
+	  */
 	}
     }
 }
@@ -202,11 +204,10 @@ void TrackerOccupancyAnalysis::check( LCEvent * evt)
 void TrackerOccupancyAnalysis::end()
 {
 
-  //cout << " max energy: " << getMax(eDepVals) << " MinEnergy: " << getMin(eDepVals) << endl;
-  //cout << " max x: " << getMax(posxVals) << " min x: " << getMin(posxVals) << endl;
-  //cout << " max y: " << getMax(posyVals) << " min y: " << getMin(posyVals) << endl;
+  cout << " max x: " << getMax(posxVals) << " min x: " << getMin(posxVals) << endl;
+  cout << " max y: " << getMax(posyVals) << " min y: " << getMin(posyVals) << endl;
   //cout << " max z: " << getMax(poszVals) << " min z: " << getMin(poszVals) << endl;
-  for (auto vec : layer1)
+  /*for (auto vec : layer1)
     {
       for (auto hit: vec)
 	{
@@ -215,34 +216,19 @@ void TrackerOccupancyAnalysis::end()
       cout << endl;
     }
   cout << endl << endl << endl << endl;
-  /*    for (auto vec : layer2)
-    {
-      for (auto hit : vec)
-	{
-	  cout << setw(2) << hit << " ";
-	}
-      cout << endl;
-    }
-  cout << endl << endl << endl << endl;
-  for (auto vec : layer3)
-    {
-      for (auto hit : vec)
-        {
-          cout << setw(2) << hit << " ";
-        }
-      cout << endl;
-    }
-  cout << endl << endl << endl << endl;
-  for (auto vec : layer4)
-    {
-      for (auto hit : vec)
-        {
-          cout << setw(2) << hit << " ";
-        }
-      cout << endl;
-    }
   */
+  int pixhit=0;
+  for(int i = 0; i < layer1[0].size(); i++)
+    {
+      for(int j = 0; j < layer1[i].size(); j++)
+	{
+	  if ( layer1[i][j] !=0 )
+	    pixhit++;
+	}
+    }
   cout << "hitcount: " << hitcount << endl;
+  cout << "number of pixels in layer1: " << numpix << endl;
+  cout << "pixels hit: " << pixhit << endl;
   //  _rootfile->WriteObject(gr,"gr");
   _rootfile->Write();
 }
