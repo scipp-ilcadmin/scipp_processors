@@ -53,6 +53,7 @@ static vector<double> poszVals;
 static vector<double> angles;
 static vector<vector<int>> layer1(16000, vector<int>(16000, 0));
 static int numpix = layer1[0].size()*layer1[1].size();
+static vector<string> pixid;
 static vector<vector<int>> layer2(160, vector<int>(160, 0));
 static vector<vector<int>> layer3(160, vector<int>(160, 0));
 static vector<vector<int>> layer4(160, vector<int>(160, 0));
@@ -125,9 +126,11 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
 	      _angles->Fill(theta);
 	      _l1xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
 	      _xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
+	      string id = to_string(posx/step) + to_string(posy/step);
 	      if ((posx < 16000 && posy < 16000) && (posx >= 0 && posy >= 0))
 		{ 
 		  layer1[posx/step][posy/step]++;
+		  pixid.push_back(id);
 		}
 	      else 
 		{
@@ -207,6 +210,12 @@ void TrackerOccupancyAnalysis::end()
   cout << " max x: " << getMax(posxVals) << " min x: " << getMin(posxVals) << endl;
   cout << " max y: " << getMax(posyVals) << " min y: " << getMin(posyVals) << endl;
   //cout << " max z: " << getMax(poszVals) << " min z: " << getMin(poszVals) << endl;
+  for (auto str : pixid)
+    {
+      cout << str << endl;
+    }
+  cout << endl << endl << endl << endl;
+  cout << pixid.size() << endl;
   /*for (auto vec : layer1)
     {
       for (auto hit: vec)
@@ -216,7 +225,7 @@ void TrackerOccupancyAnalysis::end()
       cout << endl;
     }
   cout << endl << endl << endl << endl;
-  */
+  
   int pixhit=0;
   for(int i = 0; i < layer1[0].size(); i++)
     {
@@ -226,9 +235,10 @@ void TrackerOccupancyAnalysis::end()
 	    pixhit++;
 	}
     }
+  */
   cout << "hitcount: " << hitcount << endl;
   cout << "number of pixels in layer1: " << numpix << endl;
-  cout << "pixels hit: " << pixhit << endl;
+  //  cout << "pixels hit: " << pixhit << endl;
   //  _rootfile->WriteObject(gr,"gr");
   _rootfile->Write();
 }
