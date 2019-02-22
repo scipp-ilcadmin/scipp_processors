@@ -76,7 +76,7 @@ void example::processRunHeader( LCRunHeader* run) {
 void example::processEvent( LCEvent * evt ) { 
     LCCollection* col = evt->getCollection( _colName );
     _nEvt++;
-    
+    cout << sqrt(4);
     fourvec total;
     for(int i=0; i < col->getNumberOfElements(); ++i){
       MCParticle* particle=dynamic_cast<MCParticle*>(col->getElementAt(i));

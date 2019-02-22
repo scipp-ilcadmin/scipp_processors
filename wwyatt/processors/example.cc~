@@ -76,7 +76,7 @@ void example::processRunHeader( LCRunHeader* run) {
 void example::processEvent( LCEvent * evt ) { 
     LCCollection* col = evt->getCollection( _colName );
     _nEvt++;
-    
+    cout << Math.sqrt(4);
     fourvec total;
     for(int i=0; i < col->getNumberOfElements(); ++i){
       MCParticle* particle=dynamic_cast<MCParticle*>(col->getElementAt(i));
@@ -101,6 +101,6 @@ void example::check( LCEvent * evt ) {
 
 void example::end(){ 
   cout << endl << "Total # of events: " << _nEvt << endl;
-  cout << "total tmom: " << total_tmom << endl;
+  cout << "total tmom: " << total_tmom/_nEvt << endl;
   _rootfile->Write();
 }
