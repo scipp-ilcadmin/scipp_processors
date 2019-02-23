@@ -74,7 +74,6 @@ TrackerOccupancyAnalysis::TrackerOccupancyAnalysis() : Processor("TrackerOccupan
 {
   _description = "Protype Processor";
   //registerProcessorParameter("RootOutputName", "output file", _root_file_name, std::string("output.root"));
-
 }
 
 void TrackerOccupancyAnalysis::init()
