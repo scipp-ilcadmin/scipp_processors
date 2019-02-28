@@ -50,10 +50,11 @@ static vector<int> layers;
 static vector<double> posxVals;
 static vector<double> posyVals;
 static vector<double> poszVals;
-static vector<double> angles;
+static vector<double> radii;
 static vector<vector<int>> layer1(16000, vector<int>(16000, 0));
 static int numpix = layer1[0].size()*layer1[1].size();
 static vector<string> pixid;
+static vector<string> uniquepix;
 static vector<vector<int>> layer2(160, vector<int>(160, 0));
 static vector<vector<int>> layer3(160, vector<int>(160, 0));
 static vector<vector<int>> layer4(160, vector<int>(160, 0));
@@ -113,12 +114,15 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
       int side = idDec ( hit )[ILDCellID0::side];
       posxVals.push_back(hit->getPosition()[0]);
       posyVals.push_back(hit->getPosition()[1]);
+      double radius = sqrt(((posxVals[i])*(posxVals[i]))+((posyVals[i])*(posyVals[i])));
+      radii.push_back(radius);
       layers.push_back(layer);
       switch (layer)
 	{
 	case(1):
 	  if (true)
 	    {
+	      cout << "mad eit here" << endl;
 	      hitcount++;
 	      int posx = (hit->getPosition()[0] + xmin)*100; // indecies for x,y,z components;
 	      int posy = (hit->getPosition()[1] + ymin)*100;
@@ -127,11 +131,14 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
 	      _l1xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
 	      _xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
 	      string id = to_string(posx/step) + to_string(posy/step);
-	      cout << hit->getPosition()[2] << endl;
 	      if ((posx < 16000 && posy < 16000) && (posx >= 0 && posy >= 0))
 		{ 
 		  layer1[posx/step][posy/step]++;
 		  pixid.push_back(id);
+		  if(std::find(uniquepix.begin(), uniquepix.end(), id) == uniquepix.end())
+		    {
+		      uniquepix.push_back(id);
+		    }
 		}
 	      else 
 		{
@@ -208,13 +215,14 @@ void TrackerOccupancyAnalysis::check( LCEvent * evt)
 void TrackerOccupancyAnalysis::end()
 {
 
-  cout << " max x: " << getMax(posxVals) << " min x: " << getMin(posxVals) << endl;
-  cout << " max y: " << getMax(posyVals) << " min y: " << getMin(posyVals) << endl;
-  //cout << " max z: " << getMax(poszVals) << " min z: " << getMin(poszVals) << endl;
-  /*for (auto str : pixid)
+  //cout << " max rad: " << getMax(radii) << " min rad: " << getMin(radii) << endl;
+  //cout << " max y: " << getMax(posyVals) << " min y: " << getMin(posyVals) << endl;
+  //cout << " max x: " << getMax(posxVals) << " min x: " << getMin(posxVals) << endl;
+  /*for (auto str : uniquepix)
     {
       cout << str << endl;
     }
+  
   cout << endl << endl << endl << endl;
   cout << pixid.size() << endl;
   for (auto vec : layer1)
@@ -238,7 +246,11 @@ void TrackerOccupancyAnalysis::end()
     }
   */
   cout << "hitcount: " << hitcount << endl;
-  cout << "number of pixels in layer1: " << numpix << endl;
+  int matters = (2*M_PI*73*73) - (2*M_PI*15*15);
+  cout << "number of pixels in layer1: " << matters << endl;
+  cout << "amount unique pixels hit: " << uniquepix.size() << endl;
+  double hitperc = static_cast<double>(uniquepix.size()) / static_cast<double>(matters) * 100;
+  cout << "Percentage of pixels that were hit in layer1: " << hitperc << endl;
   //  cout << "pixels hit: " << pixhit << endl;
   //  _rootfile->WriteObject(gr,"gr");
   _rootfile->Write();
