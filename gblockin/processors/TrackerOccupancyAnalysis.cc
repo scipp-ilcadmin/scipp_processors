@@ -122,7 +122,6 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
 	case(1):
 	  if (true)
 	    {
-	      cout << "mad eit here" << endl;
 	      hitcount++;
 	      int posx = (hit->getPosition()[0] + xmin)*100; // indecies for x,y,z components;
 	      int posy = (hit->getPosition()[1] + ymin)*100;
