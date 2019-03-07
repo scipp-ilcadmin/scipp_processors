@@ -114,7 +114,7 @@ void barrel::processEvent( LCEvent * evt)
       [&] () 
 	{
 	  int index = layer -1;
-	  double theta = (atan2(hit->getPosition()[1], hit->getPosition()[0]) + M_PI) * 180/M_PI; // angles in degrees                                                                                  
+	  double theta = (atan2(hit->getPosition()[1], hit->getPosition()[0]) + M_PI) * 180/M_PI; // angles in degrees
 	  angles[index]->Fill(theta);
 	  graphs[index]->Fill(hit->getPosition()[0],hit->getPosition()[1]);
 	  if ((posx < 160000 && posy < 160000) && (posx >= 0 && posy >= 0))
