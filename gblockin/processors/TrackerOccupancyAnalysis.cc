@@ -36,28 +36,22 @@ using namespace std;
 
 TrackerOccupancyAnalysis TrackerOccupancyAnalysis;
 
+typedef vector<vector<int>> PixelGrid;
+typedef vector<PixelGrid> Layers;
 
+static TH2D* totes;
 static TFile* _rootfile;
-static TH2D* _l1xyPos;
-static TH2D* _l2xyPos;
-static TH2D* _l3xyPos;
-static TH2D* _l4xyPos;
-static TH2D* _xyPos;
-static TH1D* _angles;
 static int _nEvt = 0;
 
-static vector<int> layers;
+//static vector<int> layers;
+static vector<string> pixid;
 static vector<double> posxVals;
 static vector<double> posyVals;
 static vector<double> poszVals;
-static vector<double> radii;
-static vector<vector<int>> layer1(16000, vector<int>(16000, 0));
-static int numpix = layer1[0].size()*layer1[1].size();
-static vector<string> pixid;
 static vector<string> uniquepix;
-static vector<vector<int>> layer2(160, vector<int>(160, 0));
-static vector<vector<int>> layer3(160, vector<int>(160, 0));
-static vector<vector<int>> layer4(160, vector<int>(160, 0));
+static Layers layers(4, PixelGrid(160*100, vector<int>(160*100,0)));
+static vector<TH2D*> graphs;
+static vector<TH1D*> angles;
 static int hitcount = 0;
 
 template<typename T>
@@ -83,12 +77,13 @@ void TrackerOccupancyAnalysis::init()
   streamlog_out(DEBUG) << " init called " << endl;
   cout << "Initialized "  << endl;
   _rootfile = new TFile("TOA.root", "RECREATE");
-  _l1xyPos = new TH2D("l1xypos", "l1xypos", 100, -100.0, 100.0, 100, -100.0, 100.0);
-  _l2xyPos = new TH2D("l2xypos", "l2xypos", 100, -100.0, 100.0, 100, -100.0, 100.0);
-  _l3xyPos = new TH2D("l3xypos", "l3xypos", 100, -100.0, 100.0, 100, -100.0, 100.0);
-  _l4xyPos = new TH2D("l4xypos", "l4xypos", 100, -100.0, 100.0, 100, -100.0, 100.0);
-  _xyPos = new TH2D(  "xypos",   "xyPos",   100, -100.0, 100.0, 100, -100.0, 100.0);
-  _angles = new TH1D("angles", "angles", 100, -10, 370);
+  totes = new TH2D("totes", "totesmagotes", 100, -100, 100, 100, -100, 100);
+  for (int i =0; i < 5; i++)
+    {
+      graphs.push_back(new TH2D(Form("layer%d ", i), "layers", 1000, -80, 80, 1000, -80, 80));
+      angles.push_back(new TH1D(Form("angles%d", i), "angles", 100, -10, 370));
+    }
+  
   _nEvt = 0;
 
 }
@@ -112,12 +107,35 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
       CellIDDecoder<SimTrackerHit> idDec( endcapHits );
       int layer = idDec( hit )[ILDCellID0::layer];
       int side = idDec ( hit )[ILDCellID0::side];
-      posxVals.push_back(hit->getPosition()[0]);
-      posyVals.push_back(hit->getPosition()[1]);
-      double radius = sqrt(((posxVals[i])*(posxVals[i]))+((posyVals[i])*(posyVals[i])));
-      radii.push_back(radius);
-      layers.push_back(layer);
-      switch (layer)
+      int module = idDec (hit)[ILDCellID0::side];
+      int posx = (hit->getPosition()[0] + xmin)*100;
+      int posy = (hit->getPosition()[1] + ymin)*100;
+      totes->Fill(hit->getPosition()[0], hit->getPosition()[1]);
+      
+      [&] ()
+	{
+	  int index = layer-1;
+	  hitcount++;
+	  double theta = (atan2(posy, posx) + M_PI) * 180/M_PI;
+	  string id = to_string(posx/step) + to_string(posy/step);
+	  pixid.push_back(id);
+	  if(std::find(uniquepix.begin(), uniquepix.end(), id) == uniquepix.end())
+	    {
+	      uniquepix.push_back(id);
+	    }
+	  angles[index]->Fill(theta);
+	  graphs[index]->Fill(hit->getPosition()[0], hit->getPosition()[1]);
+	  if ((posx < 160000 && posy < 160000) && (posx >=0 && posy >= 0))
+	    {
+	      layers[index][posx/step][posy/step]++;
+	    }
+	    else
+	      {
+		cout << "posx: " << posx << ", posy: " << posy << "ERROR" << endl;
+	      }
+
+	}();
+      /*switch (layer)
 	{
 	case(1):
 	  if (true)
@@ -144,7 +162,7 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
 		  cout << posx << ", " << posy << ":::::::::::Error in 1" << endl;
 		}
 	    }
-	  /*	case (2):
+	  	case (2):
 	  if (side == 2)
 	    {
 	      hitcount++;
@@ -202,7 +220,6 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
                 }
             }
 	  */
-	}
     }
 }
 
