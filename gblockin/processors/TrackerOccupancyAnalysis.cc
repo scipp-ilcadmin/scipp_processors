@@ -38,6 +38,8 @@ TrackerOccupancyAnalysis TrackerOccupancyAnalysis;
 
 typedef vector<vector<int>> PixelGrid;
 typedef vector<PixelGrid> Layers;
+typedef vector<string> PixIDs;
+typedef vector<PixIDs> layerpixIDs;
 
 static TH2D* totes;
 static TFile* _rootfile;
@@ -49,10 +51,13 @@ static vector<double> posxVals;
 static vector<double> posyVals;
 static vector<double> poszVals;
 static vector<string> uniquepix;
+static layerpixIDs layerpixids(4, vector<string>());
+static layerpixIDs layeruniqueids(4, vector<string>());
 static Layers layers(4, PixelGrid(160*100, vector<int>(160*100,0)));
 static vector<TH2D*> graphs;
 static vector<TH1D*> angles;
 static int hitcount = 0;
+static vector<double> radii;
 
 template<typename T>
 static T getMax(vector<T> &vec) 
@@ -78,7 +83,7 @@ void TrackerOccupancyAnalysis::init()
   cout << "Initialized "  << endl;
   _rootfile = new TFile("TOA.root", "RECREATE");
   totes = new TH2D("totes", "totesmagotes", 100, -100, 100, 100, -100, 100);
-  for (int i =0; i < 5; i++)
+  for (int i =0; i < 4; i++)
     {
       graphs.push_back(new TH2D(Form("layer%d ", i), "layers", 1000, -80, 80, 1000, -80, 80));
       angles.push_back(new TH1D(Form("angles%d", i), "angles", 100, -10, 370));
@@ -95,6 +100,7 @@ void TrackerOccupancyAnalysis::processRunHeader( LCRunHeader* run)
 
 void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
 {
+  //cout << "DO STUFF    " << _nEvt << endl;
   _nEvt++;
   //LCCollection* barrelHits = evt->getCollection("SiVertexBarrelHits");
   LCCollection* endcapHits = evt->getCollection("SiVertexEndcapHits");
@@ -105,6 +111,7 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
     {
       SimTrackerHit* hit = dynamic_cast<SimTrackerHit*>(endcapHits->getElementAt(i));
       CellIDDecoder<SimTrackerHit> idDec( endcapHits );
+      hitcount++;
       int layer = idDec( hit )[ILDCellID0::layer];
       int side = idDec ( hit )[ILDCellID0::side];
       int module = idDec (hit)[ILDCellID0::side];
@@ -115,14 +122,15 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
       [&] ()
 	{
 	  int index = layer-1;
-	  hitcount++;
 	  double theta = (atan2(posy, posx) + M_PI) * 180/M_PI;
 	  string id = to_string(posx/step) + to_string(posy/step);
-	  pixid.push_back(id);
-	  if(std::find(uniquepix.begin(), uniquepix.end(), id) == uniquepix.end())
+	  //pixid.push_back(id);
+	  radii.push_back(sqrt((hit->getPosition()[0]*hit->getPosition()[0])+(hit->getPosition()[1]*hit->getPosition()[1])));	  
+	  if(std::find(layeruniqueids[index].begin(), layeruniqueids[index].end(), id) == layeruniqueids[index].end())
 	    {
-	      uniquepix.push_back(id);
+	      layeruniqueids[index].push_back(id);
 	    }
+	  layerpixids[index].push_back(id);
 	  angles[index]->Fill(theta);
 	  graphs[index]->Fill(hit->getPosition()[0], hit->getPosition()[1]);
 	  if ((posx < 160000 && posy < 160000) && (posx >=0 && posy >= 0))
@@ -135,91 +143,6 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
 	      }
 
 	}();
-      /*switch (layer)
-	{
-	case(1):
-	  if (true)
-	    {
-	      hitcount++;
-	      int posx = (hit->getPosition()[0] + xmin)*100; // indecies for x,y,z components;
-	      int posy = (hit->getPosition()[1] + ymin)*100;
-	      double theta = (atan2(hit->getPosition()[1], hit->getPosition()[0]) + M_PI) * 180/M_PI; // angles in degrees
-	      _angles->Fill(theta);
-	      _l1xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
-	      _xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
-	      string id = to_string(posx/step) + to_string(posy/step);
-	      if ((posx < 16000 && posy < 16000) && (posx >= 0 && posy >= 0))
-		{ 
-		  layer1[posx/step][posy/step]++;
-		  pixid.push_back(id);
-		  if(std::find(uniquepix.begin(), uniquepix.end(), id) == uniquepix.end())
-		    {
-		      uniquepix.push_back(id);
-		    }
-		}
-	      else 
-		{
-		  cout << posx << ", " << posy << ":::::::::::Error in 1" << endl;
-		}
-	    }
-	  	case (2):
-	  if (side == 2)
-	    {
-	      hitcount++;
-	      int posx = hit->getPosition()[0] + xmin; // indecies for x,y,z components;
-	      int posy = hit->getPosition()[1] + ymin;
-	      double theta = (atan2(hit->getPosition()[1], hit->getPosition()[0]) + M_PI) * 180/M_PI; // angles in degrees
-              _angles->Fill(theta);
-	      _l2xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
-       	      _xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
-	      if ((posx < 160 && posy < 160) && (posx >= 0 && posy >= 0))
-		{
-		  layer2[posx/step][posy/step]++;
-		}
-	      else
-		{
-		  cout << posx << ", " << posy << ":::::::::::Error in 2" << endl;
-		} 
-	    }
-	case (3):
-	  if (side == 2)
-	    {
-              hitcount++;
-              int posx = hit->getPosition()[0] + xmin; // indecies for x,y,z components;
-	      int posy = hit->getPosition()[1] + ymin;
-	      double theta = (atan2(hit->getPosition()[1], hit->getPosition()[0]) + M_PI) * 180/M_PI; // angles in degrees
-              _angles->Fill(theta);
-              _l3xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
-       	      _xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
-              if ((posx < 160 && posy < 160) && (posx >= 0 && posy >= 0))
-                {
-                  layer3[posx/step][posy/step]++;
-                }
-              else
-                {
-                  cout << posx << ", " << posy << ":::::::::::Error in 3" << endl;
-                }
-	    }
-	case (4):
-	  if (side == 2)
-            {
-	      hitcount++;
-              int posx = hit->getPosition()[0] + xmin; // indecies for x,y,z components;
-	      int posy = hit->getPosition()[1] + ymin;
-	      double theta = (atan2(hit->getPosition()[1], hit->getPosition()[0]) + M_PI) * 180/M_PI; // angles in degrees
-              _angles->Fill(theta);
-              _l4xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
-       	      _xyPos->Fill(hit->getPosition()[0],hit->getPosition()[1]);
-              if ((posx < 160 && posy < 160) && (posx >= 0 && posy >= 0))
-                {
-		  layer4[posx/step][posy/step]++;
-                }
-	      else
-                {
-                  cout << posx << ", " << posy << ":::::::::::Error in 4" << endl;
-                }
-            }
-	  */
     }
 }
 
@@ -231,43 +154,24 @@ void TrackerOccupancyAnalysis::check( LCEvent * evt)
 void TrackerOccupancyAnalysis::end()
 {
 
+  cout << "analysis finished" << endl;
   //cout << " max rad: " << getMax(radii) << " min rad: " << getMin(radii) << endl;
   //cout << " max y: " << getMax(posyVals) << " min y: " << getMin(posyVals) << endl;
   //cout << " max x: " << getMax(posxVals) << " min x: " << getMin(posxVals) << endl;
-  /*for (auto str : uniquepix)
-    {
-      cout << str << endl;
-    }
-  
-  cout << endl << endl << endl << endl;
-  cout << pixid.size() << endl;
-  for (auto vec : layer1)
-    {
-      for (auto hit: vec)
-	{
-	  cout << setw(2) << hit << " ";
-	}
-      cout << endl;
-    }
-  cout << endl << endl << endl << endl;
-  
-  int pixhit=0;
-  for(int i = 0; i < layer1[0].size(); i++)
-    {
-      for(int j = 0; j < layer1[i].size(); j++)
-	{
-	  if ( layer1[i][j] !=0 )
-	    pixhit++;
-	}
-    }
-  */
-  cout << "hitcount: " << hitcount << endl;
   int matters = (2*M_PI*73*73) - (2*M_PI*15*15);
-  cout << "number of pixels in layer1: " << matters << endl;
-  cout << "amount unique pixels hit: " << uniquepix.size() << endl;
-  double hitperc = static_cast<double>(uniquepix.size()) / static_cast<double>(matters) * 100;
-  cout << "Percentage of pixels that were hit in layer1: " << hitperc << endl;
-  //  cout << "pixels hit: " << pixhit << endl;
-  //  _rootfile->WriteObject(gr,"gr");
+  for (int i = 0; i < 4; i++)
+    {
+      cout << "total hits in layer " << i+1 << ": " << layerpixids[i].size() << endl;
+      cout << "unique pixels hit in layer " << i+1 << ": " << layeruniqueids[i].size() << endl;
+      double hitperc = static_cast<double>(layeruniqueids[i].size()) / static_cast<double>(matters) * 100;
+      cout << "Percent of pixels hit in layer " << i+1 << ": " << hitperc << endl;
+      cout << "Average percent of unique pixels hits per event: " << hitperc/_nEvt << endl;
+      cout << endl << endl << endl;
+    }
+  //cout << layeruniqueids[0].size() << endl << endl << endl;
+  cout << "hitcount: " << hitcount << endl;
+  //cout << "number of events: " << _nEvt << endl;
+  //double hitperc = static_cast<double>(uniquepix.size()) / static_cast<double>(matters) * 100;
+  //cout << "Percentage of pixels that were hit in layer1: " << hitperc << endl;
   _rootfile->Write();
 }
