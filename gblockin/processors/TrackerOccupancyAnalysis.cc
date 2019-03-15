@@ -58,6 +58,7 @@ static vector<TH2D*> graphs;
 static vector<TH1D*> angles;
 static int hitcount = 0;
 static vector<double> radii;
+static TH3D* threedim;
 
 template<typename T>
 static T getMax(vector<T> &vec) 
@@ -82,6 +83,7 @@ void TrackerOccupancyAnalysis::init()
   streamlog_out(DEBUG) << " init called " << endl;
   cout << "Initialized "  << endl;
   _rootfile = new TFile("TOA.root", "RECREATE");
+  threedim = new TH3D("threedim", "3-D model", 100, -100, 100, 100, -100, 100, 100, -300, 300);
   totes = new TH2D("totes", "totesmagotes", 100, -100, 100, 100, -100, 100);
   for (int i =0; i < 4; i++)
     {
@@ -100,7 +102,7 @@ void TrackerOccupancyAnalysis::processRunHeader( LCRunHeader* run)
 
 void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
 {
-  //cout << "DO STUFF    " << _nEvt << endl;
+  cout << "DO STUFF    " << _nEvt << endl;
   _nEvt++;
   //LCCollection* barrelHits = evt->getCollection("SiVertexBarrelHits");
   LCCollection* endcapHits = evt->getCollection("SiVertexEndcapHits");
@@ -113,10 +115,11 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
       CellIDDecoder<SimTrackerHit> idDec( endcapHits );
       hitcount++;
       int layer = idDec( hit )[ILDCellID0::layer];
-      int side = idDec ( hit )[ILDCellID0::side];
-      int module = idDec (hit)[ILDCellID0::side];
+      //int side = idDec ( hit )[ILDCellID0::side];
+      //int module = idDec (hit)[ILDCellID0::side];
       int posx = (hit->getPosition()[0] + xmin)*100;
       int posy = (hit->getPosition()[1] + ymin)*100;
+      threedim->Fill(hit->getPosition()[0], hit->getPosition()[1], hit->getPosition()[2]);
       totes->Fill(hit->getPosition()[0], hit->getPosition()[1]);
       
       [&] ()
