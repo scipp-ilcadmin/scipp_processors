@@ -53,10 +53,10 @@ static vector<double> posyVals;
 static vector<double> poszVals;
 static vector<string> uniquepix;
 static layerpixIDs layerpixids(5, vector<string>());
-static layerpixIDs layeruniqueids(5, vector<string>());
-static Layers layers(5, PixelGrid(160*100, vector<int>(160*100,0)));
-static VecDubs posxvals(5, vector<double>());
-static VecDubs posyvals(5, vector<double>());
+static layerpixIDs layeruniqueids(4, vector<string>());
+static Layers layers(4, PixelGrid(160*100, vector<int>(160*100,0)));
+static VecDubs posxvals(4, vector<double>());
+static VecDubs posyvals(4, vector<double>());
 static vector<TH2D*> graphs;
 static vector<TH1D*> angles;
 static int hitcount = 0;
@@ -88,7 +88,7 @@ void bleh::init()
   _rootfile = new TFile("yes.root", "RECREATE");
   threedim = new TH3D("threedim", "3-D model", 100, -100, 100, 100, -100, 100, 100, -300, 300);
   totes = new TH2D("totes", "totesmagotes", 1000, -100, 100, 1000, -100, 100);
-  for (int i =0; i < 5; i++)
+  for (int i =0; i < 4; i++)
     {
       graphs.push_back(new TH2D(Form("layer%d ", i), "layers", 1000, -80, 80, 1000, -80, 80));
       angles.push_back(new TH1D(Form("angles%d", i), "angles", 100, -10, 370));
@@ -106,7 +106,7 @@ void bleh::processEvent( LCEvent * evt)
 {
   cout << "DO STUFF    " << _nEvt << endl;
   _nEvt++;
-  LCCollection* barrelHits = evt->getCollection("SiVertexBarrelHits");
+  LCCollection* barrelHits = evt->getCollection("SiVertexEndcapHits");
   static const int step = 1;
   static const double xmin = 80;
   static const double ymin = 80;
@@ -159,7 +159,7 @@ void bleh::end()
 {
 
   //int matters = SOME FUCKING MATH BOi
-  for (int i = 0; i < 5; i++)
+  for (int i = 0; i < 4; i++)
     {
       cout << "total hits in layer " << i+1 << ": " << layerpixids[i].size() << endl;
       cout << "max X and Y in this layer: " << getMax(posxvals[i]) << ", " << getMax(posyvals[i]) << endl;

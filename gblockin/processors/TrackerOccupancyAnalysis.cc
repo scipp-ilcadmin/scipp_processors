@@ -128,7 +128,6 @@ void TrackerOccupancyAnalysis::processEvent( LCEvent * evt)
 	  double theta = (atan2(posy, posx) + M_PI) * 180/M_PI;
 	  string id = to_string(posx/step) + to_string(posy/step);
 	  //pixid.push_back(id);
-	  radii.push_back(sqrt((hit->getPosition()[0]*hit->getPosition()[0])+(hit->getPosition()[1]*hit->getPosition()[1])));	  
 	  if(std::find(layeruniqueids[index].begin(), layeruniqueids[index].end(), id) == layeruniqueids[index].end())
 	    {
 	      layeruniqueids[index].push_back(id);
@@ -157,18 +156,24 @@ void TrackerOccupancyAnalysis::check( LCEvent * evt)
 void TrackerOccupancyAnalysis::end()
 {
 
-  cout << "analysis finished" << endl;
-  //cout << " max rad: " << getMax(radii) << " min rad: " << getMin(radii) << endl;
+  cout << "analysis finished" << endl << endl << endl << endl;
+  //cout << " max rad: " << getMax(radii) << " min rad: " << getMin(radii) << endl << endl << endl;
   //cout << " max y: " << getMax(posyVals) << " min y: " << getMin(posyVals) << endl;
   //cout << " max x: " << getMax(posxVals) << " min x: " << getMin(posxVals) << endl;
-  int matters = (2*M_PI*73*73) - (2*M_PI*15*15);
+  double matters [4];
+  matters[0] = 100 * ((2*M_PI*75*75) - (2*M_PI*16*16));
+  matters[1] = 100 * ((2*M_PI*76*76) - (2*M_PI*17*17));
+  matters[2] = 100 * ((2*M_PI*77*77) - (2*M_PI*18*18));
+  matters[3] = 100 * ((2*M_PI*78*78) - (2*M_PI*19*19));
+
   for (int i = 0; i < 4; i++)
     {
       cout << "total hits in layer " << i+1 << ": " << layerpixids[i].size() << endl;
+      cout << "Pixels in layer " << i+1 << ": " << matters[i] << endl;
       cout << "unique pixels hit in layer " << i+1 << ": " << layeruniqueids[i].size() << endl;
-      double hitperc = static_cast<double>(layeruniqueids[i].size()) / static_cast<double>(matters) * 100;
+      double hitperc = static_cast<double>(layeruniqueids[i].size()) / static_cast<double>(matters[i]) * 100;
       cout << "Percent of pixels hit in layer " << i+1 << ": " << hitperc << endl;
-      cout << "Average percent of unique pixels hits per event: " << hitperc/_nEvt << endl;
+      cout << "Average percent of unique pixels hits per event: " << hitperc/matters[i] << endl;
       cout << endl << endl << endl;
     }
   //cout << layeruniqueids[0].size() << endl << endl << endl;
