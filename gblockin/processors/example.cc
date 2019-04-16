@@ -2,7 +2,7 @@
 #define _GLIBCXX_USE_CXX11_ABI 0
 /* 
  * Ok, so I like C++11. Unfortunately,
- * Marlin is built with ansi C, so the processor
+ * Marlin is uilt with ansi C, so the processor
  * constructor freaks out about the string that is
  * passed to it as an argument. The above two lines
  * fix that issue, allowing our code to be compatible
@@ -11,8 +11,8 @@
  */
 
 /*
- * author Christopher Milke
- * April 5, 2016
+ * author Gregory Blockinger
+ * April 5, 2019
  */
 
 #include "example.h"
@@ -83,8 +83,8 @@ void example::init()
     streamlog_out(DEBUG) << "   init called  " << std::endl ;
     _rootfile = new TFile("stahp.root","RECREATE");
     mods = new TH2D("mods", "mods", 1000, -100, 100, 1000, -100, 100);
-    ogmod =  new TH2D("ogmod" , "ogmod" , 300, -100, 100, 300, -100, 100);
-    newmod = new TH2D("newmod", "newmod", 300, -100, 100, 300, -100, 100);
+    ogmod =  new TH2D("ogmod" , "ogmod" , 1000, -100, 100, 1000, -100, 100);
+    newmod = new TH2D("newmod", "newmod", 1000, -100, 100, 1000, -100, 100);
     threedim = new TH3D("threedim", "3-D model", 100, -50, 50, 100, -50, 50, 100, -150, 150);
     _nEvt = 0 ;
 }
@@ -131,16 +131,19 @@ void example::processEvent( LCEvent * evt ) {
 	CellIDDecoder<SimTrackerHit> idDec(barrelhits);
 	int module = idDec( hit )[ILDCellID0::module];
 	int layer = idDec(  hit )[ILDCellID0::layer];
+
 	double posx = hit->getPosition()[0];
-	double posy = hit->getPosition()[1];
-	double posz = hit->getPosition()[2];
+        double posy = hit->getPosition()[1];
+        double posz = hit->getPosition()[2];
 	if (layer == 1 && module == 1)
 	  {
 	    rsuba[0] = rsuba[0]/nhit;
 	    rsuba[1] = rsuba[1]/nhit;
 	    rsuba[2] = rsuba[2]/nhit;
-	    newmod->Fill(posx - ( posx - rsuba[0] + posz - rsuba[2]) / sqrt(posx*posx), 0.0);
-	    newxvals.push_back(posx - (posx - rsuba[0] + posz - rsuba[2]) / sqrt(posx*posx));
+	    double newx = (posx - posx/2 + 1/2*(rsuba[0]/nhit) - posz/2 + 1/2*(rsuba[2]/nhit));
+	    cout << newx << endl;
+	    newmod->Fill( newx, 0.0);
+	    newxvals.push_back(newx);
 	  }
 
       }
@@ -156,11 +159,19 @@ void example::check( LCEvent * evt )
 
 void example::end()
 { 
+  double ogmax = getMax(ogxvals);
+  double ogmin = getMin(ogxvals);
+  double ogymax = getMax(ogyvals);
+  double ogymin = getMin(ogyvals);
+  double newmax = getMax(newxvals);
+  double newmin = getMin(newxvals);
   cout << "number of events: " << _nEvt << endl;
-  cout << "max og xval: "  << getMax(ogxvals);
-  cout << " min og xval: " << getMin(ogxvals) << endl;
-  cout << " max new xval: " << getMax(newxvals);
-  cout << " min new xval: " << getMin(newxvals) << endl;
+  //cout << "max og xval: "  << ogmax;
+  //cout << " min og xval: " << ogmin <<  " diff between max and min OG: " << sqrt(ogmax*ogmax - ogmin*ogmin) << endl;
+  //cout << " max new xval: " << newmax;
+  //cout << " min new xval: " << newmin << " diff between max and min NEW:  " << sqrt(newmax*newmax - newmin*newmin) << endl;
+  cout << "lenght of og mod: " << sqrt((ogmax-ogmin)*(ogmax-ogmin) + (ogymax-ogymin)*(ogymax-ogymin)) << endl;
+  cout << "length of new mod: " << sqrt((newmax-newmin)*(newmax-newmin)) << endl;
   _rootfile->Write();
   cout << nhit << endl;
 }
