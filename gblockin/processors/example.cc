@@ -114,7 +114,7 @@ void example::processEvent( LCEvent * evt ) {
 	double posx = hit->getPosition()[0];
 	double posy = hit->getPosition()[1];
 	double posz = hit->getPosition()[2];
-	if (layer ==1 && module ==1)
+	if (layer == 1)
 	  {
 	    ogxvals.push_back(posx);
 	    ogyvals.push_back(posy);
@@ -135,13 +135,13 @@ void example::processEvent( LCEvent * evt ) {
 	double posx = hit->getPosition()[0];
         double posy = hit->getPosition()[1];
         double posz = hit->getPosition()[2];
-	if (layer == 1 && module == 1)
+	if (layer == 1)
 	  {
 	    rsuba[0] = rsuba[0]/nhit;
 	    rsuba[1] = rsuba[1]/nhit;
 	    rsuba[2] = rsuba[2]/nhit;
 	    double newx = (posx - posx/2 + 1/2*(rsuba[0]/nhit) - posz/2 + 1/2*(rsuba[2]/nhit));
-	    cout << newx << endl;
+	    //cout << newx << endl;
 	    newmod->Fill( newx, 0.0);
 	    newxvals.push_back(newx);
 	  }
