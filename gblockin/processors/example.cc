@@ -53,6 +53,7 @@ static TH2D* newmod;
 static vector<double> ogxvals;
 static vector<double> ogyvals;
 static vector<double> newxvals;
+static vector<double> newyvals;
 
 //static const double normal[1.0, 0, 1.0];
 //static vector<string> vec;
@@ -101,6 +102,7 @@ void example::processEvent( LCEvent * evt ) {
     _nEvt++;
     //double rsubi[0.0, 0.0, 0.0];
     double rsuba[3] = {0.0, 0.0, 0.0};
+    double theta;
     for(int i=0; i < barrelhits->getNumberOfElements(); ++i)
       {
 	SimTrackerHit* hit = dynamic_cast<SimTrackerHit*>(barrelhits->getElementAt(i));
@@ -111,11 +113,12 @@ void example::processEvent( LCEvent * evt ) {
 	//int sensor = idDec (hit)[ILDCellID0::sensor];
 	//int subdet = idDec (hit)[ILDCellID0::subdet];
 	//string all = to_string(layer) + ", " + to_string(module) + ", " + to_string(sensor) + ", " + to_string(subdet);
-	double posx = hit->getPosition()[0];
-	double posy = hit->getPosition()[1];
-	double posz = hit->getPosition()[2];
-	if (layer == 1)
+	double posx = hit->getPosition()[0] + 10;
+	double posy = hit->getPosition()[1] + 10;
+	double posz = hit->getPosition()[2] + 10;
+	if (layer == 1 && module ==1)
 	  {
+	    
 	    ogxvals.push_back(posx);
 	    ogyvals.push_back(posy);
 	    ogmod->Fill(posx, posy);
@@ -125,6 +128,9 @@ void example::processEvent( LCEvent * evt ) {
 	    rsuba[2] += posz;
 	  }
       }
+    //theta = atan((getMax(ogyvals)-getMin(ogyvals)) / (getMax(ogxvals)-getMin(ogxvals))) * 180/M_PI;
+    theta = atan(sqrt(getMax(ogyvals)*(getMax(ogyvals)/sqrt(getMax(ogyvals)*getMax(ogyvals)))));
+    cout << "THETA: " << theta << endl;
     for(int i=0; i < barrelhits->getNumberOfElements(); i++)
       {
 	SimTrackerHit* hit = dynamic_cast<SimTrackerHit*>(barrelhits->getElementAt(i));
@@ -132,18 +138,21 @@ void example::processEvent( LCEvent * evt ) {
 	int module = idDec( hit )[ILDCellID0::module];
 	int layer = idDec(  hit )[ILDCellID0::layer];
 
-	double posx = hit->getPosition()[0];
-        double posy = hit->getPosition()[1];
-        double posz = hit->getPosition()[2];
-	if (layer == 1)
+	double posx = hit->getPosition()[0] + 10;
+        double posy = hit->getPosition()[1] + 10;
+        double posz = hit->getPosition()[2] + 10;
+	if (layer == 1 && module == 1)
 	  {
 	    rsuba[0] = rsuba[0]/nhit;
 	    rsuba[1] = rsuba[1]/nhit;
 	    rsuba[2] = rsuba[2]/nhit;
-	    double newx = (posx - posx/2 + 1/2*(rsuba[0]/nhit) - posz/2 + 1/2*(rsuba[2]/nhit));
+	    //double newx = (posx - posx/2 + 1/2*(rsuba[0]/nhit) - posz/2 + 1/2*(rsuba[2]/nhit));
 	    //cout << newx << endl;
-	    newmod->Fill( newx, 0.0);
+	    double newx = (posx * cos(theta)) - (posy * sin(theta));
+	    double newy = (posy * cos(theta)) + (posx * sin(theta));
+	    newmod->Fill( newx, newy);
 	    newxvals.push_back(newx);
+	    newyvals.push_back(newy);
 	  }
 
       }
@@ -163,15 +172,19 @@ void example::end()
   double ogmin = getMin(ogxvals);
   double ogymax = getMax(ogyvals);
   double ogymin = getMin(ogyvals);
-  double newmax = getMax(newxvals);
-  double newmin = getMin(newxvals);
+  double newxmax = getMax(newxvals);
+  double newxmin = getMin(newxvals);
+  double newymax = getMax(newyvals);
+  double newymin = getMin(newyvals);
   cout << "number of events: " << _nEvt << endl;
   //cout << "max og xval: "  << ogmax;
   //cout << " min og xval: " << ogmin <<  " diff between max and min OG: " << sqrt(ogmax*ogmax - ogmin*ogmin) << endl;
   //cout << " max new xval: " << newmax;
   //cout << " min new xval: " << newmin << " diff between max and min NEW:  " << sqrt(newmax*newmax - newmin*newmin) << endl;
-  cout << "lenght of og mod: " << sqrt((ogmax-ogmin)*(ogmax-ogmin) + (ogymax-ogymin)*(ogymax-ogymin)) << endl;
-  cout << "length of new mod: " << sqrt((newmax-newmin)*(newmax-newmin)) << endl;
+  cout << "ogxmin: " << ogmin << ",     ogxmax: " << ogmax << endl;
+  cout << "ogymin: " << ogymin << ",    ogymax: " << ogymax << endl;
+  cout << "lenght of og mod: "  << sqrt((ogmax-ogmin)*(ogmax-ogmin) + (ogymax-ogymin)*(ogymax-ogymin)) << endl;
+  cout << "length of new mod: " << sqrt((newxmax-newxmin)*(newxmax-newxmin) + (newymax-newymin) * (newymax - newymin)) << endl;
   _rootfile->Write();
   cout << nhit << endl;
 }
