@@ -54,9 +54,6 @@ static vector<double> ogxvals;
 static vector<double> ogyvals;
 static vector<double> newxvals;
 static vector<double> newyvals;
-static vector<double> radvals;
-//static const double normal[1.0, 0, 1.0];
-//static vector<string> vec;
 static int _nEvt=0;
 static int nhit = 0;
 
@@ -100,7 +97,6 @@ void example::processRunHeader( LCRunHeader* run)
 void example::processEvent( LCEvent * evt ) { 
     LCCollection* barrelhits = evt->getCollection( "SiVertexBarrelHits" );
     _nEvt++;
-    //double rsubi[0.0, 0.0, 0.0];
     double rsuba[3] = {0.0, 0.0, 0.0};
     double theta;
     for(int i=0; i < barrelhits->getNumberOfElements(); ++i)
@@ -112,35 +108,25 @@ void example::processEvent( LCEvent * evt ) {
 	int module = idDec (hit)[ILDCellID0::module];
 	//int sensor = idDec (hit)[ILDCellID0::sensor];
 	//int subdet = idDec (hit)[ILDCellID0::subdet];
-	//string all = to_string(layer) + ", " + to_string(module) + ", " + to_string(sensor) + ", " + to_string(subdet);
-	double radval = sqrt((hit->getPosition()[0]*hit->getPosition()[0]) + (hit->getPosition()[1]*hit->getPosition()[1]));
-	//radvals.push_back(radval);
-	if (radval > 10.0)
-	  {
-	    radvals.push_back(radval);
-	    //cout << "rad val:   " << radval << endl;
-	    double posx = hit->getPosition()[0];
-	    double posy = hit->getPosition()[1];
-	    double posz = hit->getPosition()[2];
-	    if (layer == 1 && module == 1)
-	      {	    
-		ogxvals.push_back(posx);
-		ogyvals.push_back(posy);
-		ogmod->Fill(posx, posy);
-		nhit++;; 
-		rsuba[0] += posx;
-		rsuba[1] += posy;
-		rsuba[2] += posz;
-	      }
-	
+	double posx = hit->getPosition()[0];
+	double posy = hit->getPosition()[1];
+	double posz = hit->getPosition()[2];
+	if (layer == 1 && module == 11)
+	  {	    
+	    ogxvals.push_back(posx);
+	    ogyvals.push_back(posy);
+	    ogmod->Fill(posx, posy);
+	    nhit++;; 
+	    rsuba[0] += posx;
+	    rsuba[1] += posy;
+	    rsuba[2] += posz;
 	  }
+	
       }
     rsuba[0] = rsuba[0]/nhit;
     rsuba[1] = rsuba[1]/nhit;
     rsuba[2] = rsuba[2]/nhit;
-    theta = atan((getMax(ogyvals)-getMin(ogyvals)) / (getMax(ogxvals)-getMin(ogxvals))) * 180/M_PI;
-    //theta = atan(sqrt(getMax(ogyvals)*(getMax(ogyvals)/sqrt(getMax(ogyvals)*getMax(ogyvals)))));
-    //theta = atan((rsuba[1] - getMax(ogyvals))/(rsuba[0] - getMax(ogxvals)));
+    theta = atan2 (rsuba[0], rsuba[1]);
     cout << "THETA: " << theta << endl;
     for(int i=0; i < barrelhits->getNumberOfElements(); i++)
       {
@@ -148,23 +134,16 @@ void example::processEvent( LCEvent * evt ) {
 	CellIDDecoder<SimTrackerHit> idDec(barrelhits);
 	int module = idDec( hit )[ILDCellID0::module];
 	int layer = idDec(  hit )[ILDCellID0::layer];
-	double radval = sqrt((hit->getPosition()[0]*hit->getPosition()[0]) + (hit->getPosition()[1]*hit->getPosition()[1]));
-        if (radval > 10.0)
+	double posx = hit->getPosition()[0];
+	double posy = hit->getPosition()[1];
+	double posz = hit->getPosition()[2];
+	if (layer == 1 && module == 11)
 	  {
-	    double posx = hit->getPosition()[0];
-	    double posy = hit->getPosition()[1];
-	    double posz = hit->getPosition()[2];
-	    if (layer == 1 && module == 1)
-	      {
-		double distfromavg = sqrt((hit->getPosition()[0]-rsuba[0])*(hit->getPosition()[0]-rsuba[0])+(hit->getPosition()[1]-rsuba[1])*(hit->getPosition()[1]-rsuba[1]));
-		double newx = distfromavg;
-		double newy = 0.0;
-		//double newy = (posy * cos(theta)) + (posx * sin(theta));
-		newmod->Fill( newx, newy);
-		newxvals.push_back(newx);
-		newyvals.push_back(newy);
-	      }
-
+	    double newx = posx * cos(theta) - posy * sin(theta);
+	    double newy = posy * cos(theta) + posx * sin(theta);
+	    newmod->Fill( newx, newy);
+	    newxvals.push_back(newx);
+	    newyvals.push_back(newy);
 	  }
       }
 }
@@ -188,15 +167,10 @@ void example::end()
   double newymax = getMax(newyvals);
   double newymin = getMin(newyvals);
   cout << "number of events: " << _nEvt << endl;
-  //cout << "max og xval: "  << ogmax;
-  //cout << " min og xval: " << ogmin <<  " diff between max and min OG: " << sqrt(ogmax*ogmax - ogmin*ogmin) << endl;
-  //cout << " max new xval: " << newmax;
-  //cout << " min new xval: " << newmin << " diff between max and min NEW:  " << sqrt(newmax*newmax - newmin*newmin) << endl;
   cout << "ogxmin: " << ogmin << ",     ogxmax: " << ogmax << endl;
   cout << "ogymin: " << ogymin << ",    ogymax: " << ogymax << endl;
   cout << "lenght of og mod: "  << sqrt((ogmax-ogmin)*(ogmax-ogmin) + (ogymax-ogymin)*(ogymax-ogymin)) << endl;
   cout << "length of new mod: " << sqrt((newxmax-newxmin)*(newxmax-newxmin) + (newymax-newymin) * (newymax - newymin)) << endl;
-  cout << "min rad val: " << getMin(radvals) << ", max rad val: " << getMax(radvals) << endl;
   _rootfile->Write();
   cout << nhit << endl;
 }
