@@ -111,6 +111,7 @@ void example::processEvent( LCEvent * evt ) {
 	double posx = hit->getPosition()[0];
 	double posy = hit->getPosition()[1];
 	double posz = hit->getPosition()[2];
+	mods->Fill(posx, posy);
 	if (layer == 1 && module == 11)
 	  {	    
 	    ogxvals.push_back(posx);
