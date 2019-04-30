@@ -45,18 +45,30 @@ using namespace std;
 
 example example;
 
+typedef vector<vector<int>> PixelGrid;
+typedef vector<PixelGrid> Layers;
+typedef vector<string> PixIDs;
+typedef vector<PixIDs> layerpixIDs;
+
 static TFile* _rootfile;
 static TH2D* mods;
 static TH3D* threedim;
 static TH2D* ogmod;
 static TH2D* newmod;
+static vector<TH2D*> graphs;
+static vector<TH1D*> angles;
 static vector<double> ogxvals;
 static vector<double> ogyvals;
 static vector<double> newxvals;
 static vector<double> newyvals;
+static vector<double> zvalsinnermod;
+static vector<double> zvalsoutermod;
+
 static int _nEvt=0;
 static int nhit = 0;
-
+static layerpixIDs layerpixids(4, vector<string>());
+static layerpixIDs layeruniqueids(4, vector<string>());
+static Layers layers(4, PixelGrid(160*100, vector<int>(160*100,0)));
 
 template<typename T>
 static T getMax(vector<T> &vec)
@@ -84,6 +96,12 @@ void example::init()
     ogmod =  new TH2D("ogmod" , "ogmod" , 1000, -30, 30, 1000, -30, 50);
     newmod = new TH2D("newmod", "newmod", 1000, -30, 30, 1000, -30, 50);
     threedim = new TH3D("threedim", "3-D model", 100, -50, 50, 100, -50, 50, 100, -150, 150);
+    for (int i =0; i < 4; i++)
+      {
+	graphs.push_back(new TH2D(Form("layer%d ", i), "layers", 1000, -80, 80, 1000, -80, 80));
+	angles.push_back(new TH1D(Form("angles%d", i), "angles", 100, -10, 370));
+      }
+
     _nEvt = 0 ;
 }
 
@@ -112,15 +130,21 @@ void example::processEvent( LCEvent * evt ) {
 	double posy = hit->getPosition()[1];
 	double posz = hit->getPosition()[2];
 	mods->Fill(posx, posy);
-	if (layer == 1 && module == 11)
+	double radval = sqrt(posx*posx + posy*posy);
+	if (layer == 1 && module == 1 && radval > 12)
 	  {	    
 	    ogxvals.push_back(posx);
 	    ogyvals.push_back(posy);
 	    ogmod->Fill(posx, posy);
-	    nhit++;; 
+	    zvalsinnermod.push_back(posz);
+	    nhit++; 
 	    rsuba[0] += posx;
 	    rsuba[1] += posy;
 	    rsuba[2] += posz;
+	  }
+	if ( layer == 1 && module == 2 && radval > 12)
+	  {
+	    zvalsoutermod.push_back(posz);
 	  }
 	
       }
@@ -138,7 +162,8 @@ void example::processEvent( LCEvent * evt ) {
 	double posx = hit->getPosition()[0];
 	double posy = hit->getPosition()[1];
 	double posz = hit->getPosition()[2];
-	if (layer == 1 && module == 11)
+	double radval = sqrt(posx*posx + posy*posy);
+	if (layer == 1 && module == 1 && radval > 12)
 	  {
 	    double newx = posx * cos(theta) - posy * sin(theta);
 	    double newy = posy * cos(theta) + posx * sin(theta);
@@ -168,10 +193,13 @@ void example::end()
   double newymax = getMax(newyvals);
   double newymin = getMin(newyvals);
   cout << "number of events: " << _nEvt << endl;
-  cout << "ogxmin: " << ogmin << ",     ogxmax: " << ogmax << endl;
-  cout << "ogymin: " << ogymin << ",    ogymax: " << ogymax << endl;
+  //cout << "ogxmin: " << ogmin << ",     ogxmax: " << ogmax << endl;
+  //cout << "ogymin: " << ogymin << ",    ogymax: " << ogymax << endl;
+  cout << " inner mod min z: " << getMin(zvalsinnermod) << "  innermod max z: " << getMax(zvalsinnermod) << endl;
+  cout << " outer mod min z: " << getMin(zvalsoutermod) << "  outermod max z: " << getMax(zvalsoutermod) << endl;
   cout << "lenght of og mod: "  << sqrt((ogmax-ogmin)*(ogmax-ogmin) + (ogymax-ogymin)*(ogymax-ogymin)) << endl;
-  cout << "length of new mod: " << sqrt((newxmax-newxmin)*(newxmax-newxmin) + (newymax-newymin) * (newymax - newymin)) << endl;
+  cout << "length of new mod: " << newxmax - newxmin << endl;
+  //cout << "length of new mod: " << sqrt((newxmax-newxmin)*(newxmax-newxmin) + (newymax-newymin) * (newymax - newymin)) << endl;
   _rootfile->Write();
   cout << nhit << endl;
 }
