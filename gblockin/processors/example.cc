@@ -52,7 +52,8 @@ typedef vector<PixIDs> layerpixIDs;
 
 static TFile* _rootfile;
 static TH2D* mods;
-static TH3D* threedim;
+static TH2D* threedim;
+static TH2D* threedim2;
 static TH2D* ogmod;
 static TH2D* newmod;
 static vector<TH2D*> graphs;
@@ -66,9 +67,9 @@ static vector<double> zvalsoutermod;
 
 static int _nEvt=0;
 static int nhit = 0;
-static layerpixIDs layerpixids(4, vector<string>());
-static layerpixIDs layeruniqueids(4, vector<string>());
-static Layers layers(4, PixelGrid(160*100, vector<int>(160*100,0)));
+static layerpixIDs layerpixids(5, vector<string>());
+static layerpixIDs layeruniqueids(5, vector<string>());
+static Layers layers(5, PixelGrid(160*100, vector<int>(160*100,0)));
 
 template<typename T>
 static T getMax(vector<T> &vec)
@@ -95,7 +96,9 @@ void example::init()
     mods = new TH2D("mods", "mods", 1000, -100, 100, 1000, -100, 100);
     ogmod =  new TH2D("ogmod" , "ogmod" , 1000, -30, 30, 1000, -30, 50);
     newmod = new TH2D("newmod", "newmod", 1000, -30, 30, 1000, -30, 50);
-    threedim = new TH3D("threedim", "3-D model", 100, -50, 50, 100, -50, 50, 100, -150, 150);
+    threedim = new TH2D("threedim", "3-D model", 100, -50, 50, 100, -150, 150);
+    threedim2 = new TH2D("threedim2", "3-D model", 100, -50, 50, 100, -150, 150);
+
     for (int i =0; i < 4; i++)
       {
 	graphs.push_back(new TH2D(Form("layer%d ", i), "layers", 1000, -80, 80, 1000, -80, 80));
@@ -130,6 +133,14 @@ void example::processEvent( LCEvent * evt ) {
 	double posy = hit->getPosition()[1];
 	double posz = hit->getPosition()[2];
 	mods->Fill(posx, posy);
+	if (layer ==1)
+	  {
+	    threedim->Fill(posx,posz);
+	  }
+	if (layer ==2)
+	  {
+	    threedim2->Fill(posx,posz);
+	  }
 	double radval = sqrt(posx*posx + posy*posy);
 	if (layer == 1 && module == 1 && radval > 12)
 	  {	    
