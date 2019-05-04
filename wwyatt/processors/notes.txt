@@ -1,3 +1,9 @@
-move fourvec.h and TwoPhoton.h into the shared procesoors
-change getFourVector to getFourvec
-move getFourvec to fourvec.h
+int numberOfFinalStateParticles=0
+for(int i=0; i < col->getNumberOfElements(); ++i){
+  MCParticle* particle=dynamic_cast<MCParticle*>(col->getElementAt(i));
+  //if it is not final state than continue the for loop.
+  if(particle->getGeneratorStatus()!=1) continue;
+  numberOfFinalStateParticles+=1
+  //Then do SVM
+}
+//Then histogram the numberOfFinalStateParticles
