@@ -56,9 +56,10 @@ static int nhit = 0;
 static TH2D* totes;
 static vector<TH2D*> ogmods;
 static vector<TH2D*> newmods;
-static layerpixIDs layerpixids(5, vector<string>());
-static layerpixIDs layeruniqueids(5, vector<string>());
-static Layers layers(5, PixelGrid(160*100, vector<int>(160*100,0)));
+static layerpixIDs modpixids(12, vector<string>());
+static layerpixIDs moduniqueids(12, vector<string>());
+static Layers mods(12, PixelGrid(150, vector<int>(150,0)));
+static vector<double> zvals;
 
 static double rsuba [12][3];
 static double thetavals [12][1];
@@ -76,7 +77,7 @@ static T getMin(vector<T> &vec)
 
 copyofexample::copyofexample() : Processor("copyofexample") 
 {
-    // modify processor description
+  // modify processor description
     _description = "Protype Processor" ;
 }
 
@@ -85,11 +86,11 @@ void copyofexample::init()
 { 
     streamlog_out(DEBUG) << "   init called  " << std::endl ;
     _rootfile = new TFile("bread.root","RECREATE");
-    totes = new TH2D("totes", "magotes", 1000, -30, 30, 1000, -30, 30);
+    totes = new TH2D("totes", "magotes", 1000, -20, 20, 1000, -20, 20);
     for (int i = 1; i < 13; i++)
       {
-	ogmods.push_back(new TH2D(Form("ogmod%d ", i), "mods", 1000, -30, 30, 1000, -30, 30));
-	newmods.push_back(new TH2D(Form("newmod%d ", i), "mods", 1000, -30, 30, 1000, -30, 30));
+	ogmods.push_back(new TH2D(Form("ogmod%d ", i), "mods", 1000, -20, 20, 1000, -20, 20));
+	newmods.push_back(new TH2D(Form("newmod%d ", i), "mods", 1000, -20, 20, 1000, -20, 20));
       }
 
     _nEvt = 0 ;
@@ -105,6 +106,10 @@ void copyofexample::processRunHeader( LCRunHeader* run)
 void copyofexample::processEvent( LCEvent * evt ) { 
     LCCollection* barrelhits = evt->getCollection( "SiVertexBarrelHits" );
     _nEvt++;
+    static const double xmin = 100;
+    static const double ymin = 100;
+    static const double zmin = 100;
+    static const int step =1;
     for(int i=0; i < barrelhits->getNumberOfElements(); ++i)
       {
 	SimTrackerHit* hit = dynamic_cast<SimTrackerHit*>(barrelhits->getElementAt(i));
@@ -116,9 +121,10 @@ void copyofexample::processEvent( LCEvent * evt ) {
 	//int subdet = idDec (hit)[ILDCellID0::subdet];
 	if (layer == 1)
 	  {
-	    double posx = hit->getPosition()[0];
-	    double posy = hit->getPosition()[1];
-	    double posz = hit->getPosition()[2];
+	    double posx = hit->getPosition()[0] + xmin;
+	    double posy = hit->getPosition()[1] + ymin;
+	    double posz = hit->getPosition()[2] + zmin;
+	    zvals.push_back(posz);
 	    double radval = sqrt(posx*posx + posy*posy);
 	    if (radval > 12)
 	      {
@@ -151,18 +157,28 @@ void copyofexample::processEvent( LCEvent * evt ) {
 	int module = idDec (hit ) [ILDCellID0::module];
 	if (layer == 1)
 	  {
-	    double posx = hit->getPosition()[0];
-	    double posy = hit->getPosition()[1];
-	    double posz = hit->getPosition()[2];
+	    double posx = hit->getPosition()[0] + xmin;
+	    double posy = hit->getPosition()[1] + ymin;
+	    double posz = hit->getPosition()[2] + zmin;
 	    double radval = sqrt(posx*posx + posy*posy);
 	    if (radval > 12)
 	      {
-		double newx = posx * cos(thetavals[module][0]) - posy * sin(thetavals[module][0]);
-		double newy = posy * cos(thetavals[module][0]) + posx * sin(thetavals[module][0]);
+		double newx = (posx * cos(thetavals[module][0]) - posy * sin(thetavals[module][0])) + xmin;
+		double newy = (posy * cos(thetavals[module][0]) + posx * sin(thetavals[module][0])) + ymin;
 		[&]()
 		  {
 		    int index = module;
 		    newmods[index]->Fill(newx, newy);
+		    string id = to_string(newx/step) + to_string(posz/step);
+		    modpixids[index].push_back(id);
+		    if ((newx < 151 && posz < 300) && (newx >= 0 && posz >=0))
+		      {
+			mods[index][newx/step][posz/step]++;
+		      }
+		      else
+			{
+			  cout << "ERROR: " << newx << " , " << posz << endl;
+			}
 		  }();
 	      }
 	  }
@@ -179,8 +195,21 @@ void copyofexample::check( LCEvent * evt )
 
 void copyofexample::end()
 {
+
+  double matters = 4.9*63;
+  for (int i = 0; i < 12; i++)
+    {
+      cout << "total hits in module " << i+1 << ": " << modpixids[i].size() << endl;
+      cout << "Pixels in module " << i+1 << ": " << matters << endl;
+      //cout << "unique pixels hit in module " << i+1 << ": " << moduniqueids[i].size() << endl;
+      //double hitperc = static_cast<double>(layeruniqueids[i].size()) / static_cast<double>(matters) * 100;
+      //cout << "Percent of pixels hit in layer " << i+1 << ": " << hitperc << endl;
+      //cout << "Average percent of unique pixels hits per event: " << hitperc/matters << endl;
+      cout << endl << endl << endl;
+    }
+
   cout << "number of hits total: " << nhit << endl;
- 
+  cout << getMax(zvals) << "    " << getMin(zvals) << endl;
   _rootfile->Write("Update");
 
 }
