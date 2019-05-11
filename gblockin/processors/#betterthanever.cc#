@@ -116,7 +116,8 @@ void betterthanever::processEvent( LCEvent * evt )
 	double posx = hit->getPosition()[0]; //position stored in array, indexed for each coordinate
 	double posy = hit->getPosition()[1];
 	double posz = hit->getPosition()[2];
-	float momz = hit->getMomentum()[2];
+	float momz = hit->getPosition()[2];
+	cout << momz << endl;
 	momvals->Fill(momz);
        	phigone->Fill(posz);
 	++nhit;
