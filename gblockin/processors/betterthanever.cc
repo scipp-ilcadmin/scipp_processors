@@ -12,7 +12,7 @@
 
 /*
  * author Gregory Blockinger
- * April 5, 2019
+ * May 11th, 2019
  */
 
 #include "betterthanever.h"
@@ -47,7 +47,6 @@ betterthanever betterthanever;
 
 typedef vector<vector<int>> PixelGrid;
 typedef vector<PixelGrid> Layers; // creating structures to store the pixels and their hits in
-
 typedef vector<Layers> Barrel;
 typedef vector<string> PixIDs;
 typedef vector<PixIDs> layerpixIDs;
@@ -59,7 +58,9 @@ static Barrel barrel{};
 static double rsuba[5][30][2] = {{{0.0}}};
 static double thetas[5][30][1];
 static TH1D* phigone;
-static TH1F* momvals;
+static vector<double> vecids;
+static TH2D* newmods[12][30];
+
 template<typename T>
 static T getMax(vector<T> &vec) //this gets the greatest value in a vector
 {
@@ -88,12 +89,16 @@ void betterthanever::init()
     barrel.emplace_back(24, PixelGrid(14, vector<int>(126,0)));
     barrel.emplace_back(30, PixelGrid(14, vector<int>(126,0)));
     phigone = new TH1D("phigone","collapsed in phi",100, -100, 100);
-    momvals = new TH1F("momvals", "Z-mom of hits", 100, -100, 100);
+    for (int i=0; i < 12; ++i)
+      {
+	for(int j=0; j <30; ++j)
+	  {
+	    newmods[i][j] = (new TH2D(Form("newmod%d%d",i,j), "module", 500, -50, 50, 500, -200, 200));
+	  }
+      }
     _nEvt = 0;
     nhit = 0;
 }
-
-
 
 void betterthanever::processRunHeader( LCRunHeader* run)
 { 
@@ -116,9 +121,11 @@ void betterthanever::processEvent( LCEvent * evt )
 	double posx = hit->getPosition()[0]; //position stored in array, indexed for each coordinate
 	double posy = hit->getPosition()[1];
 	double posz = hit->getPosition()[2];
-	float momz = hit->getMomentum()[2];
-	momvals->Fill(momz);
-       	phigone->Fill(posz);
+	float momx = hit->getMomentum()[0];
+	float momy = hit->getMomentum()[1];
+	float momz = hit->getMomentum()[2];	
+	//cout << "momx: " << momx << " momy: " << momy << " momz: " << momz << endl;
+       	//phigone->Fill(posz);
 	++nhit;
 	rsuba[layer-1][module][0]+=posx;
 	rsuba[layer-1][module][1]+=posy;
@@ -134,6 +141,29 @@ void betterthanever::processEvent( LCEvent * evt )
         //rsuba[layer-1][module][1] = rsuba[layer-1][module][1]/nhit;
         //rsuba[layer][module][2] /= nhit;
       }
+
+
+    for (int i=0; i < 5; ++i)
+      {                                           
+	for (int j = 0; j < 30; ++j)  
+        { 
+          rsuba[i][j][0]/=nhit;   
+          rsuba[i][j][1]/=nhit;
+          thetas[i][j][0] = atan2(rsuba[i][j][0], rsuba[i][j][1]);       
+	}                                                                                                                                                                         
+      }
+    for(int i=0; i < barrelhits->getNumberOfElements(); ++i)
+      {
+	SimTrackerHit* hit = dynamic_cast<SimTrackerHit*>(barrelhits->getElementAt(i));
+	CellIDDecoder<SimTrackerHit> idDec(barrelhits);
+	int layer = idDec(hit)[ILDCellID0::layer];
+	int module = idDec(hit)[ILDCellID0::module];
+	double x = hit->getPosition()[0];
+	double y = hit->getPosition()[1];
+	double z = hit->getPosition()[2];
+	double newx = (x * cos(thetas[layer][module][0]) - y * sin(thetas[layer][module][0]));
+	newmods[layer-1][module]->Fill(newx, z);
+      }
 }
 
 
@@ -147,6 +177,7 @@ void betterthanever::check( LCEvent * evt )
 void betterthanever::end()
 {
   cout << "nhit: " << nhit << endl;
+  cout << "_nEvt: " << _nEvt << endl;
   /*for (int i=0; i < 5; ++i)
     {
       for (int j = 0; j < 30; ++j)
