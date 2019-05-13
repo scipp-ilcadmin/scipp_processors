@@ -59,8 +59,9 @@ static double rsuba[5][30][2] = {{{0.0}}};
 static double thetas[5][30][1];
 static TH1D* phigone;
 static vector<double> vecids;
-static TH2D* newmods[12][30];
-
+static TH2D* newmods[5][30];
+static TH2D* ogxyplane;
+static TH2D* newxyplane;
 template<typename T>
 static T getMax(vector<T> &vec) //this gets the greatest value in a vector
 {
@@ -89,11 +90,13 @@ void betterthanever::init()
     barrel.emplace_back(24, PixelGrid(14, vector<int>(126,0)));
     barrel.emplace_back(30, PixelGrid(14, vector<int>(126,0)));
     phigone = new TH1D("phigone","collapsed in phi",100, -100, 100);
-    for (int i=0; i < 12; ++i)
+    ogxyplane = new TH2D("ogxyplane", "L", 500, -100, 100, 500, -100, 100);
+    newxyplane = new TH2D("newxyplane", "L", 500, -100, 100, 500, -100, 100);
+    for (int i=0; i < 5; ++i)
       {
 	for(int j=0; j <30; ++j)
 	  {
-	    newmods[i][j] = (new TH2D(Form("newmod%d%d",i,j), "module", 500, -50, 50, 500, -200, 200));
+	    newmods[i][j] = (new TH2D(Form("newmod%d%d",i,j), "module", 500, -200, 200, 500, -200, 200));
 	  }
       }
     _nEvt = 0;
@@ -121,22 +124,19 @@ void betterthanever::processEvent( LCEvent * evt )
 	double posx = hit->getPosition()[0]; //position stored in array, indexed for each coordinate
 	double posy = hit->getPosition()[1];
 	double posz = hit->getPosition()[2];
-	float momx = hit->getMomentum()[0];
-	float momy = hit->getMomentum()[1];
-	float momz = hit->getMomentum()[2];	
-	//cout << "momx: " << momx << " momy: " << momy << " momz: " << momz << endl;
-       	//phigone->Fill(posz);
+       	ogxyplane->Fill(posx, posy);
 	++nhit;
 	rsuba[layer-1][module][0]+=posx;
 	rsuba[layer-1][module][1]+=posy;
 	//rsuba[layer][module][2]++;
+	phigone->Fill(posz);
       }
     for(int i=0; i < barrelhits->getNumberOfElements(); ++i)  //loop for each hit in the collection
       {
         SimTrackerHit* hit = dynamic_cast<SimTrackerHit*>(barrelhits->getElementAt(i));
         CellIDDecoder<SimTrackerHit> idDec(barrelhits);
-        int layer = idDec( hit )[ILDCellID0::layer];   //info about hits stored in these types                                                                                                             
-        int module = idDec (hit)[ILDCellID0::module];
+        int layer = idDec( hit )[ILDCellID0::layer];   //info about hits stored in these types 
+	int module = idDec (hit)[ILDCellID0::module];
 	//rsuba[layer-1][module][0] = rsuba[layer-1][module][0]/nhit;
         //rsuba[layer-1][module][1] = rsuba[layer-1][module][1]/nhit;
         //rsuba[layer][module][2] /= nhit;
@@ -150,7 +150,7 @@ void betterthanever::processEvent( LCEvent * evt )
           rsuba[i][j][0]/=nhit;   
           rsuba[i][j][1]/=nhit;
           thetas[i][j][0] = atan2(rsuba[i][j][0], rsuba[i][j][1]);       
-	}                                                                                                                                                                         
+	}                                     
       }
     for(int i=0; i < barrelhits->getNumberOfElements(); ++i)
       {
@@ -161,8 +161,10 @@ void betterthanever::processEvent( LCEvent * evt )
 	double x = hit->getPosition()[0];
 	double y = hit->getPosition()[1];
 	double z = hit->getPosition()[2];
-	double newx = (x * cos(thetas[layer][module][0]) - y * sin(thetas[layer][module][0]));
-	newmods[layer-1][module]->Fill(newx, z);
+	double newx = ((x * cos(thetas[layer-1][module][0])) - (y * sin(thetas[layer-1][module][0])));
+	double newy = ((y * cos(thetas[layer-1][module][0])) + (x * cos(thetas[layer-1][module][0])));
+	newmods[layer-1][module]->Fill(newx, newy);
+	newxyplane->Fill(newx, newy);
       }
 }
 
