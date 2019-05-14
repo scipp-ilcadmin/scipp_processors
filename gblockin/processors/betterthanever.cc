@@ -57,11 +57,16 @@ static int nhit;
 static Barrel barrel{};
 static double rsuba[5][30][2] = {{{0.0}}};
 static double thetas[5][30][1];
-static TH1D* phigone;
+static TH1D* momzvals;
+static TH1D* phigone[5];
+static TH1D* phigoneneg[5];
+static TH1D* phigonemid[5];
+static TH1D* phigonepos[5];
 static vector<double> vecids;
 static TH2D* newmods[5][30];
 static TH2D* ogxyplane;
 static TH2D* newxyplane;
+
 template<typename T>
 static T getMax(vector<T> &vec) //this gets the greatest value in a vector
 {
@@ -83,21 +88,26 @@ betterthanever::betterthanever() : Processor("betterthanever")
 void betterthanever::init()
 { 
     streamlog_out(DEBUG) << "   init called  " << std::endl ;
-    _rootfile = new TFile("tits.root","RECREATE");  //Any histograms would be created in this block
+    _rootfile = new TFile("first.root","RECREATE");  //Any histograms would be created in this block
     barrel.emplace_back(12, PixelGrid(10, vector<int>(126,0)));
     barrel.emplace_back(12, PixelGrid(14, vector<int>(126,0)));
     barrel.emplace_back(18, PixelGrid(14, vector<int>(126,0)));
     barrel.emplace_back(24, PixelGrid(14, vector<int>(126,0)));
-    barrel.emplace_back(30, PixelGrid(14, vector<int>(126,0)));
-    phigone = new TH1D("phigone","collapsed in phi",100, -100, 100);
+    barrel.emplace_back(30, PixelGrid(14, vector<int>(126,0)));    
     ogxyplane = new TH2D("ogxyplane", "L", 500, -100, 100, 500, -100, 100);
     newxyplane = new TH2D("newxyplane", "L", 500, -100, 100, 500, -100, 100);
+    momzvals = new TH1D("momzvals", "Z momentum values; momentum in GeV", 100, -.1, .1);
     for (int i=0; i < 5; ++i)
       {
-	for(int j=0; j <30; ++j)
-	  {
-	    newmods[i][j] = (new TH2D(Form("newmod%d%d",i,j), "module", 500, -200, 200, 500, -200, 200));
-	  }
+	phigone[i] = new TH1D(Form("phigone%d", i+1), "Collapsed in Phi; Z value of hit", 126, -64, 64);
+	phigoneneg[i] = new TH1D(Form("phigoneneg%d", i+1), "Collapsed in Phi, Lesser Vals", 42, -65, -21);
+	phigonemid[i] = new TH1D(Form("phigonemid%d", i+1), "Collapsed in Phi, Middle Vals", 42,  -21, 21);
+	phigonepos[i] = new TH1D(Form("phigonepos%d", i+1), "Collapsed in Phi, Higher Vals;", 42,   21 ,65);
+	
+	//for(int j=0; j <30; ++j)
+	//{
+	//newmods[i][j] = (new TH2D(Form("newmod%d%d",i,j), "module", 500, -200, 200, 500, -200, 200));
+	//}
       }
     _nEvt = 0;
     nhit = 0;
@@ -105,6 +115,7 @@ void betterthanever::init()
 
 void betterthanever::processRunHeader( LCRunHeader* run)
 { 
+
 } 
 
 
@@ -124,26 +135,38 @@ void betterthanever::processEvent( LCEvent * evt )
 	double posx = hit->getPosition()[0]; //position stored in array, indexed for each coordinate
 	double posy = hit->getPosition()[1];
 	double posz = hit->getPosition()[2];
-       	ogxyplane->Fill(posx, posy);
+	MCParticle* particle=hit->getMCParticle();
+	double momz = particle->getMomentum()[2];
+	momzvals->Fill(momz);
 	++nhit;
+       	ogxyplane->Fill(posx, posy);
 	rsuba[layer-1][module][0]+=posx;
 	rsuba[layer-1][module][1]+=posy;
 	//rsuba[layer][module][2]++;
-	phigone->Fill(posz);
+	phigone[layer-1]->Fill(posz);
+	if (posz <= -21)
+	  {
+	  phigoneneg[layer-1]->Fill(posz);
+	  }
+	if (posz > -21 && posz <= 21)
+	  {
+	    phigonemid[layer-1]->Fill(posz);
+	  }
+	if (posz > 21)
+	  {
+	    phigonepos[layer-1]->Fill(posz);
+	  }
       }
-    for(int i=0; i < barrelhits->getNumberOfElements(); ++i)  //loop for each hit in the collection
+    /*for(int i=0; i < barrelhits->getNumberOfElements(); ++i)  //loop for each hit in the collection
       {
         SimTrackerHit* hit = dynamic_cast<SimTrackerHit*>(barrelhits->getElementAt(i));
         CellIDDecoder<SimTrackerHit> idDec(barrelhits);
         int layer = idDec( hit )[ILDCellID0::layer];   //info about hits stored in these types 
 	int module = idDec (hit)[ILDCellID0::module];
-	//rsuba[layer-1][module][0] = rsuba[layer-1][module][0]/nhit;
-        //rsuba[layer-1][module][1] = rsuba[layer-1][module][1]/nhit;
-        //rsuba[layer][module][2] /= nhit;
       }
 
 
-    for (int i=0; i < 5; ++i)
+        for (int i=0; i < 5; ++i)
       {                                           
 	for (int j = 0; j < 30; ++j)  
         { 
@@ -165,7 +188,7 @@ void betterthanever::processEvent( LCEvent * evt )
 	double newy = ((y * cos(thetas[layer-1][module][0])) + (x * cos(thetas[layer-1][module][0])));
 	newmods[layer-1][module]->Fill(newx, newy);
 	newxyplane->Fill(newx, newy);
-      }
+	}*/
 }
 
 
