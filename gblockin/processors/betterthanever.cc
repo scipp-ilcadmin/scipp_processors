@@ -98,8 +98,8 @@ void betterthanever::init()
     barrel.emplace_back(30, PixelGrid(14, vector<int>(126,0)));    
     ogxyplane = new TH2D("ogxyplane", "L", 500, -100, 100, 500, -100, 100);
     newxyplane = new TH2D("newxyplane", "L", 500, -100, 100, 500, -100, 100);
-    posmomzvals = new TH1D("posmomzvals", "Z momentum values; momentum in GeV", 100, -.02, .08);
-    negmomzvals = new TH1D("negmomzvals", "Z momentum values; momentum in GeV", 100, -.08, 0.2);
+    posmomzvals = new TH1D("posmomzvals", "Z momentum values; momentum in GeV", 50, .18, .5);
+    negmomzvals = new TH1D("negmomzvals", "Z momentum values; momentum in GeV", 50, -.5, -.18);
     for (int i=0; i < 5; ++i)
       {
 	phigone[i] = new TH1D(Form("phigone%d", i+1), "Collapsed in Phi; Z value of hit", 126, -64, 64);
@@ -145,11 +145,11 @@ void betterthanever::processEvent( LCEvent * evt )
 	    particleids.push_back(particleid);
 	  }
 	double momz = particle->getMomentum()[2];
-	if (momz < 0)
+	if (momz < -.18)
 	  {
 	    negmomzvals->Fill(momz);
 	  }
-	if (momz > 0)
+	if (momz > 0.18)
 	  {
 	    posmomzvals->Fill(momz);
 	  }
@@ -233,10 +233,10 @@ void betterthanever::end()
 	}
       cout << endl;
   }*/
-  for (int i = 0; i < particleids.size(); ++i)
+  /*for (int i = 0; i < particleids.size(); ++i)
     {
       cout << particleids[i] << endl;
-    }
+      }*/
   _rootfile->Write();
 
 }
