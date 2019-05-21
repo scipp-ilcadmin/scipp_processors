@@ -2,7 +2,7 @@
 #define _GLIBCXX_USE_CXX11_ABI 0
 /* 
  * Ok, so I like C++11. Unfortunately,
- * Marlin is uilt with ansi C, so the processor
+ * Marlin is built with ansi C, so the processor
  * constructor freaks out about the string that is
  * passed to it as an argument. The above two lines
  * fix that issue, allowing our code to be compatible
@@ -11,29 +11,22 @@
  */
 
 /*
- * author Gregory Blockinger
- * April 5, 2019
+ * author Christopher Milke
+ * April 5, 2016
  */
 
 #include "example.h"
 #include "scipp_ilc_utilities.h"
 #include <iostream>
-#include <sstream>
-#include <iomanip>
-#include <algorithm>
 
-#include <UTIL/ILDConf.h>
 #include <EVENT/LCCollection.h>
 #include <EVENT/SimCalorimeterHit.h>
-#include <EVENT/SimTrackerHit.h>
 #include <EVENT/MCParticle.h>
 
 #include <TFile.h>
 #include <TH2D.h>
-#include <TH3D.h>
-#include <TGraph2D.h>
-
-
+#include "fourvec.h"
+#include "TwoPhoton.h"
 // ----- include for verbosity dependend logging ---------
 #include "marlin/VerbosityLevels.h"
 
@@ -45,172 +38,63 @@ using namespace std;
 
 example example;
 
-typedef vector<vector<int>> PixelGrid;
-typedef vector<PixelGrid> Layers;
-typedef vector<string> PixIDs;
-typedef vector<PixIDs> layerpixIDs;
-
 static TFile* _rootfile;
-static TH2D* mods;
-static TH2D* threedim;
-static TH2D* threedim2;
-static TH2D* ogmod;
-static TH2D* newmod;
-static vector<TH2D*> graphs;
-static vector<TH1D*> angles;
-static vector<double> ogxvals;
-static vector<double> ogyvals;
-static vector<double> newxvals;
-static vector<double> newyvals;
-static vector<double> zvalsinnermod;
-static vector<double> zvalsoutermod;
+static TH2F* _plot;
+static TH1F* _histo;
 
 static int _nEvt=0;
-static int nhit = 0;
-static layerpixIDs layerpixids(5, vector<string>());
-static layerpixIDs layeruniqueids(5, vector<string>());
-static Layers layers(5, PixelGrid(160*100, vector<int>(160*100,0)));
+static double total_tmom=0;
 
-template<typename T>
-static T getMax(vector<T> &vec)
-{
-  return *max_element(vec.begin(), vec.end());
-}
-template<typename T>
-static T getMin(vector<T> &vec)
-{
-  return *min_element(vec.begin(), vec.end());
-}
-
-example::example() : Processor("example") 
-{
+example::example() : Processor("example") {
     // modify processor description
     _description = "Protype Processor" ;
+
+    // register steering parameters: name, description, class-variable, default value
+    registerInputCollection( LCIO::MCPARTICLE, "CollectionName" , "Name of the MCParticle collection"  , _colName , std::string("MCParticle") );
+    
+    registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") );
 }
 
 
-void example::init()
-{ 
+void example::init() { 
     streamlog_out(DEBUG) << "   init called  " << std::endl ;
-    _rootfile = new TFile("stahp.root","RECREATE");
-    mods = new TH2D("mods", "mods", 1000, -100, 100, 1000, -100, 100);
-    ogmod =  new TH2D("ogmod" , "ogmod" , 1000, -30, 30, 1000, -30, 50);
-    newmod = new TH2D("newmod", "newmod", 1000, -30, 30, 1000, -30, 50);
-    threedim = new TH2D("threedim", "3-D model", 100, -50, 50, 100, -150, 150);
-    threedim2 = new TH2D("threedim2", "3-D model", 100, -50, 50, 100, -150, 150);
+    cout << "Initialized " << endl;
 
-    for (int i =0; i < 4; i++)
-      {
-	graphs.push_back(new TH2D(Form("layer%d ", i), "layers", 1000, -80, 80, 1000, -80, 80));
-	angles.push_back(new TH1D(Form("angles%d", i), "angles", 100, -10, 370));
-      }
+    _rootfile = new TFile("example.root","RECREATE");
+
+    _plot = new TH2F("hh", "Hit-Hit HeatMap", 300.0, -150.0, 150.0, 300.0, -150.0, 150.0);
+    _histo = new TH1F("mom","momz",  30, -10, 10);
 
     _nEvt = 0 ;
 }
 
 
 
-void example::processRunHeader( LCRunHeader* run)
-{ 
+void example::processRunHeader( LCRunHeader* run) { 
+//    _nRun++ ;
 } 
-
-
 void example::processEvent( LCEvent * evt ) { 
-    LCCollection* barrelhits = evt->getCollection( "SiVertexBarrelHits" );
+    LCCollection* col = evt->getCollection( MCParticle );
     _nEvt++;
-    double rsuba[3] = {0.0, 0.0, 0.0};
-    double theta;
-    for(int i=0; i < barrelhits->getNumberOfElements(); ++i)
+    for(int i=0; i < col->getNumberOfElements(); ++i)
       {
-	SimTrackerHit* hit = dynamic_cast<SimTrackerHit*>(barrelhits->getElementAt(i));
-	CellIDDecoder<SimTrackerHit> idDec(barrelhits);
-	int layer = idDec( hit )[ILDCellID0::layer];
-	//int side = idDec ( hit )[ILDCellID0::side];
-	int module = idDec (hit)[ILDCellID0::module];
-	//int sensor = idDec (hit)[ILDCellID0::sensor];
-	//int subdet = idDec (hit)[ILDCellID0::subdet];
-	double posx = hit->getPosition()[0];
-	double posy = hit->getPosition()[1];
-	double posz = hit->getPosition()[2];
-	mods->Fill(posx, posy);
-	if (layer ==1)
-	  {
-	    threedim->Fill(posx,posz);
-	  }
-	if (layer ==2)
-	  {
-	    threedim2->Fill(posx,posz);
-	  }
-	double radval = sqrt(posx*posx + posy*posy);
-	if (layer == 1 && module == 1 && radval > 12)
-	  {	    
-	    ogxvals.push_back(posx);
-	    ogyvals.push_back(posy);
-	    ogmod->Fill(posx, posy);
-	    zvalsinnermod.push_back(posz);
-	    nhit++; 
-	    rsuba[0] += posx;
-	    rsuba[1] += posy;
-	    rsuba[2] += posz;
-	  }
-	if ( layer == 1 && module == 2 && radval > 12)
-	  {
-	    zvalsoutermod.push_back(posz);
-	  }
-	
+      MCParticle* particle=dynamic_cast<MCParticle*>(col->getElementAt(i));
+      double momz = particle->getMomentum()[2];
+      _histo->Fill(momz);
       }
-    rsuba[0] = rsuba[0]/nhit;
-    rsuba[1] = rsuba[1]/nhit;
-    rsuba[2] = rsuba[2]/nhit;
-    theta = atan2 (rsuba[0], rsuba[1]);
-    cout << "THETA: " << theta << endl;
-    for(int i=0; i < barrelhits->getNumberOfElements(); i++)
-      {
-	SimTrackerHit* hit = dynamic_cast<SimTrackerHit*>(barrelhits->getElementAt(i));
-	CellIDDecoder<SimTrackerHit> idDec(barrelhits);
-	int module = idDec( hit )[ILDCellID0::module];
-	int layer = idDec(  hit )[ILDCellID0::layer];
-	double posx = hit->getPosition()[0];
-	double posy = hit->getPosition()[1];
-	double posz = hit->getPosition()[2];
-	double radval = sqrt(posx*posx + posy*posy);
-	if (layer == 1 && module == 1 && radval > 12)
-	  {
-	    double newx = posx * cos(theta) - posy * sin(theta);
-	    double newy = posy * cos(theta) + posx * sin(theta);
-	    newmod->Fill( newx, newy);
-	    newxvals.push_back(newx);
-	    newyvals.push_back(newy);
-	  }
-      }
+    }
+    //    cout << "Transverse Momentum: " << TwoPhoton::getTMag(total) << endl;
 }
 
 
-void example::check( LCEvent * evt )
-{ 
+void example::check( LCEvent * evt ) { 
     // nothing to check here - could be used to fill checkplots in reconstruction processor
 }
 
 
 
-void example::end()
-{ 
-  double ogmax = getMax(ogxvals);
-  double ogmin = getMin(ogxvals);
-  double ogymax = getMax(ogyvals);
-  double ogymin = getMin(ogyvals);
-  double newxmax = getMax(newxvals);
-  double newxmin = getMin(newxvals);
-  double newymax = getMax(newyvals);
-  double newymin = getMin(newyvals);
-  cout << "number of events: " << _nEvt << endl;
-  //cout << "ogxmin: " << ogmin << ",     ogxmax: " << ogmax << endl;
-  //cout << "ogymin: " << ogymin << ",    ogymax: " << ogymax << endl;
-  cout << " inner mod min z: " << getMin(zvalsinnermod) << "  innermod max z: " << getMax(zvalsinnermod) << endl;
-  cout << " outer mod min z: " << getMin(zvalsoutermod) << "  outermod max z: " << getMax(zvalsoutermod) << endl;
-  cout << "lenght of og mod: "  << sqrt((ogmax-ogmin)*(ogmax-ogmin) + (ogymax-ogymin)*(ogymax-ogymin)) << endl;
-  cout << "length of new mod: " << newxmax - newxmin << endl;
-  //cout << "length of new mod: " << sqrt((newxmax-newxmin)*(newxmax-newxmin) + (newymax-newymin) * (newymax - newymin)) << endl;
+void example::end(){ 
+  cout << endl << "Total # of events: " << _nEvt << endl;
+  cout << "total tmom: " << total_tmom/_nEvt << endl;
   _rootfile->Write();
-  cout << nhit << endl;
 }
