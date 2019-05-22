@@ -57,8 +57,8 @@ static int nhit;
 static Barrel barrel{};
 static double rsuba[5][30][2] = {{{0.0}}};
 static double thetas[5][30][1];
+static TH2D* newxylays[5];
 static int modhits[5][30] = {{0}};
-static int layerhits[5] = {0};
 static TH1D* posmomzvals;
 static TH1D* negmomzvals;
 static TH1D* phigone[5];
@@ -105,22 +105,23 @@ void betterthanever::init()
     //barrel.emplace_back(24, PixelGrid(14, vector<int>(126,0)));
     //barrel.emplace_back(30, PixelGrid(14, vector<int>(126,0)));    
     ogxyplane = new TH2D("ogxyplane", "L", 500, -100, 100, 500, -100, 100);
-    trimmedogplane = new TH2D("trimmedogplane", "L", 500, -70, 70, 500, -70, 70);
-    newxyplane = new TH2D("newxyplane", "L", 500, -30, 30, 500, -100, 100);
+    //trimmedogplane = new TH2D("trimmedogplane", "L", 500, -70, 70, 500, -70, 70);
+    newxyplane = new TH2D("newxyplane", "L", 500, -12, 12, 500, -80, 80);
     posmomzvals = new TH1D("posmomzvals", "Z momentum values; momentum in GeV", 50, .18, .5);
     negmomzvals = new TH1D("negmomzvals", "Z momentum values; momentum in GeV", 50, -.5, -.18);
     for (int i=0; i < 5; ++i)
-    {
+      {
 	phigone[i] = new TH1D(Form("phigone%d", i+1), "Collapsed in Phi; Z value of hit", 126, -64, 64);
 	phigoneneg[i] = new TH1D(Form("phigoneneg%d", i+1), "Collapsed in Phi, Lesser Vals", 42, -65, -21);
 	phigonemid[i] = new TH1D(Form("phigonemid%d", i+1), "Collapsed in Phi, Middle Vals", 42,  -21, 21);
 	phigonepos[i] = new TH1D(Form("phigonepos%d", i+1), "Collapsed in Phi, Higher Vals;", 42,   21 ,65);
 	zgone[i] = new TH1D(Form("zgone%d", i+1), "Collapsed in Z; Aziumthal Value of hit", 628, -3.5, 3.5); 
-	for(int j=0; j <30; ++j)
-	{
-	  newmods[i][j] = (new TH2D(Form("newmod%d%d",i,j), "module", 500, -70, 70, 500, -130, 130));
-	}
-    }
+	newxylays[i] = new TH2D(Form("newxylays%d", i+1), "breh breh", 500, -12, 12, 500, -80, 80);
+	//for(int j=0; j <30; ++j)
+	//{
+	//newmods[i][j] = (new TH2D(Form("newmod%d%d",i,j), "module", 500, -70, 70, 500, -130, 130));
+	//}
+      }
     _nEvt = 0;
     nhit = 0;
 }
@@ -155,7 +156,13 @@ void betterthanever::processEvent( LCEvent * evt )
 	double radval = sqrt((posx)*(posx)+(posy)*(posy));
 	//double azimuth = atan2(posy, posx);
 	//avgradvals[layer-1]+=radval;
-	if (radval > 12.0 && radval < 16.0)
+	rsuba[layer-1][module][0]+=posx;
+	rsuba[layer-1][module][1]+=posy;
+	++nhitlayer[layer-1];
+	double azimuth = atan2(posy, posx);
+	zgone[layer-1]->Fill(azimuth);
+	++modhits[layer-1][module];
+	/*if (radval > 12.0 && radval < 16.0)
 	  {
 	    trimmedogplane->Fill(posx,posy);
 	    rsuba[layer-1][module][0]+=posx;
@@ -164,7 +171,6 @@ void betterthanever::processEvent( LCEvent * evt )
 	    double azimuth = atan2(posy, posx);
 	    zgone[layer-1]->Fill(azimuth);
 	    modhits[layer-1][module]++;
-	    layerhits[layer-1]++;
 	  }
 	if (radval > 20.9 && radval < 24.99)
 	  {
@@ -175,7 +181,6 @@ void betterthanever::processEvent( LCEvent * evt )
 	    double azimuth = atan2(posy, posx);
 	    zgone[layer-1]->Fill(azimuth);
 	    modhits[layer-1][module]++;
-	    layerhits[layer-1]++;
 	  }
 	if (radval > 33.0 && radval < 37.75)
 	  {
@@ -186,7 +191,6 @@ void betterthanever::processEvent( LCEvent * evt )
 	    double azimuth = atan2(posy, posx);
 	    zgone[layer-1]->Fill(azimuth);
 	    modhits[layer-1][module]++;
-	    layerhits[layer-1]++;
 	  }
 	if (radval > 45.0 && radval < 50.3)
 	  {
@@ -197,7 +201,6 @@ void betterthanever::processEvent( LCEvent * evt )
 	    double azimuth = atan2(posy, posx);
 	    zgone[layer-1]->Fill(azimuth);
 	    modhits[layer-1][module]++;
-	    layerhits[layer-1]++;
 	  }
 	if (radval > 57.6 && radval < 63.7)
 	  {
@@ -208,8 +211,7 @@ void betterthanever::processEvent( LCEvent * evt )
 	    double azimuth = atan2(posy, posx);
 	    zgone[layer-1]->Fill(azimuth);
 	    modhits[layer-1][module]++;
-	    layerhits[layer-1]++;
-	  }	
+	    }*/	
 	if(std::find(particleids.begin(), particleids.end(), particleid) == particleids.end())                
 	  {
 	    particleids.push_back(particleid);
@@ -255,24 +257,31 @@ void betterthanever::processEvent( LCEvent * evt )
 	double y = hit->getPosition()[1];
 	double z = hit->getPosition()[2];
 	double radval = sqrt((x)*(x)+(y)*(y));
-	if (radval > 12.0 && radval < 16.0)
+	double newx = ((x * cos(thetas[layer-1][module][0])) - (y * sin(thetas[layer-1][module][0])));
+	double newy = ((y * cos(thetas[layer-1][module][0])) + (x * sin(thetas[layer-1][module][0])));
+	newxyplane->Fill(newx, newy);
+	newxylays[layer-1]->Fill(newx, newy);
+	/*if (radval > 12.0 && radval < 16.0)
 	  {
 	    double newx = ((x * cos(thetas[layer-1][module][0])) - (y * sin(thetas[layer-1][module][0])));
 	    double newy = ((y * cos(thetas[layer-1][module][0])) + (x * sin(thetas[layer-1][module][0])));
 	    newmods[layer-1][module]->Fill(newx, z);
-	    newxyplane->Fill(newx, newy);
-	    newx += (9.8/2);
-	    z += (125/2);
-	    string id = to_string(static_cast<int>((newx*100))) + to_string(static_cast<int>((z*100)));
-	    if(std::find(pixidsbreh.begin(), pixidsbreh.end(), id) == pixidsbreh.end())
+	    if (newx > -5 && newx < 5)
 	      {
-		pixidsbreh.push_back(id);
-	      }
+		newxyplane->Fill(newx, newy);
+		newx += (9.8/2);
+		z += (125/2);
+		string id = to_string(static_cast<int>((newx*100))) + to_string(static_cast<int>((z*100)));
+		if(std::find(pixidsbreh.begin(), pixidsbreh.end(), id) == pixidsbreh.end())
+		  {
+		    pixidsbreh.push_back(id);
+		  }
 	    //cout << id << endl;
-	    ++hithit;
-	    if (((newx*10 <= 98) && (z*10 <= 1260)) && ((newx >=0) && (z >=0)))
-	      {
-		barrel[layer-1][module][(newx*10)/step][(z*10)/step]++;
+		++hithit;
+		if (((newx*10 <= 98) && (z*10 <= 1260)) && ((newx >=0) && (z >=0)))
+		  {
+		    barrel[layer-1][module][(newx*10)/step][(z*10)/step]++;
+		  }
 	      }
 	  }
 	if (radval > 20.9 && radval < 24.99)
@@ -305,7 +314,7 @@ void betterthanever::processEvent( LCEvent * evt )
             double newy = ((y * cos(thetas[layer-1][module][0])) + (x * sin(thetas[layer-1][module][0])));
             newmods[layer-1][module]->Fill(newx, z);
 	    newxyplane->Fill(newx, newy);
-          }
+	    }*/
 	}
 }
 
@@ -328,13 +337,13 @@ void betterthanever::end()
 
   nhit = nhitlayer[0] + nhitlayer[1] + nhitlayer[2] + nhitlayer[3] + nhitlayer[4];
   int totsbruh=0;
-  for (int i =0; i < 12; ++i)
-    {
-      totsbruh += modhits[0][i];
-    }
-  cout << "layer 1, all mods hits in modhits: " << totsbruh << endl;
-  cout << "layer1 hits in rot block : " << hithit << endl;
-  cout << "uniqueids in pixidsbreh: " << pixidsbreh.size() << endl;
+  //for (int i =0; i < 12; ++i)
+  //{
+  //totsbruh += modhits[0][i];
+  //}
+  //cout << "layer 1, all mods hits in modhits: " << totsbruh << endl;
+  //cout << "layer1 hits in rot block : " << hithit << endl;
+  //cout << "uniqueids in pixidsbreh: " << pixidsbreh.size() << endl;
   cout << "nhit: " << nhit << endl;
   cout << "_nEvt: " << _nEvt << endl;
 
