@@ -25,8 +25,6 @@
 
 #include <TFile.h>
 #include <TH2D.h>
-#include "fourvec.h"
-#include "TwoPhoton.h"
 // ----- include for verbosity dependend logging ---------
 #include "marlin/VerbosityLevels.h"
 
@@ -43,58 +41,49 @@ static TH2F* _plot;
 static TH1F* _histo;
 
 static int _nEvt=0;
-static double total_tmom=0;
 
-example::example() : Processor("example") {
-    // modify processor description
-    _description = "Protype Processor" ;
+example::example() : Processor("example") 
+{
 
-    // register steering parameters: name, description, class-variable, default value
-    registerInputCollection( LCIO::MCPARTICLE, "CollectionName" , "Name of the MCParticle collection"  , _colName , std::string("MCParticle") );
-    
-    registerProcessorParameter( "RootOutputName" , "output file"  , _root_file_name , std::string("output.root") );
 }
 
 
-void example::init() { 
-    streamlog_out(DEBUG) << "   init called  " << std::endl ;
+void example::init() 
+{ 
     cout << "Initialized " << endl;
-
     _rootfile = new TFile("example.root","RECREATE");
-
     _plot = new TH2F("hh", "Hit-Hit HeatMap", 300.0, -150.0, 150.0, 300.0, -150.0, 150.0);
-    _histo = new TH1F("mom","momz",  30, -10, 10);
-
+    _histo = new TH1F("mom","Z-Momentum; GeV",  100, -.5, .5);
     _nEvt = 0 ;
 }
 
 
 
-void example::processRunHeader( LCRunHeader* run) { 
-//    _nRun++ ;
+void example::processRunHeader( LCRunHeader* run) 
+{ 
+
 } 
-void example::processEvent( LCEvent * evt ) { 
-    LCCollection* col = evt->getCollection( MCParticle );
-    _nEvt++;
+void example::processEvent( LCEvent * evt ) 
+{ 
+    LCCollection* col = evt->getCollection("MCParticle");
     for(int i=0; i < col->getNumberOfElements(); ++i)
       {
-      MCParticle* particle=dynamic_cast<MCParticle*>(col->getElementAt(i));
-      double momz = particle->getMomentum()[2];
-      _histo->Fill(momz);
+	MCParticle* particle = dynamic_cast<MCParticle*>(col->getElementAt(i));
+	double momz = particle->getMomentum()[2];
+	_histo->Fill(momz);
       }
-    }
-    //    cout << "Transverse Momentum: " << TwoPhoton::getTMag(total) << endl;
-}
-
-
-void example::check( LCEvent * evt ) { 
-    // nothing to check here - could be used to fill checkplots in reconstruction processor
 }
 
 
 
-void example::end(){ 
-  cout << endl << "Total # of events: " << _nEvt << endl;
-  cout << "total tmom: " << total_tmom/_nEvt << endl;
+
+void example::check( LCEvent * evt )
+{
+
+}
+
+void example::end()
+{ 
+  cout << endl << "DUNZO" << endl;
   _rootfile->Write();
 }
