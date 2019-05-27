@@ -62,6 +62,10 @@ static vector<TH1D*> angles;
 static int hitcount = 0;
 static vector<double> radii;
 static TH3D* threedim;
+static TH2D* xyplane;
+static TH2D* xzplane;
+static TH2D* yzplane;
+
 
 template<typename T>
 static T getMax(vector<T> &vec) 
@@ -87,12 +91,15 @@ void bleh::init()
   cout << "Initialized "  << endl;
   _rootfile = new TFile("yes.root", "RECREATE");
   threedim = new TH3D("threedim", "3-D model", 100, -100, 100, 100, -100, 100, 100, -300, 300);
+  xyplane = new TH2D("xyplane", "xyplane", 100, -100, 100, 100, -100, 100);
+  xzplane = new TH2D("xzplane", "xzplane", 100, -100, 100, 100, -250, 250);
+  yzplane = new TH2D("yzplane", "yzplane", 100, -100, 100, 100, -250, 250);
   totes = new TH2D("totes", "totesmagotes", 1000, -100, 100, 1000, -100, 100);
-  for (int i =0; i < 4; i++)
-    {
-      graphs.push_back(new TH2D(Form("layer%d ", i), "layers", 1000, -80, 80, 1000, -80, 80));
-      angles.push_back(new TH1D(Form("angles%d", i), "angles", 100, -10, 370));
-    }  
+  //for (int i =0; i < 4; i++)
+  //{
+  //graphs.push_back(new TH2D(Form("layer%d ", i), "layers", 1000, -80, 80, 1000, -80, 80));
+  //angles.push_back(new TH1D(Form("angles%d", i), "angles", 100, -10, 370));
+  //}  
   _nEvt = 0;
 
 }
@@ -118,35 +125,34 @@ void bleh::processEvent( LCEvent * evt)
       int layer = idDec( hit )[ILDCellID0::layer];
       int posx = (hit->getPosition()[0] + xmin)*100;
       int posy = (hit->getPosition()[1] + ymin)*100;
-
-      [&] ()
-        {
-          int index = layer-1;
-          double theta = (atan2(posy, posx) + M_PI) * 180/M_PI;
-          string id = to_string(posx/step) + to_string(posy/step);
-          //pixid.push_back(id);
-          radii.push_back(sqrt((hit->getPosition()[0]*hit->getPosition()[0])+(hit->getPosition()[1]*hit->getPosition()[1])));
-          if(std::find(layeruniqueids[index].begin(), layeruniqueids[index].end(), id) == layeruniqueids[index].end())
-            {
-              layeruniqueids[index].push_back(id);
-            }
-          layerpixids[index].push_back(id);
-	  posxvals[index].push_back(hit->getPosition()[0]);
-	  posyvals[index].push_back(hit->getPosition()[1]);
-          angles[index]->Fill(theta);
-          graphs[index]->Fill(hit->getPosition()[0], hit->getPosition()[1]);
-          if ((posx < 160000 && posy < 160000) && (posx >=0 && posy >= 0))
-            {
-              layers[index][posx/step][posy/step]++;
-            }
-	  else
-	    {
-	      cout << "posx: " << posx << ", posy: " << posy << "ERROR" << endl;
-	    }
-
-        }();
-
-	 
+      threedim->Fill(hit->getPosition()[0],
+		     hit->getPosition()[1],
+		     hit->getPosition()[2]);
+      xyplane->Fill(hit->getPosition()[0], hit->getPosition()[1]);
+      xzplane->Fill(hit->getPosition()[0], hit->getPosition()[2]);
+      yzplane->Fill(hit->getPosition()[1], hit->getPosition()[2]);
+      int index = layer-1;
+      double theta = (atan2(posy, posx) + M_PI) * 180/M_PI;
+      string id = to_string(posx/step) + to_string(posy/step);
+      //pixid.push_back(id);
+      /*radii.push_back(sqrt((hit->getPosition()[0]*hit->getPosition()[0])+(hit->getPosition()[1]*hit->getPosition()[1])));
+      if(std::find(layeruniqueids[index].begin(), layeruniqueids[index].end(), id) == layeruniqueids[index].end())
+	{
+	  layeruniqueids[index].push_back(id);
+	}
+      layerpixids[index].push_back(id);
+      posxvals[index].push_back(hit->getPosition()[0]);
+      posyvals[index].push_back(hit->getPosition()[1]);
+      angles[index]->Fill(theta);
+      graphs[index]->Fill(hit->getPosition()[0], hit->getPosition()[1]);
+      if ((posx < 160000 && posy < 160000) && (posx >=0 && posy >= 0))
+	{
+	  layers[index][posx/step][posy/step]++;
+	}
+      else
+	{
+	  cout << "posx: " << posx << ", posy: " << posy << "ERROR" << endl;
+	  }*/	 
     }
 }
 
@@ -161,9 +167,9 @@ void bleh::end()
   //int matters = SOME FUCKING MATH BOi
   for (int i = 0; i < 4; i++)
     {
-      cout << "total hits in layer " << i+1 << ": " << layerpixids[i].size() << endl;
-      cout << "max X and Y in this layer: " << getMax(posxvals[i]) << ", " << getMax(posyvals[i]) << endl;
-      cout << "min X and Y in this layer: " << getMin(posxvals[i]) << ", " << getMin(posyvals[i]);
+      //cout << "total hits in layer " << i+1 << ": " << layerpixids[i].size() << endl;
+      //cout << "max X and Y in this layer: " << getMax(posxvals[i]) << ", " << getMax(posyvals[i]) << endl;
+      //cout << "min X and Y in this layer: " << getMin(posxvals[i]) << ", " << getMin(posyvals[i]);
       //cout << "unique pixels hit in layer " << i+1 << ": " << layeruniqueids[i].size() << endl;
       //double hitperc = static_cast<double>(layeruniqueids[i].size()) / static_cast<double>(matters) * 100;
       //cout << "Percent of pixels hit in layer " << i+1 << ": " << hitperc << endl;
