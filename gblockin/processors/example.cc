@@ -1,30 +1,31 @@
 #undef _GLIBCXX_USE_CXX11_ABI
 #define _GLIBCXX_USE_CXX11_ABI 0
-/* 
- * Ok, so I like C++11. Unfortunately,
- * Marlin is built with ansi C, so the processor
- * constructor freaks out about the string that is
- * passed to it as an argument. The above two lines
- * fix that issue, allowing our code to be compatible
- * with ansi C class declarations.
- * Big thanks to Daniel Bittman for helping me fix this.
- */
 
 /*
- * author Christopher Milke
- * April 5, 2016
+ *
+ * example.cc
+ * @author Gregory Blockinger
+ * July 6th, 2018
+ *
  */
 
 #include "example.h"
 #include "scipp_ilc_utilities.h"
 #include <iostream>
+#include <sstream>
+#include <iomanip>
+#include <algorithm>
 
+#include <UTIL/ILDConf.h>
 #include <EVENT/LCCollection.h>
 #include <EVENT/SimCalorimeterHit.h>
+#include <EVENT/SimTrackerHit.h>
 #include <EVENT/MCParticle.h>
 
 #include <TFile.h>
 #include <TH2D.h>
+#include <TH3D.h>
+#include <TGraph2D.h>
 // ----- include for verbosity dependend logging ---------
 #include "marlin/VerbosityLevels.h"
 
@@ -33,57 +34,65 @@ using namespace lcio;
 using namespace marlin;
 using namespace std;
 
-
 example example;
 
 static TFile* _rootfile;
-static TH2F* _plot;
-static TH1F* _histo;
+static TH3D* threedim;
 
-static int _nEvt=0;
 
 example::example() : Processor("example") 
+{
+  _description = "Protype Processor";
+  //registerProcessorParameter("RootOutputName", "output file", _root_file_name, std::string("output.root"));
+
+}
+
+void example::init()
+{
+  streamlog_out(DEBUG) << " init called " << endl;
+  cout << "Initialized "  << endl;
+  _rootfile = new TFile("example.root", "RECREATE");
+  threedim = new TH3D("threedim", "3-D model of hits in Vertex Detector", 200, -100, 100, 200, -100, 100, 200, -300, 300);
+  _nEvt = 0;
+
+}
+
+void example::processRunHeader( LCRunHeader* run)
 {
 
 }
 
-
-void example::init() 
-{ 
-    cout << "Initialized " << endl;
-    _rootfile = new TFile("example.root","RECREATE");
-    _plot = new TH2F("hh", "Hit-Hit HeatMap", 300.0, -150.0, 150.0, 300.0, -150.0, 150.0);
-    _histo = new TH1F("mom","Z-Momentum; GeV",  100, -.5, .5);
-    _nEvt = 0 ;
+void example::processEvent( LCEvent * evt)
+{
+  ++_nEvt;
+  LCCollection* barrelHits = evt->getCollection("SiVertexBarrelHits");
+  LCCollection* endcapHits = evt->getCollection("SiVertexEndcapHits");
+  for (int i = 0; i < endcapHits->getNumberOfElements(); ++i)
+    {
+      SimTrackerHit* hit = dynamic_cast<SimTrackerHit*>(endcapHits->getElementAt(i));
+      double posx = hit->getPosition()[0];
+      double posy = hit->getPosition()[1];
+      double posz = hit->getPosition()[2];
+      threedim->Fill(posx, posy, posz);
+    }
+  for (int i =0; i < barrelHits->getNumberOfElements(); ++i)
+    {
+      SimTrackerHit* hit = dynamic_cast<SimTrackerHit*>(barrelHits->getElementAt(i));
+      double posx = hit->getPosition()[0];
+      double posy = hit->getPosition()[1];
+      double posz = hit->getPosition()[2];
+      threedim->Fill(posx,posy,posz);
+    }
 }
 
-
-
-void example::processRunHeader( LCRunHeader* run) 
-{ 
-
-} 
-void example::processEvent( LCEvent * evt ) 
-{ 
-    LCCollection* col = evt->getCollection("MCParticle");
-    for(int i=0; i < col->getNumberOfElements(); ++i)
-      {
-	MCParticle* particle = dynamic_cast<MCParticle*>(col->getElementAt(i));
-	double momz = particle->getMomentum()[2];
-	_histo->Fill(momz);
-      }
-}
-
-
-
-
-void example::check( LCEvent * evt )
+void example::check( LCEvent * evt)
 {
 
 }
 
 void example::end()
-{ 
-  cout << endl << "DUNZO" << endl;
+{
+
+  cout << "analysis finished" << endl << endl << endl << endl;
   _rootfile->Write();
 }
