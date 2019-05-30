@@ -111,7 +111,7 @@ void betterthanever::init()
     //barrel.emplace_back(24, PixelGrid(14, vector<int>(126,0)));
     //barrel.emplace_back(30, PixelGrid(14, vector<int>(126,0)));    
     ogxyplane = new TH2D("ogxyplane", "Original Plane", 500, -100, 100, 500, -100, 100);
-    trimmedogplane = new TH2D("trimmedogplane", "Trimmed Plane", 500, -70, 70, 500, -70, 70);
+    trimmedogplane = new TH2D("BarrelHits", "Module View of Barrel Array; X-component (cm); Y-component (cm)", 500, -70, 70, 500, -70, 70);
     newxyplane = new TH2D("newxyplane", "Rotated Plane", 500, -12, 12, 500, -80, 80);
     zgonetot = new TH1D("zgonetot", "Collapsed in z", 628, -3.5, 3.5);
     phigonetot = new TH1D("phigonetot", "Collapsed in Phi", 130, -65, 65);
