@@ -38,7 +38,14 @@ example example;
 
 static TFile* _rootfile;
 static TH3D* threedim;
-static double nhits;
+static TH2D* twodimexy;
+static TH2D* twodimbxy;
+static TH1D* onedimbzvals;
+static TH1D* onedimbphivals;
+static TH1D* onedimeposrvals;
+static TH1D* onedimenegrvals;
+static TH1D* onedimepostvals;
+static TH1D* onedimenegtvals;
 
 example::example() : Processor("example") 
 {
@@ -53,8 +60,15 @@ void example::init()
   cout << "Initialized "  << endl;
   _rootfile = new TFile("example.root", "RECREATE");
   threedim = new TH3D("threedim", "3-D Model of Occupancy in Vertex Detector;;;z-axis / BeamLine Direction", 200, -80, 80, 200, -80, 80, 200, -250, 250);
+  twodimbxy = new TH2D("twodimbxy", "2-D View of Back Scatter hits in the Barrel Array;x (cm); y (cm)", 1000, -80, 80, 1000, -80, 80);
+  twodimexy = new TH2D("twodimexy", "2-D View of Back Scatter hits in the End-Cap Arrays;x (cm); y (cm)", 200, -80, 80, 200, -80, 80);
+  onedimbzvals = new TH1D("onedimbzvals", "Z Component of Barrel Array Hits", 200, -100, 100);
+  onedimbphivals = new TH1D("onedimbphivals", "Angular Distribution of Barrel Array Hits", 200, -100, 100);
+  onedimeposrvals = new TH1D("onedimeposrvals", "Positive End-Cap Array Radial Distribution of Hits", 200, -10, 100);
+  onedimenegrvals = new TH1D("onedimenegrvals", "Negative End-Cap Array Radial Distribution of Hits", 200, -10, 100);
+  onedimepostvals = new TH1D("onedimepostvals", "Positive End-Cap Array Angular Distribution of Hits", 200, -100, 100);
+  onedimenegtvals = new TH1D("onedimenegtvals", "Negative End-Cap Array Angular Distribution of Hits", 200, -100, 100);
   _nEvt = 0;
-  nhits = 0;
 }
 
 void example::processRunHeader( LCRunHeader* run)
@@ -74,11 +88,20 @@ void example::processEvent( LCEvent * evt)
       double posy = hit->getPosition()[1];
       double posz = hit->getPosition()[2];
       double radval = sqrt((posx)*(posx)+(posy)*(posy));
-      //threedim->Fill(posx, posy, posz);
-      if (radval>15.5 && nhits < 712093)
+      double phi = atan2(posy,posx);
+      threedim->Fill(posx, posy, posz);
+      if (posz > 0)
 	{
-	  threedim->Fill(posx, posy, posz);
-	  ++nhits;
+	  onedimeposrvals->Fill(radval); 
+	}
+      if (posz < 0)
+	{
+	  onedimenegrvals->Fill(radval);
+	}
+      if (radval > 0)
+	{
+	  //threedim->Fill(posx, posy, posz);
+	  twodimexy->Fill(posx, posy);
 	}
     }
   for (int i =0; i < barrelHits->getNumberOfElements(); ++i)
@@ -88,26 +111,31 @@ void example::processEvent( LCEvent * evt)
       double posy = hit->getPosition()[1];
       double posz = hit->getPosition()[2];
       double radval = sqrt((posx)*(posx)+(posy)*(posy));
-      //threedim->Fill(posx,posy,posz);
-      if (radval > 12.0 && radval < 16.0)
+      threedim->Fill(posx,posy,posz);
+      if (radval > 13.0 && radval < 16.0)
 	{
-	  threedim->Fill(posx, posy, posz);
+	  //threedim->Fill(posx, posy, posz);
+	  twodimbxy->Fill(posx, posy);
 	}
-      if (radval > 20.9 && radval < 24.99)
+      if (radval > 21.4 && radval < 24.99)
 	{
-	  threedim->Fill(posx, posy, posz);
+	  //threedim->Fill(posx, posy, posz);
+	  twodimbxy->Fill(posx, posy);
 	}
-      if (radval > 33.0 && radval < 37.75)
+      if (radval > 33.5 && radval < 37.75)
 	{
-	  threedim->Fill(posx, posy, posz);
+	  //threedim->Fill(posx, posy, posz);
+	  twodimbxy->Fill(posx, posy);
 	}
-      if (radval > 45.0 && radval < 50.3)
+      if (radval > 45.5 && radval < 50.3)
 	{
-	  threedim->Fill(posx, posy, posz);
+	  //threedim->Fill(posx, posy, posz);
+	  twodimbxy->Fill(posx, posy);
 	}
-      if (radval > 57.6 && radval < 63.7)
+      if (radval > 58.0 && radval < 63.7)
 	{
-	  threedim->Fill(posx, posy, posz);
+	  //threedim->Fill(posx, posy, posz);
+	  twodimbxy->Fill(posx, posy);
 	}
 
     }
@@ -122,6 +150,5 @@ void example::end()
 {
 
   cout << "analysis finished" << endl << endl << endl << endl;
-  cout << "hits: " << nhits << endl;
   _rootfile->Write();
 }
