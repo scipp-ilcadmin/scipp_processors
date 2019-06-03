@@ -25,6 +25,7 @@
 #include <TFile.h>
 #include <TH2D.h>
 #include <TH3D.h>
+#include <THStack.h>
 #include <TGraph2D.h>
 // ----- include for verbosity dependend logging ---------
 #include "marlin/VerbosityLevels.h"
@@ -40,12 +41,25 @@ static TFile* _rootfile;
 static TH3D* threedim;
 static TH2D* twodimexy;
 static TH2D* twodimbxy;
+static TH1D* allzvals;
+static TH1D* etotzvals;
 static TH1D* onedimbzvals;
 static TH1D* onedimbphivals;
 static TH1D* onedimeposrvals;
 static TH1D* onedimenegrvals;
 static TH1D* onedimepostvals;
 static TH1D* onedimenegtvals;
+static TH1D* onedimeposzvals;
+static TH1D* onedimenegzvals;
+static TH1D* bphigone[5];
+static TH1D* bzgone[5];
+static TH1D* ethetagonepos[4];
+static TH1D* ergonepos[4];
+static TH1D* ethetagoneneg[4];
+static TH1D* ergoneneg[4];
+static double modhits[5][30];
+static TH2D* exy[4];
+static int bposhits[5];
 
 example::example() : Processor("example") 
 {
@@ -59,15 +73,42 @@ void example::init()
   streamlog_out(DEBUG) << " init called " << endl;
   cout << "Initialized "  << endl;
   _rootfile = new TFile("example.root", "RECREATE");
-  threedim = new TH3D("threedim", "3-D Model of Occupancy in Vertex Detector;;;z-axis / BeamLine Direction", 200, -80, 80, 200, -80, 80, 200, -250, 250);
+  threedim = new TH3D("threedim", "3-D Model of Occupancy in Vertex Detector", 100, -80, 80, 100, -80, 80, 100, -200, 200);
   twodimbxy = new TH2D("twodimbxy", "2-D View of Back Scatter hits in the Barrel Array;x (cm); y (cm)", 1000, -80, 80, 1000, -80, 80);
   twodimexy = new TH2D("twodimexy", "2-D View of Back Scatter hits in the End-Cap Arrays;x (cm); y (cm)", 200, -80, 80, 200, -80, 80);
+  allzvals = new TH1D("allzvals", "Z Distribution of hits; z (cm)", 200, -200, 200);
   onedimbzvals = new TH1D("onedimbzvals", "Z Component of Barrel Array Hits", 200, -100, 100);
-  onedimbphivals = new TH1D("onedimbphivals", "Angular Distribution of Barrel Array Hits", 200, -100, 100);
-  onedimeposrvals = new TH1D("onedimeposrvals", "Positive End-Cap Array Radial Distribution of Hits", 200, -10, 100);
-  onedimenegrvals = new TH1D("onedimenegrvals", "Negative End-Cap Array Radial Distribution of Hits", 200, -10, 100);
-  onedimepostvals = new TH1D("onedimepostvals", "Positive End-Cap Array Angular Distribution of Hits", 200, -100, 100);
-  onedimenegtvals = new TH1D("onedimenegtvals", "Negative End-Cap Array Angular Distribution of Hits", 200, -100, 100);
+  onedimbphivals = new TH1D("onedimbphivals", "Angular Distribution of Barrel Array Hits", 200, -3.5, 3.5);
+  onedimeposrvals = new TH1D("onedimeposrvals", "Positive End-Cap Array Radial Distribution of Hits; (cm) from origin", 200, -10, 100);
+  onedimenegrvals = new TH1D("onedimenegrvals", "Negative End-Cap Array Radial Distribution of Hits; (cm) from origin", 200, -10, 100);
+  onedimepostvals = new TH1D("onedimepostvals", "Positive End-Cap Array Angular Distribution of Hits; Angle in Radians", 200, -3.5, 3.5);
+  onedimenegtvals = new TH1D("onedimenegtvals", "Negative End-Cap Array Angular Distribution of Hits; Angle in Radians", 200, -3.5, 3.5);
+  onedimeposzvals = new TH1D("onedimeposzvals", "Positive End-Cap Array Z Component Distribution of Hits", 200, -10, 250);
+  onedimenegzvals = new TH1D("onedimenegzvals", "Negative End-Cap Array Z Component Distribution of Hits", 200, -250, 10);
+  etotzvals = new TH1D("etotzvals", "End-Cap Array Z Component Distribution of Hits", 200, -250, 250);
+  for (int i=0; i < 5; ++i)
+    {
+      bphigone[i] = new TH1D(Form("bphigone%d", i+1), "Collapsed in Phi; Z Value of Hits", 126, -70, 70);
+      bzgone[i] = new TH1D(Form("bzgone%d", i+1), "Collapsed in Z; Angular Value of Hits", 470, -3.5, 3.5);
+    }
+  bphigone[0]->SetFillColor(kBlue);
+  bphigone[0]->SetFillStyle(3001);
+  bphigone[1]->SetFillColor(kCyan);
+  bphigone[1]->SetFillStyle(3004);
+  bphigone[2]->SetFillColor(kGreen);
+  bphigone[2]->SetFillStyle(3007);
+  bphigone[3]->SetFillColor(kOrange);
+  bphigone[3]->SetFillStyle(3010);
+  bphigone[4]->SetFillColor(kRed);
+  bphigone[4]->SetFillStyle(3013);
+  for (int i =0; i <4; ++i)
+    {
+      ethetagonepos[i] =  new TH1D(Form("ethetagonepos%d", i+1), "Collapsed in Theta; Z value of Hits", 100, -200, 200);
+      ethetagoneneg[i] =  new TH1D(Form("ethetagoneneg%d", i+1), "Collapsed in Theta; Z value of Hits", 100, -200, 200);
+      ergonepos[i] =  new TH1D(Form("ergonepos%d", i+1), "Collapsed in Radial Value; Angular Distribution of Hits", 500, -3.5, 3.5);      
+      ergoneneg[i] =  new TH1D(Form("ergoneneg%d", i+1), "Collapsed in Radial Value; Angular Distribution of Hits", 500, -3.5, 3.5);
+      exy[i] = new TH2D(Form("exy%d", i+1), "2-D View of End-Cap", 500, -80, 80, 500, -80, 80);
+    }
   _nEvt = 0;
 }
 
@@ -84,58 +125,112 @@ void example::processEvent( LCEvent * evt)
   for (int i = 0; i < endcapHits->getNumberOfElements(); ++i)
     {
       SimTrackerHit* hit = dynamic_cast<SimTrackerHit*>(endcapHits->getElementAt(i));
+      CellIDDecoder<SimTrackerHit> idDec(endcapHits);
+      int layer = idDec( hit )[ILDCellID0::layer];
+      int module = idDec(hit)[ILDCellID0::module];
       double posx = hit->getPosition()[0];
       double posy = hit->getPosition()[1];
       double posz = hit->getPosition()[2];
       double radval = sqrt((posx)*(posx)+(posy)*(posy));
-      double phi = atan2(posy,posx);
-      threedim->Fill(posx, posy, posz);
+      double theta = atan2(posy,posx);
+      allzvals->Fill(posz);
+      etotzvals->Fill(posz);
+      //threedim->Fill(posx, posy, posz);
       if (posz > 0)
 	{
-	  onedimeposrvals->Fill(radval); 
+	  threedim->Fill(posx, posy, posz);
+	  onedimeposrvals->Fill(radval);
+	  onedimepostvals->Fill(theta);
+	  onedimeposzvals->Fill(posz);
+	  ethetagonepos[layer-1]->Fill(radval);
+	  ergonepos[layer-1]->Fill(theta);
 	}
       if (posz < 0)
 	{
+	  threedim->Fill(posx, posy, posz);
 	  onedimenegrvals->Fill(radval);
+	  onedimenegtvals->Fill(theta);
+	  onedimenegzvals->Fill(posz);
+	  ethetagoneneg[layer-1]->Fill(radval);
+	  ergoneneg[layer-1]->Fill(theta);
 	}
-      if (radval > 0)
+      if (radval > 12)
 	{
 	  //threedim->Fill(posx, posy, posz);
 	  twodimexy->Fill(posx, posy);
+	  exy[layer-1]->Fill(posx, posy);
 	}
     }
   for (int i =0; i < barrelHits->getNumberOfElements(); ++i)
     {
       SimTrackerHit* hit = dynamic_cast<SimTrackerHit*>(barrelHits->getElementAt(i));
+      CellIDDecoder<SimTrackerHit> idDec(endcapHits);
+      int layer = idDec( hit )[ILDCellID0::layer];
+      int module = idDec(hit)[ILDCellID0::module];
       double posx = hit->getPosition()[0];
       double posy = hit->getPosition()[1];
       double posz = hit->getPosition()[2];
       double radval = sqrt((posx)*(posx)+(posy)*(posy));
+      double phi = atan2(posy,posx);
       threedim->Fill(posx,posy,posz);
+      onedimbzvals->Fill(posz);
+      onedimbphivals->Fill(phi);
+      allzvals->Fill(posz);
+      modhits[layer-1][module]++;
       if (radval > 13.0 && radval < 16.0)
 	{
 	  //threedim->Fill(posx, posy, posz);
 	  twodimbxy->Fill(posx, posy);
+	  bphigone[layer-1]->Fill(posz);
+	  bzgone[layer-1]->Fill(phi);
+	  if (posz < 0)
+	    {
+	      bposhits[layer-1]++;
+	    }
 	}
       if (radval > 21.4 && radval < 24.99)
 	{
 	  //threedim->Fill(posx, posy, posz);
 	  twodimbxy->Fill(posx, posy);
+	  bphigone[layer-1]->Fill(posz);
+          bzgone[layer-1]->Fill(phi);
+	  if (posz < 0)
+	    {
+	      bposhits[layer-1]++;
+	    }
 	}
       if (radval > 33.5 && radval < 37.75)
 	{
 	  //threedim->Fill(posx, posy, posz);
 	  twodimbxy->Fill(posx, posy);
+	  bphigone[layer-1]->Fill(posz);
+          bzgone[layer-1]->Fill(phi);
+	  if (posz < 0)
+	    {
+	      bposhits[layer-1]++;
+	    }
 	}
       if (radval > 45.5 && radval < 50.3)
 	{
 	  //threedim->Fill(posx, posy, posz);
 	  twodimbxy->Fill(posx, posy);
+	  bphigone[layer-1]->Fill(posz);
+          bzgone[layer-1]->Fill(phi);
+	  if (posz < 0)
+	    {
+	      bposhits[layer-1]++;
+	    }
 	}
       if (radval > 58.0 && radval < 63.7)
 	{
 	  //threedim->Fill(posx, posy, posz);
 	  twodimbxy->Fill(posx, posy);
+	  bphigone[layer-1]->Fill(posz);
+          bzgone[layer-1]->Fill(phi);
+	  if (posz < 0)
+	    {
+	      bposhits[layer-1]++;
+	    }
 	}
 
     }
@@ -148,7 +243,12 @@ void example::check( LCEvent * evt)
 
 void example::end()
 {
-
-  cout << "analysis finished" << endl << endl << endl << endl;
+  
+  for (int i =0; i<5;++i)
+    {
+      cout << " hits in layer " << i << ": " << bposhits[i] << endl;
+    }
   _rootfile->Write();
+
+
 }

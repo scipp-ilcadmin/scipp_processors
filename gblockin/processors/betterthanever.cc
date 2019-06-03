@@ -128,11 +128,15 @@ void betterthanever::init()
 	phigonepos[i] = new TH1D(Form("phigonepos%d", i+1), "Collapsed in Phi, Higher Vals;", 42,   21 ,65);
 	zgone[i] = new TH1D(Form("zgone%d", i+1), "Collapsed in Z; Aziumthal Value of hit", 628, -3.5, 3.5); 
 	newxylays[i] = new TH2D(Form("newxylays%d", i+1), "breh breh", 500, -12, 12, 500, -80, 80);
-	//for(int j=0; j <30; ++j)
-	//{
-	//newmods[i][j] = (new TH2D(Form("newmod%d%d",i,j), "module", 500, -70, 70, 500, -130, 130));
-	//}
       }
+    phigone[0]->SetFillColor(kBlue);
+    phigone[0]->SetFillStyle(3001);
+    phigone[1]->SetFillColor(kRed);
+    phigone[1]->SetFillStyle(3004);
+    phigone[2]->SetFillColor(kGreen);
+    phigone[2]->SetFillStyle(3007);
+    phigone[3]->SetFillColor(kOrange);
+    phigone[3]->SetFillStyle(3010);
     _nEvt = 0;
     nhit = 0;
 }
