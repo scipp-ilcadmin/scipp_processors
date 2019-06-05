@@ -85,6 +85,8 @@ static TH1D* posetemp[4];
 static TH1D* negetemp[4];
 static TH1D* predeocc[4];
 static TH1D* onedimeocc;
+static TH1D* negbphigone[5];
+static TH1D* predrvals[4];
 
 example::example() : Processor("example") 
 {
@@ -100,23 +102,23 @@ void example::init()
   _rootfile = new TFile("example.root", "RECREATE");
   threedim = new TH3D("threedim", "3-D Model of Occupancy in Vertex Detector", 100, -80, 80, 100, -80, 80, 100, -200, 200);
   twodimbxy = new TH2D("twodimbxy", "2-D View of Back Scatter hits in the Barrel Array;x (mm); y (mm)", 1000, -80, 80, 1000, -80, 80);
-  twodimexy = new TH2D("twodimexy", "2-D View of Back Scatter hits in the End-Cap Arrays;x (mm); y (mm)", 200, -80, 80, 200, -80, 80);
-  allzvals = new TH1D("allzvals", "Z Distribution of hits; z (cm)", 200, -200, 200);
-  onedimbzvals = new TH1D("onedimbzvals", "Z Component of Barrel Array Hits", 200, -100, 100);
+  twodimexy = new TH2D("twodimexy", "2-D View of Back Scatter hits in the End-Cap Arrays;x (mm); y (mm)", 160, -80, 80, 160, -80, 80);
+  allzvals = new TH1D("allzvals", "Z Distribution of hits; z (mm)", 200, -200, 200);
+  onedimbzvals = new TH1D("onedimbzvals", "Z Component of Barrel Array Hits; (mm)", 200, -65, 65);
   onedimbphivals = new TH1D("onedimbphivals", "Angular Distribution of Barrel Array Hits", 200, -3.5, 3.5);
-  onedimeposrvals = new TH1D("onedimeposrvals", "Positive End-Cap Array Radial Distribution of Hits; (mm) from origin", 200, -10, 100);
+  onedimeposrvals = new TH1D("onedimeposrvals", "Positive End-Cap Array Radial Distribution of Hits; (mm) from origin", 80, 0, 80);
   onedimenegrvals = new TH1D("onedimenegrvals", "Negative End-Cap Array Radial Distribution of Hits; (mm) from origin", 80, 0, 80);
   onedimepostvals = new TH1D("onedimepostvals", "Positive End-Cap Array Angular Distribution of Hits; Angle in Radians", 200, -3.5, 3.5);
   onedimenegtvals = new TH1D("onedimenegtvals", "Negative End-Cap Array Angular Distribution of Hits; Angle in Radians", 200, -3.5, 3.5);
   onedimeposzvals = new TH1D("onedimeposzvals", "Positive End-Cap Array Z Component Distribution of Hits", 200, -10, 250);
   onedimenegzvals = new TH1D("onedimenegzvals", "Negative End-Cap Array Z Component Distribution of Hits", 200, -250, 10);
   onedimeocc = new TH1D("onedimeocc","BLERGH", 80, 0, 80);
-  etotzvals = new TH1D("etotzvals", "End-Cap Array Z Component Distribution of Hits", 200, -250, 250);
+  etotzvals = new TH1D("etotzvals", "End-Cap Array Z Component Distribution of Hits; (mm)", 200, -250, 250);
   for (int i=0; i < 5; ++i)
     {
       bphigone[i] = new TH1D(Form("bphigone%d", i+1), "Collapsed in Phi; z (mm)", 140, -70, 70);
       bocc[i] = new TH1D(Form("bocc%d", i+1), "Occupancy of Barrel Layers; z (mm)", 140, -70, 70);
-      btemp[i] = new TH1D(Form("btemp%d", i+1), "Predicted Occupancy of Barrel Layers; z (mm)", 140, -70, 70);
+      negbphigone[i] = new TH1D(Form("negbphigone%d", i+1), "Predicted Occupancy of Barrel Layers; z (mm)", 140, -70, 70);
       predbocc[i] = new TH1D(Form("predbocc%d", i+1), "Predicted Occupancy of Barrel Layer; z (mm)", 140, -70, 70);
       bzgone[i] = new TH1D(Form("bzgone%d", i+1), "Collapsed in Z; Angular Value of Hits", 470, -3.5, 3.5);
     }
@@ -143,7 +145,8 @@ void example::init()
       negeocc[i] = new TH1D(Form("negeocc%d", i+1), "Occupancy of End-Cap Layers; r (mm)", 80, 0, 80);
       posetemp[i] = new TH1D(Form("posetemp%d", i+1), "Occupancy of End-Cap Layers; r (mm)", 80, 0, 80);
       negetemp[i] = new TH1D(Form("negetemp%d", i+1), "Occupancy of End-Cap Layers; r (mm)", 80, 0, 80);
-      predeocc[i] = new TH1D(Form("predeocc%d", i+1), "Occupancy of End-Cap Layers; r (mm)", 80, 0, 80);
+      predeocc[i] = new TH1D(Form("predeocc%d", i+1), "Predicted Bin Occupancy of End-Cap Layers; r (mm)", 80, 0, 80);
+      predrvals[i] = new TH1D(Form("predrvals%d", i+1), "predicted amount of rvals", 80, 0, 80);
     }
   _nEvt = 0;
 }
@@ -181,6 +184,7 @@ void example::processEvent( LCEvent * evt)
 	  ethetagonepos[layer-1]->Fill(radval);
 	  ergonepos[layer-1]->Fill(theta);
 	  poseradvals[layer-1]->Fill(radval);
+	  predrvals[layer-1]->Fill(radval);
 	}
       if (posz < 0)
 	{
@@ -191,6 +195,7 @@ void example::processEvent( LCEvent * evt)
 	  ethetagoneneg[layer-1]->Fill(radval);
 	  ergoneneg[layer-1]->Fill(theta);
 	  negeradvals[layer-1]->Fill(radval);
+	  predrvals[layer-1]->Fill(radval);
 	}
       if (radval > 12)
 	{
@@ -220,6 +225,8 @@ void example::processEvent( LCEvent * evt)
 	  //threedim->Fill(posx, posy, posz);
 	  twodimbxy->Fill(posx, posy);
 	  bphigone[layer-1]->Fill(posz);
+	  negbphigone[layer-1]->Fill(-posz);
+	  negbphigone[layer-1]->Fill(posz);
 	  bzgone[layer-1]->Fill(phi);
 	  if (posz < 0)
 	    {
@@ -232,6 +239,8 @@ void example::processEvent( LCEvent * evt)
 	  twodimbxy->Fill(posx, posy);
 	  bphigone[layer-1]->Fill(posz);
           bzgone[layer-1]->Fill(phi);
+	  negbphigone[layer-1]->Fill(-posz);
+	  negbphigone[layer-1]->Fill(posz);
 	  if (posz < 0)
 	    {
 	      bposhits[layer-1]++;
@@ -243,6 +252,8 @@ void example::processEvent( LCEvent * evt)
 	  twodimbxy->Fill(posx, posy);
 	  bphigone[layer-1]->Fill(posz);
           bzgone[layer-1]->Fill(phi);
+	  negbphigone[layer-1]->Fill(-posz);
+	  negbphigone[layer-1]->Fill(posz);
 	  if (posz < 0)
 	    {
 	      bposhits[layer-1]++;
@@ -254,6 +265,8 @@ void example::processEvent( LCEvent * evt)
 	  twodimbxy->Fill(posx, posy);
 	  bphigone[layer-1]->Fill(posz);
           bzgone[layer-1]->Fill(phi);
+ 	  negbphigone[layer-1]->Fill(-posz);
+	  negbphigone[layer-1]->Fill(posz);
 	  if (posz < 0)
 	    {
 	      bposhits[layer-1]++;
@@ -265,6 +278,8 @@ void example::processEvent( LCEvent * evt)
 	  twodimbxy->Fill(posx, posy);
 	  bphigone[layer-1]->Fill(posz);
           bzgone[layer-1]->Fill(phi);
+	  negbphigone[layer-1]->Fill(-posz);
+	  negbphigone[layer-1]->Fill(posz);
 	  if (posz < 0)
 	    {
 	      bposhits[layer-1]++;
@@ -289,21 +304,12 @@ void example::end()
       bocc[2]->SetBinContent(i, (bphigone[2]->GetBinContent(i) / 9) / (bl3pix / 140));
       bocc[3]->SetBinContent(i, (bphigone[3]->GetBinContent(i) / 9) / (bl4pix / 140));
       bocc[4]->SetBinContent(i, (bphigone[4]->GetBinContent(i) / 9) / (bl5pix / 140));
-      btemp[0]->AddBinContent(141 - i , bphigone[0]->GetBinContent(i));
-      btemp[0]->AddBinContent(i , bphigone[0]->GetBinContent(i));
-      btemp[1]->AddBinContent(141 - i , bphigone[1]->GetBinContent(i));
-      btemp[1]->AddBinContent(i , bphigone[1]->GetBinContent(i));
-      btemp[2]->AddBinContent(141 - i , bphigone[2]->GetBinContent(i));
-      btemp[2]->AddBinContent(i , bphigone[2]->GetBinContent(i));
-      btemp[3]->AddBinContent(141 - i , bphigone[3]->GetBinContent(i));
-      btemp[3]->AddBinContent(i , bphigone[3]->GetBinContent(i));
-      btemp[4]->AddBinContent(141 - i , bphigone[4]->GetBinContent(i));
-      btemp[4]->AddBinContent(i , bphigone[4]->GetBinContent(i));
-      predbocc[0]->SetBinContent(i, btemp[0]->GetBinContent(i) / (bl1pix / 140));
-      predbocc[1]->SetBinContent(i, btemp[1]->GetBinContent(i) / (bl2pix / 140));
-      predbocc[2]->SetBinContent(i, btemp[2]->GetBinContent(i) / (bl3pix / 140));
-      predbocc[3]->SetBinContent(i, btemp[3]->GetBinContent(i) / (bl4pix / 140));
-      predbocc[4]->SetBinContent(i, btemp[4]->GetBinContent(i) / (bl5pix / 140));
+      predbocc[0]->SetBinContent(i, (negbphigone[0]->GetBinContent(i) / 9) / (bl1pix / 140));
+      predbocc[1]->SetBinContent(i, (negbphigone[1]->GetBinContent(i) / 9) / (bl2pix / 140));
+      predbocc[2]->SetBinContent(i, (negbphigone[2]->GetBinContent(i) / 9) / (bl3pix / 140));
+      predbocc[3]->SetBinContent(i, (negbphigone[3]->GetBinContent(i) / 9) / (bl4pix / 140));
+      predbocc[4]->SetBinContent(i, (negbphigone[4]->GetBinContent(i) / 9) / (bl5pix / 140));
+
     }
   for (int i = 1; i < 81; ++i)
     {
@@ -319,18 +325,10 @@ void example::end()
       poseocc[2]->SetBinContent(i, ((poseradvals[2]->GetBinContent(i) / 9) * 0.0004) / ((M_PI*diff)-(16*e3gap)));
       poseocc[3]->SetBinContent(i, ((poseradvals[3]->GetBinContent(i) / 9) * 0.0004) / ((M_PI*diff)-(16*e4gap)));
       onedimeocc->SetBinContent(i, ((onedimenegrvals->GetBinContent(i) /9) * 0.0004) / ((M_PI*diff)-(16*e2gap)));
+      predeocc[0]->SetBinContent(i, ((predrvals[0]->GetBinContent(i)/9) * 0.0004) / ((M_PI*diff)-(16*e1gap)));
+      predeocc[1]->SetBinContent(i, ((predrvals[1]->GetBinContent(i)/9) * 0.0004) / ((M_PI*diff)-(16*e1gap)));
+      predeocc[2]->SetBinContent(i, ((predrvals[2]->GetBinContent(i)/9) * 0.0004) / ((M_PI*diff)-(16*e1gap)));
+      predeocc[3]->SetBinContent(i, ((predrvals[3]->GetBinContent(i)/9) * 0.0004) / ((M_PI*diff)-(16*e1gap)));
     }
-  /*for (int i =0;i<15;++i)
-    {
-      negeocc[0]->SetBinContent(i, 0);
-      negeocc[1]->SetBinContent(i, 0);
-      negeocc[2]->SetBinContent(i, 0);
-      negeocc[3]->SetBinContent(i, 0);
-      poseocc[0]->SetBinContent(i, 0);
-      poseocc[1]->SetBinContent(i, 0);
-      poseocc[2]->SetBinContent(i, 0);
-      poseocc[3]->SetBinContent(i, 0);
-    }
-  */
   _rootfile->Write();
 }
