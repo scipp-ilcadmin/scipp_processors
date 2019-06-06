@@ -316,19 +316,19 @@ void example::end()
       int big = (i+1)*(i+1);
       int little = i*i;
       int diff = (big-little);
-      negeocc[0]->SetBinContent(i, ((negeradvals[0]->GetBinContent(i) / 9) * 0.0004) / ((M_PI*diff)-(16*e1gap)));
-      negeocc[1]->SetBinContent(i, ((negeradvals[1]->GetBinContent(i) / 9) * 0.0004) / ((M_PI*diff)-(16*e2gap)));
-      negeocc[2]->SetBinContent(i, ((negeradvals[2]->GetBinContent(i) / 9) * 0.0004) / ((M_PI*diff)-(16*e3gap)));
-      negeocc[3]->SetBinContent(i, ((negeradvals[3]->GetBinContent(i) / 9) * 0.0004) / ((M_PI*diff)-(16*e4gap)));
-      poseocc[0]->SetBinContent(i, ((poseradvals[0]->GetBinContent(i) / 9) * 0.0004) / ((M_PI*diff)-(16*e1gap)));
-      poseocc[1]->SetBinContent(i, ((poseradvals[1]->GetBinContent(i) / 9) * 0.0004) / ((M_PI*diff)-(16*e2gap)));
-      poseocc[2]->SetBinContent(i, ((poseradvals[2]->GetBinContent(i) / 9) * 0.0004) / ((M_PI*diff)-(16*e3gap)));
-      poseocc[3]->SetBinContent(i, ((poseradvals[3]->GetBinContent(i) / 9) * 0.0004) / ((M_PI*diff)-(16*e4gap)));
-      onedimeocc->SetBinContent(i, ((onedimenegrvals->GetBinContent(i) /9) * 0.0004) / ((M_PI*diff)-(16*e2gap)));
-      predeocc[0]->SetBinContent(i, ((predrvals[0]->GetBinContent(i)/9) * 0.0004) / ((M_PI*diff)-(16*e1gap)));
-      predeocc[1]->SetBinContent(i, ((predrvals[1]->GetBinContent(i)/9) * 0.0004) / ((M_PI*diff)-(16*e1gap)));
-      predeocc[2]->SetBinContent(i, ((predrvals[2]->GetBinContent(i)/9) * 0.0004) / ((M_PI*diff)-(16*e1gap)));
-      predeocc[3]->SetBinContent(i, ((predrvals[3]->GetBinContent(i)/9) * 0.0004) / ((M_PI*diff)-(16*e1gap)));
+      negeocc[0]->SetBinContent(i, ((negeradvals[0]->GetBinContent(i) / 9) * 0.0004) / ((M_PI*diff)));
+      negeocc[1]->SetBinContent(i, ((negeradvals[1]->GetBinContent(i) / 9) * 0.0004) / ((M_PI*diff)));
+      negeocc[2]->SetBinContent(i, ((negeradvals[2]->GetBinContent(i) / 9) * 0.0004) / ((M_PI*diff)));
+      negeocc[3]->SetBinContent(i, ((negeradvals[3]->GetBinContent(i) / 9) * 0.0004) / ((M_PI*diff)));
+      poseocc[0]->SetBinContent(i, ((poseradvals[0]->GetBinContent(i) / 9) * 0.0004) / ((M_PI*diff)));
+      poseocc[1]->SetBinContent(i, ((poseradvals[1]->GetBinContent(i) / 9) * 0.0004) / ((M_PI*diff)));
+      poseocc[2]->SetBinContent(i, ((poseradvals[2]->GetBinContent(i) / 9) * 0.0004) / ((M_PI*diff)));
+      poseocc[3]->SetBinContent(i, ((poseradvals[3]->GetBinContent(i) / 9) * 0.0004) / ((M_PI*diff)));
+      onedimeocc->SetBinContent(i, ((onedimenegrvals->GetBinContent(i) /9) * 0.0004) / ((M_PI*diff)));
+      predeocc[0]->SetBinContent(i, ((predrvals[0]->GetBinContent(i)/9) * 0.0004) / ((M_PI*diff)));
+      predeocc[1]->SetBinContent(i, ((predrvals[1]->GetBinContent(i)/9) * 0.0004) / ((M_PI*diff)));
+      predeocc[2]->SetBinContent(i, ((predrvals[2]->GetBinContent(i)/9) * 0.0004) / ((M_PI*diff)));
+      predeocc[3]->SetBinContent(i, ((predrvals[3]->GetBinContent(i)/9) * 0.0004) / ((M_PI*diff)));
     }
   _rootfile->Write();
 }
