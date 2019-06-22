@@ -120,8 +120,19 @@ void example::init()
       bocc[i] = new TH1D(Form("bocc%d", i+1), "Occupancy of Barrel Layers; z (mm)", 140, -70, 70);
       negbphigone[i] = new TH1D(Form("negbphigone%d", i+1), "Predicted Occupancy of Barrel Layers; z (mm)", 140, -70, 70);
       predbocc[i] = new TH1D(Form("predbocc%d", i+1), "Predicted Occupancy of Barrel Layer; z (mm)", 140, -70, 70);
-      bzgone[i] = new TH1D(Form("bzgone%d", i+1), "Collapsed in Z; Angular Value of Hits", 470, -3.5, 3.5);
+      //bzgone[i] = new TH1D(Form("bzgone%d", i+1), "Phi Distribution of Hits for Barrel Layer; Phi Angle", 470, -3.5, 3.5);
+      //bzgone[i]->SetYTitle("Number of Hits");
     }
+  bzgone[0] = new TH1D("bzgone1", "Phi Distribution of Hits for Barrel Layer 1; Phi Angle", 470, -3.5, 3.5);
+  bzgone[1] = new TH1D("bzgone2", "Phi Distribution of Hits for Barrel Layer 2; Phi Angle", 470, -3.5, 3.5);
+  bzgone[2] = new TH1D("bzgone3", "Phi Distribution of Hits for Barrel Layer 3; Phi Angle", 470, -3.5, 3.5);
+  bzgone[3] = new TH1D("bzgone4", "Phi Distribution of Hits for Barrel Layer 4; Phi Angle", 470, -3.5, 3.5);
+  bzgone[4] = new TH1D("bzgone5", "Phi Distribution of Hits for Barrel Layer 5; Phi Angle", 470, -3.5, 3.5);
+  bzgone[0]->SetYTitle("Number of Hits");
+  bzgone[1]->SetYTitle("Number of Hits");
+  bzgone[2]->SetYTitle("Number of Hits");
+  bzgone[3]->SetYTitle("Number of Hits");
+  bzgone[4]->SetYTitle("Number of Hits");
   bphigone[0]->SetFillColor(kBlue);
   bphigone[0]->SetFillStyle(3001);
   bphigone[1]->SetFillColor(kCyan);
