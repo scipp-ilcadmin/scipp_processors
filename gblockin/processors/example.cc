@@ -106,12 +106,12 @@ void example::init()
   allzvals = new TH1D("allzvals", "Z Distribution of hits; z (mm)", 200, -200, 200);
   onedimbzvals = new TH1D("onedimbzvals", "Z Component of Barrel Array Hits; (mm)", 200, -65, 65);
   onedimbphivals = new TH1D("onedimbphivals", "Angular Distribution of Barrel Array Hits", 200, -3.5, 3.5);
-  onedimeposrvals = new TH1D("onedimeposrvals", "Positive End-Cap Array Radial Distribution of Hits; (mm) from origin", 80, 0, 80);
-  onedimenegrvals = new TH1D("onedimenegrvals", "Negative End-Cap Array Radial Distribution of Hits; (mm) from origin", 80, 0, 80);
-  onedimepostvals = new TH1D("onedimepostvals", "Positive End-Cap Array Angular Distribution of Hits; Angle in Radians", 200, -3.5, 3.5);
-  onedimenegtvals = new TH1D("onedimenegtvals", "Negative End-Cap Array Angular Distribution of Hits; Angle in Radians", 200, -3.5, 3.5);
-  onedimeposzvals = new TH1D("onedimeposzvals", "Positive End-Cap Array Z Component Distribution of Hits", 200, -10, 250);
-  onedimenegzvals = new TH1D("onedimenegzvals", "Negative End-Cap Array Z Component Distribution of Hits", 200, -250, 10);
+  onedimeposrvals = new TH1D("onedimeposrvals", "Positive End-Cap Radial Distribution of Hits; (mm) from origin", 80, 0, 80);
+  onedimenegrvals = new TH1D("onedimenegrvals", "Negative End-Cap Radial Distribution of Hits; (mm) from origin", 80, 0, 80);
+  onedimepostvals = new TH1D("onedimepostvals", "Positive End-Cap Angular Distribution of Hits; Angle in Radians", 200, -3.5, 3.5);
+  onedimenegtvals = new TH1D("onedimenegtvals", "Negative End-Cap Angular Distribution of Hits; Angle in Radians", 200, -3.5, 3.5);
+  onedimeposzvals = new TH1D("onedimeposzvals", "Positive End-Cap Z Component Distribution of Hits", 200, -10, 250);
+  onedimenegzvals = new TH1D("onedimenegzvals", "Negative End-Cap Z Component Distribution of Hits", 200, -250, 10);
   onedimeocc = new TH1D("onedimeocc","BLERGH", 80, 0, 80);
   etotzvals = new TH1D("etotzvals", "End-Cap Array Z Component Distribution of Hits; (mm)", 200, -250, 250);
   for (int i=0; i < 5; ++i)
@@ -143,6 +143,29 @@ void example::init()
   bphigone[3]->SetFillStyle(3010);
   bphigone[4]->SetFillColor(kRed);
   bphigone[4]->SetFillStyle(3013);
+  bocc[0]->SetFillColor(kBlue);
+  bocc[0]->SetFillStyle(3001);
+  bocc[1]->SetFillColor(kCyan);
+  bocc[1]->SetFillStyle(3004);
+  bocc[2]->SetFillColor(kGreen);
+  bocc[2]->SetFillStyle(3007);
+  bocc[3]->SetFillColor(kOrange);
+  bocc[3]->SetFillStyle(3010);
+  bocc[4]->SetFillColor(kRed);
+  bocc[4]->SetFillStyle(3013);
+  predbocc[0]->SetFillColor(kBlue);
+  predbocc[0]->SetFillStyle(3001);
+  predbocc[1]->SetFillColor(kCyan);
+  predbocc[1]->SetFillStyle(3004);
+  predbocc[2]->SetFillColor(kGreen);
+  predbocc[2]->SetFillStyle(3007);
+  predbocc[3]->SetFillColor(kOrange);
+  predbocc[3]->SetFillStyle(3010);
+  predbocc[4]->SetFillColor(kRed);
+  predbocc[4]->SetFillStyle(3013);
+  onedimeposrvals->SetYTitle("Number of Hits");
+  onedimenegrvals->SetYTitle("Number of Hits");
+  
   for (int i =0; i <4; ++i)
     {
       ethetagonepos[i] =  new TH1D(Form("ethetagonepos%d", i+1), "Collapsed in Theta; Z value of Hits", 100, -200, 200);
@@ -159,6 +182,32 @@ void example::init()
       predeocc[i] = new TH1D(Form("predeocc%d", i+1), "Predicted Bin Occupancy of End-Cap Layers; r (mm)", 80, 0, 80);
       predrvals[i] = new TH1D(Form("predrvals%d", i+1), "predicted amount of rvals", 80, 0, 80);
     }
+
+  negeocc[0]->SetFillColor(kBlue);
+  negeocc[0]->SetFillStyle(3001);
+  negeocc[1]->SetFillColor(kCyan);
+  negeocc[1]->SetFillStyle(3004);
+  negeocc[2]->SetFillColor(kGreen);
+  negeocc[2]->SetFillStyle(3007);
+  negeocc[3]->SetFillColor(kOrange);
+  negeocc[3]->SetFillStyle(3010);
+  poseocc[0]->SetFillColor(kBlue);
+  poseocc[0]->SetFillStyle(3001);
+  poseocc[1]->SetFillColor(kCyan);
+  poseocc[1]->SetFillStyle(3004);
+  poseocc[2]->SetFillColor(kGreen);
+  poseocc[2]->SetFillStyle(3007);
+  poseocc[3]->SetFillColor(kOrange);
+  poseocc[3]->SetFillStyle(3010);
+  predeocc[0]->SetFillColor(kBlue);
+  predeocc[0]->SetFillStyle(3001);
+  predeocc[1]->SetFillColor(kCyan);
+  predeocc[1]->SetFillStyle(3004);
+  predeocc[2]->SetFillColor(kGreen);
+  predeocc[2]->SetFillStyle(3007);
+  predeocc[3]->SetFillColor(kOrange);
+  predeocc[3]->SetFillStyle(3010);
+
   _nEvt = 0;
 }
 
